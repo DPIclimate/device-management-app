@@ -61,12 +61,10 @@ function LocationCard({data}) {
                 }
                 else{
                     data.location = response['locations']['user']
-                    console.log(data.location)
                     setLoadingState(false)
                 }
             }
             catch(error){
-                console.log("An error occured", error)
                 error.alertWithCode()
                 setLoadingState(false)
 

@@ -68,7 +68,7 @@ function CommCard({commData}) {
                             <Text>SNR</Text>
                         </Col>
                         <Col size={2}>
-                            <Text>M_Type</Text>
+                            <Text>Msg_Type</Text>
                         </Col>
                     </Row>
                     {rows}

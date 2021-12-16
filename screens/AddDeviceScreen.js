@@ -29,11 +29,9 @@ const AddDeviceScreen = ({ route, navigation }) => {
     const [isLoading, setLoadingState] = useState(false)
 
     const [location, setLocation] = useState();
-    const [locGranted, setGranted] = useState(false);
+    const [locGranted, setLocGranted] = useState(false);
     const [isEnabled, setIsEnabled] = useState(false);
 
-    const [deployDisabled, setDisabled] = useState(false)
-    
     const [appIdValid, setAppIdValid] = useState(true)
     const [uidValid, setUIDValid] = useState(true)
     const [nameValid, setNameValid] = useState(true)
@@ -45,7 +43,6 @@ const AddDeviceScreen = ({ route, navigation }) => {
             if (data != null){
                 
                 for (let item in data){
-                    console.log(item)
                     if (item == 'appID'){
                         onAppIDChange(data['appID'])
                     }else if (item == 'uid'){
@@ -70,10 +67,8 @@ const AddDeviceScreen = ({ route, navigation }) => {
 
         if (isEnabled == false){
             setLoadingState(true)
-            setDisabled(true)
             await getLocation()
             setLoadingState(false)
-            setDisabled(false)
         }
     }
     
@@ -82,23 +77,21 @@ const AddDeviceScreen = ({ route, navigation }) => {
         let { status } = await Location.requestForegroundPermissionsAsync();
         
         if (status == 'granted'){
-            setGranted(true)
-            console.log("Getting location")
+            setLocGranted(true)
             let loc = await Location.getCurrentPositionAsync({});
-            console.log("location received", loc)
             setLocation(loc);
             
         }else{
-            setGranted(false)
+            setLocGranted(false)
         }
     }
     const onEUIChangeHandler= (text)=>{
         let chars = [...text]
 
         //Separete every two characters with a dash
-        for (let i =0; i<chars.length; i++){
-            if ((i+1)%3==0 && chars[i] != '-'){
-                chars.splice(i,0,"-")
+        for (let i = 1; i < chars.length; i++){
+            if ((i % 3 == 0 && chars[i] != '-'){
+                chars.splice(i, 0, "-")
             }
         }
         text= chars.join('')
@@ -107,6 +100,7 @@ const AddDeviceScreen = ({ route, navigation }) => {
 
     const allowedChars = new RegExp('^[a-z0-9](?:[-]?[a-z0-9]){2,}$')
 
+	// TODO Remove this and add to config.json (or make a new .env file)
     const headers={
         'Authorization':'Bearer NNSXS.CJAQHSI436F4QT257PAFR3LFRS2I63ADXWUP5MQ.F4357X5HH67WIJ3MTSKP4WXMIV3UK7RX5WZWTPYHTLRKHM4WD7GA'
     }
@@ -120,7 +114,7 @@ const AddDeviceScreen = ({ route, navigation }) => {
 
     const checkInputs = () =>{
         //Checks inputed values to determine validity
-        if (!allowedChars.test(appID) && appID.length >=3 || appID.length <3 && appID.length != 0){
+        if (!allowedChars.test(appID) && appID.length >= 3 || appID.length < 3 && appID.length != 0){
             setAppIdValid(false)
             validInputDict['appID'] = false
         }
@@ -133,7 +127,7 @@ const AddDeviceScreen = ({ route, navigation }) => {
         }
 
         const devName = deviceName.toLowerCase()
-        if (!allowedChars.test(devName) && devName.length >=3 || devName.length <3 && devName.length!=0){
+        if (!allowedChars.test(devName) && devName.length >= 3 || devName.length < 3 && devName.length!=0){
             setNameValid(false)
             validInputDict['devName'] = false
         }
@@ -146,7 +140,7 @@ const AddDeviceScreen = ({ route, navigation }) => {
         }
 
         const eui = deviceEUI.toLowerCase()
-        if(!allowedChars.test(eui) && eui.length >=3 || eui.length != 23 && eui.length != 0){
+        if(!allowedChars.test(eui) && eui.length >= 3 || eui.length != 23 && eui.length != 0){
             setEUIValid(false)
             validInputDict['devEUI'] = false
         } 
@@ -156,7 +150,7 @@ const AddDeviceScreen = ({ route, navigation }) => {
         }
 
         const uid = deviceUID.toLowerCase()
-        if (!allowedChars.test(uid) && uid.length >=3 || uid.length != 6 && uid.length != 0){
+        if (!allowedChars.test(uid) && uid.length >= 3 || uid.length != 6 && uid.length != 0){
             setUIDValid(false)
             validInputDict['devUID'] = false
         }
@@ -170,7 +164,7 @@ const AddDeviceScreen = ({ route, navigation }) => {
     }
     const AppID = () =>{
         //TODO check ttn for valid app id
-        if (!allowedChars.test(appID) && appID.length >=3){
+        if (!allowedChars.test(appID) && appID.length >= 3){
             return <Text style={{color:'red'}}>Illegal character(s) present</Text>
         }
         else if (appID.length <3 && appID.length != 0){
@@ -207,7 +201,7 @@ const AddDeviceScreen = ({ route, navigation }) => {
     const DevUID = () =>{
 
         const uid = deviceUID.toLowerCase()
-        if (!allowedChars.test(uid) && uid.length >=3){
+        if (!allowedChars.test(uid) && uid.length >= 3){
             return <Text style={{color:'red'}}>Illegal character(s) present</Text>
         }
         else if (uid.length != 6 && uid.length != 0){
@@ -216,7 +210,6 @@ const AddDeviceScreen = ({ route, navigation }) => {
         return null
     }
     const handleButtonPress = async () =>{
-        console.log("pressed")
         setLoadingState(true)
 
         for (const item in validInputDict){
@@ -226,7 +219,6 @@ const AddDeviceScreen = ({ route, navigation }) => {
                 return null
             }
         }
-        console.log('passed input validation')
         const flag = await checkDetails()
         flag == true ? registerDevice() : setLoadingState(false)
 
@@ -244,7 +236,6 @@ const AddDeviceScreen = ({ route, navigation }) => {
 
         }).catch((error) =>{ 
             error.alertWithCode()
-            console.log('this error')
             setLoadingState(false)
             return null
         })
@@ -264,7 +255,6 @@ const AddDeviceScreen = ({ route, navigation }) => {
                 uidList.push(device['attributes']['uid'])
 
             }catch(error){//Error may occur if device does not have uid
-                console.log(error, "moving on")
             }
         }
         try{
@@ -298,7 +288,6 @@ const AddDeviceScreen = ({ route, navigation }) => {
                     },
                     {
                         text:'No',
-                        onPress:() => console.log("No")
                     }
                 ])
                 return false
@@ -329,7 +318,6 @@ const AddDeviceScreen = ({ route, navigation }) => {
         }
         else if(locGranted == true){ 
             loc = location
-            console.log('location was received in effect')
         }
 
         if (isEnabled == true){
@@ -344,7 +332,6 @@ const AddDeviceScreen = ({ route, navigation }) => {
             }
             body['field_mask']['paths'].push('locations')
         }
-        console.log(body)
 
         try{
             const url =  `${config.ttnBaseURL}/${appID}/devices/${deviceName}`
@@ -354,7 +341,6 @@ const AddDeviceScreen = ({ route, navigation }) => {
                 body:JSON.stringify(body)
             }).then((response) => response.json())
 
-            console.log(response)
             if ('code' in response){
                 //If key code exists then an error occured
                 throw new Error(json['code'], json['message'], deviceName)
@@ -365,7 +351,6 @@ const AddDeviceScreen = ({ route, navigation }) => {
             }
         }
         catch(error){
-            console.log("An error occured", error)
             error.alertWithCode()
             setLoadingState(false)
         }
@@ -388,7 +373,6 @@ const AddDeviceScreen = ({ route, navigation }) => {
         }
         else if(locGranted == true){ 
             loc = location
-            console.log('location was received in effect')
         }
 
         //Compose device information
@@ -410,9 +394,7 @@ const AddDeviceScreen = ({ route, navigation }) => {
             }
         }
         
-        // console.log(data)
         try{
-            console.log('making request')
 
             const url = `${config.ttnBaseURL}/${appID}/devices`
             let json = await fetch(url,
@@ -421,7 +403,6 @@ const AddDeviceScreen = ({ route, navigation }) => {
                     headers:headers,
                     body:JSON.stringify(data)
                 },
-                // console.log(JSON.stringify(data))
             ).then((response) => response.json())
 
             if ('code' in json){
@@ -434,7 +415,6 @@ const AddDeviceScreen = ({ route, navigation }) => {
             }
         }
         catch (error){
-            console.log("An error occured", error)
             error.alertWithCode()
             setLoadingState(false)
 
@@ -444,7 +424,6 @@ const AddDeviceScreen = ({ route, navigation }) => {
 
         //Request EUI from ttn
         let url = `${config.ttnBaseURL}/${appID}/dev-eui`
-        console.log(url)
         let json = await fetch(url,{
             method:'POST',
             headers: headers
@@ -514,7 +493,7 @@ const AddDeviceScreen = ({ route, navigation }) => {
                         </View>
                     </View>
                     
-                    <Pressable style={[globalStyles.button, styles.buttonLocation]} onPress={handleButtonPress} disabled={deployDisabled}>
+                    <Pressable style={[globalStyles.button, styles.buttonLocation]} onPress={handleButtonPress} disabled={isLoading}>
                         <Text style={globalStyles.buttonText}>Deploy</Text>
                     </Pressable>
                 </View>
