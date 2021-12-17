@@ -1,9 +1,9 @@
-import React, {useState} from 'react';
+import React, {useRef, useState} from 'react';
 import Card from '../shared/Card';
 import { Col, Row, Grid } from "react-native-easy-grid";
 import { Text, StyleSheet, Switch, View, Image, TouchableHighlight, Alert, ActivityIndicator } from 'react-native';
 import globalStyles from '../styles';
-import MapView, {Marker, PROVIDER_GOOGLE} from 'react-native-maps';
+import MapView, {Marker, PROVIDER_GOOGLE, Circle} from 'react-native-maps';
 import * as Location from 'expo-location';
 import config from '../config';
 import Error from '../shared/ErrorClass'
@@ -13,6 +13,7 @@ function LocationCard({data}) {
     const [isEnabled, setIsEnabled] = useState(true);
     const [mapType, setMapType] = useState('satellite')
     const [isLoading, setLoadingState] = useState(false)
+    const circleRef = useRef(null)
 
     const toggleSwitch = () => {
         isEnabled == false ? setMapType('satellite') : setMapType('terrain')
@@ -120,6 +121,7 @@ function LocationCard({data}) {
                 <MapView style={styles.map}
                         mapType={mapType}
                         provider={PROVIDER_GOOGLE}
+                        showsUserLocation={true}
                         region={{
                             latitude: data.location['latitude'],
                             longitude: data.location['longitude'],
@@ -127,6 +129,7 @@ function LocationCard({data}) {
                             longitudeDelta: 0.003,
                         }}>
                             <Marker coordinate={{latitude: data.location['latitude'], longitude: data.location['longitude']}}/>
+                            <Circle center={{latitude: data.location['latitude'], longitude: data.location['longitude']}} radius={data.location['accuracy']}/>
                     </MapView>
                     <View style={{paddingTop:20, flexDirection:'row', justifyContent:'space-between', alignItems:'center'}}>
                         <Text style={{fontSize:15, fontWeight:'bold'}}>Satellite</Text>

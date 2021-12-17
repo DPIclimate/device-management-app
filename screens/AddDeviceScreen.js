@@ -17,6 +17,7 @@ import newDeviceData from '../repositories/newDeviceData';
 import * as Location from 'expo-location';
 import { Switch } from 'react-native-gesture-handler';
 import Error from '../shared/ErrorClass'
+import LoadingComponent from '../shared/LoadingComponent';
 
 
 const AddDeviceScreen = ({ route, navigation }) => {
@@ -106,10 +107,6 @@ const AddDeviceScreen = ({ route, navigation }) => {
     }
 
     const allowedChars = new RegExp('^[a-z0-9](?:[-]?[a-z0-9]){2,}$')
-
-    const headers={
-        'Authorization':'Bearer NNSXS.CJAQHSI436F4QT257PAFR3LFRS2I63ADXWUP5MQ.F4357X5HH67WIJ3MTSKP4WXMIV3UK7RX5WZWTPYHTLRKHM4WD7GA'
-    }
 
     let validInputDict = {
         'appID':false,
@@ -236,7 +233,7 @@ const AddDeviceScreen = ({ route, navigation }) => {
         let url =  `${config.ttnBaseURL}/${appID}/devices?field_mask=attributes`
         let response = await fetch(url,{
             method:"GET",
-            headers:headers
+            headers:config.headers
         }).then((response) => response.json())
         .then((response) =>{
             if ('code' in response) throw new Error(response['code'], response['message'], deviceName)
@@ -418,7 +415,7 @@ const AddDeviceScreen = ({ route, navigation }) => {
             let json = await fetch(url,
                 {
                     method:'POST',
-                    headers:headers,
+                    headers:config.headers,
                     body:JSON.stringify(data)
                 },
                 // console.log(JSON.stringify(data))
@@ -447,7 +444,7 @@ const AddDeviceScreen = ({ route, navigation }) => {
         console.log(url)
         let json = await fetch(url,{
             method:'POST',
-            headers: headers
+            headers: config.headers
         }).then((response) => response.json())
         return json['dev_eui'];
     }
@@ -458,15 +455,6 @@ const AddDeviceScreen = ({ route, navigation }) => {
         onDeviceEUIChange("")
         setLoadingState(false)
         route.params = undefined
-    }
-    const Loading = () =>{
-
-        if (isLoading == true){
-            return <ActivityIndicator size="large"/>
-        }
-        else{
-            return <View/>
-        }
     }
     
     return (
@@ -518,7 +506,7 @@ const AddDeviceScreen = ({ route, navigation }) => {
                         <Text style={globalStyles.buttonText}>Deploy</Text>
                     </Pressable>
                 </View>
-                <Loading/>
+                <LoadingComponent loading={isLoading}/>
             </ScrollView>
         </SafeAreaView>
     );

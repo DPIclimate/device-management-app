@@ -16,6 +16,7 @@ import DeviceCard from './DeviceCard';
 import CommCard from './CommCard';
 import LocationCard from './LocationCard';
 import config from '../config';
+import LoadingComponent from '../shared/LoadingComponent';
 
 const ManageDevices = ({route, navigation}) => {
 
@@ -31,19 +32,25 @@ const ManageDevices = ({route, navigation}) => {
     const orangeCirle = require('../assets/orangeCircle.png')
     const [circleImg, changeCirlce] = useState(greenCircle)
     const [isLoading, setLoadingState] = useState(false)
-
+    const [autoSearch, setAutoSearch] = useState(false)
 
     useEffect(() =>{
         collectedChange(false)
     },[appID, deviceUID])
 
     useEffect(() =>{
+        handlePress()
+    },[autoSearch])
+
+    useEffect(() =>{
         if (route.params != undefined){
-            let data = route.params.qr_value
+            let data = route.params.autofill
+            console.log(data)
             if (data != null){
                 appIDChange(data['appID'])
                 uidChange(data['uid'])
                 route.params = undefined
+                setAutoSearch(true)
             }
         }
     })
@@ -180,9 +187,11 @@ const ManageDevices = ({route, navigation}) => {
         return [localDate, localTime, date]
     }
 
-    const handlePress = async() =>{
+    const handlePress = async(autoSearch) =>{
+
         setLoadingState(true)
         if (appID.length != 0 && deviceUID.length != 0){
+            console.log('here')
             const dData = await getDataDevice()
             if (dData != null){
                 const cData = await getCommData(dData)
@@ -207,15 +216,6 @@ const ManageDevices = ({route, navigation}) => {
                     </Text>
                 </View>
             )
-        }
-        else{
-            return <View/>
-        }
-    }
-    const Loading = () =>{
-
-        if (isLoading == true){
-            return <ActivityIndicator style={{paddingTop:'10%'}} size="large"/>
         }
         else{
             return <View/>
@@ -264,7 +264,7 @@ const ManageDevices = ({route, navigation}) => {
                     </View>
                     <ShowData/>  
                 </View>
-                    <Loading/>
+                    <LoadingComponent loading={isLoading}/>
             </ScrollView>
         </View>
     );

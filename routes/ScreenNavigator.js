@@ -8,7 +8,8 @@ import {
   AddDeviceScreen,
   QrScanner,
   ManageDevices,
-  HomeScreen
+  Applications,
+  Devices,
 } from '../screens/index';
 
 const { Screen, Navigator } = createStackNavigator();
@@ -20,7 +21,7 @@ const { Screen, Navigator } = createStackNavigator();
 function ScreenStack() {
   return (
     <Navigator
-      initialRouteName="HomeScreen"
+      initialRouteName="Applications"
       screenOptions={{
         headerStyle: {
           backgroundColor: '#063f5c',
@@ -34,9 +35,14 @@ function ScreenStack() {
       }}
     >
       <Screen
-        name='HomeScreen'
-        component={HomeScreen}
-        options={{ title: 'Home Screen'}}
+        name='Applications'
+        component={Applications}
+        options={{ title: 'Browse Devices'}}
+      />
+      <Screen
+        name='Devices'
+        component={Devices}
+        options={{ title: 'Browse Devices'}}
       />
       <Screen
         name='AddDeviceScreen'

@@ -42,6 +42,16 @@ const globalStyles = StyleSheet.create({
     cardRow:{
         paddingTop:10
 
+    },
+    text:{
+        fontSize:14
+    },
+    title:{
+        fontSize:20,
+        paddingTop:20,
+        width:'100%',
+        alignItems:'flex-end',
+        fontWeight:'bold',
     }
   });
   
