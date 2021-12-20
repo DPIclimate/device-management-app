@@ -24,7 +24,6 @@ function Applications({navigation}) {
         }).then((response) => response.json())
 
         response = response['applications']
-        console.log(response)
         const apps = response.map((app) => app['ids']['application_id'])
         changeData(apps)
         setLoading(false)
@@ -33,7 +32,7 @@ function Applications({navigation}) {
     
     const renderItem = ({ item }) => (
         <Card>
-            <TouchableOpacity style={{flexDirection:'row', alignItems:'center', justifyContent:'space-between', width:'100%', height:30}} onPress={() => navigation.navigate('Devices',{device: item})}>
+            <TouchableOpacity style={{flexDirection:'row', alignItems:'center', justifyContent:'space-between', width:'100%', height:30}} onPress={() => navigation.navigate('Devices',{application_id: item})}>
                 <Text style={globalStyles.text}>{item}</Text>
                 <Image source={require('../assets/arrow.png')} style={{height:20, width:20}}/>
             </TouchableOpacity>

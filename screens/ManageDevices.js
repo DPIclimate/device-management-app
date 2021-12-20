@@ -26,6 +26,7 @@ const ManageDevices = ({route, navigation}) => {
 
     const [devData, changeDevData] = useState({})
     const [commData, changeCommData] = useState({})
+    const [requestData, changeRequestData] = useState({})
     const [dataCollected, collectedChange] = useState(false)
     const greenCircle = require('../assets/greenCircle.png')
     const redCirle = require('../assets/redCircle.png')
@@ -33,6 +34,7 @@ const ManageDevices = ({route, navigation}) => {
     const [circleImg, changeCirlce] = useState(greenCircle)
     const [isLoading, setLoadingState] = useState(false)
     const [autoSearch, setAutoSearch] = useState(false)
+    const [uidPresent, setUIDpresent] = useState(true)
 
     useEffect(() =>{
         collectedChange(false)
@@ -45,21 +47,68 @@ const ManageDevices = ({route, navigation}) => {
     useEffect(() =>{
         if (route.params != undefined){
             let data = route.params.autofill
-            console.log(data)
+
             if (data != null){
                 appIDChange(data['appID'])
-                uidChange(data['uid'])
                 route.params = undefined
                 setAutoSearch(true)
+
+                if (data['uidPresent'] == true){
+                    uidChange(data['uid'])
+                    changeRequestData(data)
+                    setUIDpresent(true)
+                }
+                else{
+                    setUIDpresent(false)
+                    changeRequestData(data)
+                }
             }
         }
     })
 
-    const getDataDevice = async() => {
+    const getDeviceData = async() => {
 
-        // Problem of cant lookup current devices as they dont have a uid set
+            let requestedDevice = null
+
+            if (uidPresent == true){
+                requestedDevice = await getDeviceWithUID()
+            }
+            else{
+                requestedDevice = await getDeviceNoUID()
+            }
+
+            console.log(requestedDevice)
+            if (requestedDevice != null){
+                const applicationID = requestedDevice['ids']['application_ids']['application_id']
+                let devUID = null
+                if(requestData['uidPresent'] ==true) devUID = requestedDevice['attributes']['uid'] 
+                const devName = requestedDevice['ids']['device_id']
+                const devEui = requestedDevice['ids']['dev_eui']
+                const dateCreate = new Date(requestedDevice['created_at'])
+                const created = dateCreate.toLocaleString('en-GB')
+
+                const ttn_link = `https://au1.cloud.thethings.network/console/applications/${applicationID}/devices/${devName}`
+
+                let location = undefined 
+                requestedDevice['locations'] != undefined ? location = requestedDevice['locations']['user'] : location = undefined
+                
+                const data = {
+                    "appID":applicationID,
+                    'uid':devUID,
+                    'name':devName,
+                    'eui':devEui,
+                    'creationDate':created,
+                    'location':location,
+                    'ttn_link':ttn_link
+                }
+                console.log('finished')
+                return data
+            }
+        
+    }
+    const getDeviceWithUID = async() =>{
+        console.log('requesting device with a uid')
         try{
-            console.log('requesting devices')
             let url =  `${config.ttnBaseURL}/${appID}/devices?field_mask=attributes,locations`
             let response = await fetch(url,{
                 method:"GET",
@@ -87,37 +136,39 @@ const ManageDevices = ({route, navigation}) => {
             if (requestedDevice == undefined){
                 throw new Error()
             }
-
-            const applicationID = requestedDevice['ids']['application_ids']['application_id']
-            const devUID = requestedDevice['attributes']['uid']
-            const devName = requestedDevice['ids']['device_id']
-            const devEui = requestedDevice['ids']['dev_eui']
-            const dateCreate = new Date(requestedDevice['created_at'])
-
-            const created = dateCreate.toLocaleString('en-GB')
-
-            let location = undefined 
-            requestedDevice['locations'] != undefined ? location = requestedDevice['locations']['user'] : location = undefined
-            
-            const data = {
-                "appID":applicationID,
-                'uid':devUID,
-                'name':devName,
-                'eui':devEui,
-                'creationDate':created,
-                'location':location
-            }
-            console.log('finished')
-            return data
+            return requestedDevice
 
         }catch(error){
+            console.log(error)
             Alert.alert(`Device UID or Applicaiton ID is incorrect`)
             return null
         }
     }
+    const getDeviceNoUID = async() =>{
 
+        try{
+            console.log('requesting device without uid')
+            console.log(requestData)
+            let url =  `${config.ttnBaseURL}/${appID}/devices/${requestData.name}?field_mask=attributes,locations`
+            console.log(url)
+            let response = await fetch(url,{
+                method:"GET",
+                headers:config.headers
+            })
+            response = await response.json()
+            console.log(response)
+            if ('code' in response){
+                throw new Error()
+            }
+            return response
+        }
+        catch(error){
+            console.log(error)
+            Alert.alert("Invalid Device")
+            return null
+        }
+    }
     const getCommData = async(devData) =>{
-        let temp = ['aws-ict-atmos41', 'blayney-aws']
 
         console.log('requesting communication info')
         let url =  `https://au1.cloud.thethings.network/api/v3/ns/applications/${appID}/devices/${devData['name']}?field_mask=mac_state.recent_uplinks,pending_mac_state.recent_uplinks,session.started_at,pending_session`
@@ -160,8 +211,10 @@ const ManageDevices = ({route, navigation}) => {
                 changeLastSeen(`${Math.floor(diff)} min ago`)
             }else if (diff < 60){
                 changeLastSeen(`${Math.floor(diff)} mins ago`)
-            }else{
+            }else if (diff < 1440){
                 changeLastSeen(`${Math.floor(diff/60)} hour(s) ago`)
+            }else{
+                changeLastSeen(`${Math.floor(diff/60/24)} day(s) ago`)
             }
 
             if (diff/60 > 12){
@@ -190,14 +243,14 @@ const ManageDevices = ({route, navigation}) => {
     const handlePress = async(autoSearch) =>{
 
         setLoadingState(true)
-        if (appID.length != 0 && deviceUID.length != 0){
+        if (appID.length != 0 && deviceUID.length != 0 || uidPresent == false){
             console.log('here')
-            const dData = await getDataDevice()
+            const dData = await getDeviceData()
             if (dData != null){
                 const cData = await getCommData(dData)
-
                 changeDevData(dData)
                 changeCommData(cData)
+                console.log(cData)
                 collectedChange(true)
                 calcLastSeen(cData)
             }
@@ -239,6 +292,23 @@ const ManageDevices = ({route, navigation}) => {
             return <View/>
         }
     }
+    const SearchButton = () =>{
+
+        if (dataCollected == false){
+            return(
+            <Pressable style={[{width:120},globalStyles.button]} onPress={handlePress}>
+                <Text style={globalStyles.buttonText}>Search</Text>
+            </Pressable>
+            )
+        
+        }else{
+            return(
+                <Pressable style={[{width:140},globalStyles.button]} onPress={handlePress}>
+                <Text style={globalStyles.buttonText}>Refresh</Text>
+            </Pressable>
+            )
+        }
+    }
     return (
         <View style={globalStyles.screen}>
             <ScrollView style={globalStyles.scrollView}>
@@ -256,11 +326,8 @@ const ManageDevices = ({route, navigation}) => {
                     <Text style={styles.text}>Device UID</Text>
                     <TextInput value={deviceUID} placeholder='e.g ABC123 (Max. 6 Characters)' style={styles.input} onChangeText={uidChange} autoCorrect={false} autoCapitalize='none'/>
                     <View style={{paddingTop:15, flexDirection:'row', justifyContent:'space-between'}}>
-
                         <LastSeen/>
-                        <Pressable style={[{width:120},globalStyles.button]} onPress={handlePress}>
-                            <Text style={globalStyles.buttonText}>Search</Text>
-                        </Pressable>
+                        <SearchButton/>        
                     </View>
                     <ShowData/>  
                 </View>

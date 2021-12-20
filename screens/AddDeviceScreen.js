@@ -9,7 +9,6 @@ import {
     Image, 
     TouchableHighlight, 
     Alert,
-    ActivityIndicator,
     TextInput,
     Pressable} from 'react-native';
 import config from '../config';
@@ -42,7 +41,8 @@ const AddDeviceScreen = ({ route, navigation }) => {
 
     useEffect(() =>{
         if (route.params != undefined){
-            let data = route.params.qr_value
+            console.log(route.params)
+            let data = route.params.autofill
             if (data != null){
                 
                 for (let item in data){
@@ -393,7 +393,7 @@ const AddDeviceScreen = ({ route, navigation }) => {
         data["end_device"]["ids"]["dev_eui"] = eui
         data["end_device"]["ids"]["device_id"] = deviceName
         data["end_device"]['ids']["application_ids"]["application_id"] = appID
-        data['end_device']['attributes']['uid'] = deviceUID
+        data['end_device']['attributes']['uid'] = deviceUID.toUpperCase()
 
         if (isEnabled == true){
             data['end_device']['locations'] = {

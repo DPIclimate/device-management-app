@@ -1,7 +1,7 @@
 {
   "expo": {
-    "name": "estuaries",
-    "slug": "estuaries",
+    "name": "device-management-app",
+    "slug": "device-management-app",
     "version": "1.0.0",
     "orientation": "default",
     "icon": "./assets/icon.png",

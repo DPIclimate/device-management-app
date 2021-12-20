@@ -17,7 +17,7 @@ function Devices({route, navigation}) {
     },[])
 
     const getDevices = async () =>{
-        const url = `${config.ttnBaseURL}/${route.params.device}/devices`
+        const url = `${config.ttnBaseURL}/${route.params.application_id}/devices`
         let response = await fetch(url, {
             method:"GET",
             headers:config.headers
@@ -31,8 +31,8 @@ function Devices({route, navigation}) {
 
     const handlePress = async(device) =>{
 
-        const url = `${config.ttnBaseURL}/${route.params.device}/devices/${device}?field_mask=attributes`
-        console.log(url)
+        const url = `${config.ttnBaseURL}/${route.params.application_id}/devices/${device}?field_mask=attributes`
+
         let response = await fetch(url, {
             method:"GET",
             headers:config.headers
@@ -44,14 +44,39 @@ function Devices({route, navigation}) {
 
             let devData = {
                 'appID':application_id,
-                'uid':uid
+                'uid':uid,
+                'uidPresent':true
             }
             navigation.navigate('ManageDevices', {autofill:devData})
+
         }catch(error){
-            Alert.alert("No UID exists", "Please assign a UID to this device")
+            Alert.alert("No UID exists", "Would you like to assign a UID to this device?",[
+                {
+                    text:"Yes",
+                    onPress:() =>navigate(response, "AddDeviceScreen")
+                },
+                {
+                    text:"No",
+                    onPress:() => console.log("No")
+                },
+                {
+                    text: "View details",
+                    onPress:() => navigate(response, 'ManageDevices')
+                }
+            ])
         }
     }
+    
+    const navigate = (response, screen) =>{
 
+        let devData ={
+            'appID':response['ids']['application_ids']['application_id'],
+            'name':response['ids']['device_id'],
+            'eui':response['ids']['dev_eui'],
+            'uidPresent':false
+        }
+        navigation.navigate(screen,{autofill:devData})
+    }
     const renderItem = ({ item }) => (
         <Card>
             <TouchableOpacity style={{flexDirection:'row', alignItems:'center', justifyContent:'space-between', width:'100%', height:30}} onPress={() => handlePress(item)}>
@@ -63,7 +88,7 @@ function Devices({route, navigation}) {
 
     return (
         <View style={globalStyles.screen}>
-            <Text style={[styles.title,{padding:10}]}>Devices</Text>
+            <Text style={[styles.title,{padding:10}]}>{route.params.application_id} - Devices</Text>
             <LoadingComponent loading={isLoading}/>
                 <FlatList
                 style={[{flex:1},globalStyles.list]} 

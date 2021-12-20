@@ -95,7 +95,7 @@ function LocationCard({data}) {
         rows.push(<Row key={1}><RowTemplate title={'Latitude'} data={data.location['latitude']}/></Row>)
         rows.push(<Row key={2}><RowTemplate title={'Longitude'} data={data.location['longitude']}/></Row>)
         rows.push(<Row key={3}><RowTemplate title={'Altitude (m)'} data={data.location['altitude']}/></Row>)
-        rows.push(<Row key={4}><RowTemplate title={'Accuracy (m)'} data={data.location['accuracy']}/></Row>)
+        rows.push(<Row key={4}><RowTemplate title={'Accuracy (m)'} data={data.location['accuracy'] != undefined? data.location['accuracy']: null}/></Row>)
     }else{
         return (
         <Card>
