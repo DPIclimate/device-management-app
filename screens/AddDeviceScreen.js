@@ -10,13 +10,16 @@ import {
     TouchableHighlight, 
     Alert,
     TextInput,
-    Pressable} from 'react-native';
+    Pressable,
+    Platform,} from 'react-native';
 import config from '../config';
 import newDeviceData from '../repositories/newDeviceData';
 import * as Location from 'expo-location';
 import { Switch } from 'react-native-gesture-handler';
 import Error from '../shared/ErrorClass'
 import LoadingComponent from '../shared/LoadingComponent';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import NetInfo from "@react-native-community/netinfo";
 
 
 const AddDeviceScreen = ({ route, navigation }) => {
@@ -213,20 +216,71 @@ const AddDeviceScreen = ({ route, navigation }) => {
         return null
     }
     const handleButtonPress = async () =>{
-        console.log("pressed")
-        setLoadingState(true)
+        // console.log("pressed")
+        // setLoadingState(true)
 
-        for (const item in validInputDict){
-            if (validInputDict[item] == false){
-                Alert.alert("Invalid inputs", "Could not register device because one or more inputs were invalid.")
-                setLoadingState(false)
-                return null
-            }
+        // for (const item in validInputDict){
+        //     if (validInputDict[item] == false){
+        //         Alert.alert("Invalid inputs", "Could not register device because one or more inputs were invalid.")
+        //         setLoadingState(false)
+        //         return null
+        //     }
+        // }
+
+        const isConnected = await checkNetworkStatus()
+        if (!isConnected){
+            // console.log('passed input validation')
+            // const flag = await checkDetails()
+            // flag == true ? registerDevice() : setLoadingState(false)
         }
-        console.log('passed input validation')
-        const flag = await checkDetails()
-        flag == true ? registerDevice() : setLoadingState(false)
+        else{
+            Alert.alert("No internet connection", "Would you like to save the device for when you are back online?",[
+                {
+                    text:'Yes',
+                    onPress:() => saveDevice()
+                },
+                {
+                    text:'No',
+                    onPress:() => console.log('No')
+                }
+            ])
+        }
+        setLoadingState(false)
+    }
+    const saveDevice = async() =>{
 
+        let currentDevices = []
+
+        try{
+            const fromStore = await AsyncStorage.getItem('devices')
+            console.log('from storage', fromStore)
+
+        }catch(error){
+            console.log(error)
+        }
+
+        const data = await createDevice()
+        currentDevices.push(data)
+
+        try{
+            await AsyncStorage.setItem('devices', JSON.stringify(currentDevices))
+
+        }catch(error){
+            console.log(error)
+        }
+
+        try{
+            const fromStore = await AsyncStorage.getItem('devices')
+            console.log('from storage', fromStore)
+
+        }catch(error){
+            console.log(error)
+        }
+    }
+    const checkNetworkStatus = async() =>{
+
+        const isConnected = await NetInfo.fetch().then(state => state.isConnected)
+        return isConnected
     }
     const checkDetails = async () =>{
 
@@ -368,7 +422,7 @@ const AddDeviceScreen = ({ route, navigation }) => {
         }
 
     }
-    const registerDevice = async() =>{
+    const createDevice = async() =>{
 
         let eui = deviceEUI // Move dev eui to a mutable variable
         if (eui.length == 0){
@@ -388,8 +442,8 @@ const AddDeviceScreen = ({ route, navigation }) => {
             console.log('location was received in effect')
         }
 
-        //Compose device information
         let data = newDeviceData()
+
         data["end_device"]["ids"]["dev_eui"] = eui
         data["end_device"]["ids"]["device_id"] = deviceName
         data["end_device"]['ids']["application_ids"]["application_id"] = appID
@@ -406,6 +460,12 @@ const AddDeviceScreen = ({ route, navigation }) => {
                 }
             }
         }
+        return data
+    }
+    const registerDevice = async() =>{
+
+        //Compose device information
+       let data = createDevice()
         
         // console.log(data)
         try{

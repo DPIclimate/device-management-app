@@ -20,7 +20,7 @@ const RowContent = ({data}) =>{
                 <Text>{data.snr}</Text>
             </Col>
             <Col size={2}>
-                <Text>{data.m_type}</Text>
+                <Text numberOfLines={1} adjustsFontSizeToFit>{data.m_type}</Text>
             </Col>
         </Row>
     )

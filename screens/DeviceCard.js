@@ -21,7 +21,7 @@ function DeviceCard({data}) {
     }
     let rows = []
     rows.push(<Row key={1} style={globalStyles.cardRow}><RowTemplate title='Application ID' item={<Text style={{fontWeight:'bold'}}>{data.appID}</Text>}/></Row>)
-    rows.push(<Row key={2} style={globalStyles.cardRow}><RowTemplate title='Device UID' item={<Text>{data.uid}</Text>}/></Row>)
+    rows.push(<Row key={2} style={globalStyles.cardRow}><RowTemplate title='Device UID' item={<Text>{data.uid != null? data.uid:'-'}</Text>}/></Row>)
     rows.push(<Row key={3} style={globalStyles.cardRow}><RowTemplate title='Device Name' item={<Text>{data.name}</Text>}/></Row>)
     rows.push(<Row key={4} style={globalStyles.cardRow}><RowTemplate title='Device EUI' item={<Text>{data.eui}</Text>}/></Row>)
     rows.push(<Row key={5} style={globalStyles.cardRow}><RowTemplate title='Date Created' item={<Text>{data.creationDate}</Text>}/></Row>)

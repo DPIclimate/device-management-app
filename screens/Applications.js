@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import {View, SafeAreaView, Pressable, Text, StyleSheet, TouchableOpacity, Image} from 'react-native'
+import {View, SafeAreaView, Pressable, Text, StyleSheet, TouchableOpacity, Image, TouchableHighlight} from 'react-native'
 import { FlatList } from 'react-native-gesture-handler';
 import globalStyles from '../styles';
 import config from '../config.json'
@@ -41,7 +41,12 @@ function Applications({navigation}) {
 
     return (
         <View style={globalStyles.screen}>
-            <Text style={[globalStyles.title,{padding:10}]}>Applications</Text>
+            <Text style={[globalStyles.title,{padding:10, paddingTop:25}]}>Applications</Text>
+            <View style={{width:45, height:45, position:'absolute', right:0, top:0, margin:10}} >
+                <TouchableHighlight acitveOpacity={0.6} underlayColor="#DDDDDD" onPress={() => console.log("offline pressed")}>
+                    <Image style={{width:'100%', height:'100%', borderRadius:50}} source={require('../assets/uploadFailed.png')}/>
+                </TouchableHighlight>
+            </View>
 
                 <LoadingComponent loading={isLoading}/>
 

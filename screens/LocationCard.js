@@ -3,7 +3,7 @@ import Card from '../shared/Card';
 import { Col, Row, Grid } from "react-native-easy-grid";
 import { Text, StyleSheet, Switch, View, Image, TouchableHighlight, Alert, ActivityIndicator } from 'react-native';
 import globalStyles from '../styles';
-import MapView, {Marker, PROVIDER_GOOGLE, Circle} from 'react-native-maps';
+import MapView, {Marker, PROVIDER_DEFAULT, Circle} from 'react-native-maps';
 import * as Location from 'expo-location';
 import config from '../config';
 import Error from '../shared/ErrorClass'
@@ -13,7 +13,6 @@ function LocationCard({data}) {
     const [isEnabled, setIsEnabled] = useState(true);
     const [mapType, setMapType] = useState('satellite')
     const [isLoading, setLoadingState] = useState(false)
-    const circleRef = useRef(null)
 
     const toggleSwitch = () => {
         isEnabled == false ? setMapType('satellite') : setMapType('terrain')
@@ -48,14 +47,15 @@ function LocationCard({data}) {
                 }
             }
             try{
+                console.log('requesting loc data')
                 const url =  `${config.ttnBaseURL}/${data.appID}/devices/${data.name}`
                 const response = await fetch(url,{
                     method:"PUT",
                     headers:config.headers,
                     body:JSON.stringify(body)
                 }).then((response) => response.json())
-    
                 console.log(response)
+
                 if ('code' in response){
                     //If key code exists then an error occured
                     throw new Error(json['code'], json['message'], deviceName)
@@ -77,6 +77,23 @@ function LocationCard({data}) {
             Alert.alert("Unable to update location","Unable to update location as location services have not been enabled")
         }
     }
+    const UpdateLocationIcon = () =>{
+        return (
+            <TouchableHighlight disabled={isLoading} acitveOpacity={0.6} underlayColor="#DDDDDD" onPress={() => 
+                Alert.alert("Update Location?","Update device location to your current location?",[
+                    {
+                        text:"Yes",
+                        onPress:() => updateLocation()
+                    },
+                    {
+                        text:"Cancel",
+                        onPress:() => console.log("Cenceled")
+                    }
+            ])}>
+                <Image style={{width:23, height:23, padding:5}} source={require('../assets/settingsIcon.png')}/>
+            </TouchableHighlight>
+        );
+    }
     const RowTemplate = ({title, data}) =>{
         return (
             <>
@@ -94,21 +111,31 @@ function LocationCard({data}) {
     if (data.location != undefined){
         rows.push(<Row key={1}><RowTemplate title={'Latitude'} data={data.location['latitude']}/></Row>)
         rows.push(<Row key={2}><RowTemplate title={'Longitude'} data={data.location['longitude']}/></Row>)
-        rows.push(<Row key={3}><RowTemplate title={'Altitude (m)'} data={data.location['altitude']}/></Row>)
-        rows.push(<Row key={4}><RowTemplate title={'Accuracy (m)'} data={data.location['accuracy'] != undefined? data.location['accuracy']: null}/></Row>)
+        rows.push(<Row key={3}><RowTemplate title={'Altitude (m)'} data={data.location['altitude'] != undefined? data.location['altitude']: "-"}/></Row>)
+        rows.push(<Row key={4}><RowTemplate title={'Accuracy (m)'} data={data.location['accuracy'] != undefined? data.location['accuracy']: "-"}/></Row>)
     }else{
         return (
         <Card>
-            <View style={{height:50}}>
+            <View style={{flexDirection:'row', justifyContent:'space-between', alignItems:'center'}}>
                 <Text style={globalStyles.cardTitle}>Location</Text>
+                <UpdateLocationIcon/>
+            </View>
                 <Row>
                     <Text>
                     No location information available
                     </Text>
                 </Row>
-                </View>
             </Card>
         )
+    }
+    const AccuracyCircle = () =>{
+        if (data.location['accuracy'] != undefined){
+            return <Circle center={{latitude: data.location['latitude'], longitude: data.location['longitude']}} radius={data.location['accuracy']} strokeWidth={1} strokeColor='red'/>
+        }
+        else{
+            return null
+        }
+
     }
     const Content = () =>{
 
@@ -120,7 +147,7 @@ function LocationCard({data}) {
                 </Grid>
                 <MapView style={styles.map}
                         mapType={mapType}
-                        provider={PROVIDER_GOOGLE}
+                        provider={PROVIDER_DEFAULT}
                         showsUserLocation={true}
                         region={{
                             latitude: data.location['latitude'],
@@ -129,7 +156,7 @@ function LocationCard({data}) {
                             longitudeDelta: 0.003,
                         }}>
                             <Marker coordinate={{latitude: data.location['latitude'], longitude: data.location['longitude']}}/>
-                            <Circle center={{latitude: data.location['latitude'], longitude: data.location['longitude']}} radius={data.location['accuracy']}/>
+                            <AccuracyCircle/>
                     </MapView>
                     <View style={{paddingTop:20, flexDirection:'row', justifyContent:'space-between', alignItems:'center'}}>
                         <Text style={{fontSize:15, fontWeight:'bold'}}>Satellite</Text>
@@ -145,19 +172,7 @@ function LocationCard({data}) {
         <Card>
             <View style={{flexDirection:'row', justifyContent:'space-between', alignItems:'center'}}>
                 <Text style={globalStyles.cardTitle}>Location</Text>
-                <TouchableHighlight disabled={isLoading} acitveOpacity={0.6} underlayColor="#DDDDDD" onPress={() => 
-                    Alert.alert("Update Location?","Update device location to your current location?",[
-                        {
-                            text:"Yes",
-                            onPress:() => updateLocation()
-                        },
-                        {
-                            text:"Cancel",
-                            onPress:() => console.log("Cenceled")
-                        }
-                ])}>
-                    <Image style={{width:23, height:23, padding:5}} source={require('../assets/settingsIcon.png')}/>
-                    </TouchableHighlight>
+                <UpdateLocationIcon/>
             </View>
             <Content/>
         </Card>

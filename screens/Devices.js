@@ -88,7 +88,7 @@ function Devices({route, navigation}) {
 
     return (
         <View style={globalStyles.screen}>
-            <Text style={[styles.title,{padding:10}]}>{route.params.application_id} - Devices</Text>
+            <Text style={[styles.title,{padding:10, paddingTop:25}]}>{route.params.application_id} - Devices</Text>
             <LoadingComponent loading={isLoading}/>
                 <FlatList
                 style={[{flex:1},globalStyles.list]} 

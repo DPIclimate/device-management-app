@@ -1,4 +1,4 @@
-import React, {useCallback, useEffect, useState} from 'react';
+import React, {useEffect, useState} from 'react';
 import{
     View,
     StyleSheet,
@@ -8,7 +8,7 @@ import{
     Pressable,
     TouchableHighlight,
     Alert,
-    ActivityIndicator
+    Platform
 } from 'react-native'
 import { ScrollView } from 'react-native-gesture-handler';
 import globalStyles from '../styles';
@@ -17,6 +17,7 @@ import CommCard from './CommCard';
 import LocationCard from './LocationCard';
 import config from '../config';
 import LoadingComponent from '../shared/LoadingComponent';
+import moment from 'moment';
 
 const ManageDevices = ({route, navigation}) => {
 
@@ -76,16 +77,15 @@ const ManageDevices = ({route, navigation}) => {
             else{
                 requestedDevice = await getDeviceNoUID()
             }
-
-            console.log(requestedDevice)
             if (requestedDevice != null){
                 const applicationID = requestedDevice['ids']['application_ids']['application_id']
                 let devUID = null
                 if(requestData['uidPresent'] ==true) devUID = requestedDevice['attributes']['uid'] 
                 const devName = requestedDevice['ids']['device_id']
                 const devEui = requestedDevice['ids']['dev_eui']
-                const dateCreate = new Date(requestedDevice['created_at'])
-                const created = dateCreate.toLocaleString('en-GB')
+                const dates = formatTime(requestedDevice['created_at'])
+
+                const created = `${dates[2]} ${dates[1]}` 
 
                 const ttn_link = `https://au1.cloud.thethings.network/console/applications/${applicationID}/devices/${devName}`
 
@@ -148,7 +148,7 @@ const ManageDevices = ({route, navigation}) => {
 
         try{
             console.log('requesting device without uid')
-            console.log(requestData)
+
             let url =  `${config.ttnBaseURL}/${appID}/devices/${requestData.name}?field_mask=attributes,locations`
             console.log(url)
             let response = await fetch(url,{
@@ -156,7 +156,7 @@ const ManageDevices = ({route, navigation}) => {
                 headers:config.headers
             })
             response = await response.json()
-            console.log(response)
+
             if ('code' in response){
                 throw new Error()
             }
@@ -185,7 +185,7 @@ const ManageDevices = ({route, navigation}) => {
         }catch(error){
             return undefined
         }
-        // console.log(response)
+
         const m_types = recent_uplinks.map((data) => data['payload']['m_hdr']['m_type']).reverse()
         const r_uplinks = recent_uplinks.map((data) => data['rx_metadata'][0]['rssi']).reverse()
         const snrs = recent_uplinks.map((data) => data['rx_metadata'][0]['snr']).reverse()
@@ -203,11 +203,13 @@ const ManageDevices = ({route, navigation}) => {
     }
     const calcLastSeen = (cData) =>{
         if (cData != undefined){
-            const recent = new Date(cData['times'][0][2])
+            const recent = new Date(cData['times'][0][3])
             const now = new Date()
             const diff = (now - recent)/1000/60
 
-            if (diff < 2){
+            if (diff < 1){
+                changeLastSeen(`<1 min ago`)
+            }else if (diff < 2){
                 changeLastSeen(`${Math.floor(diff)} min ago`)
             }else if (diff < 60){
                 changeLastSeen(`${Math.floor(diff)} mins ago`)
@@ -226,7 +228,6 @@ const ManageDevices = ({route, navigation}) => {
             else{
                 changeCirlce(greenCircle)
             }
-            console.log(diff)
         }
         else {
             changeLastSeen(`Never`)
@@ -234,23 +235,27 @@ const ManageDevices = ({route, navigation}) => {
         }
     }
     const formatTime = (toFormat) =>{
-        const date = new Date(toFormat);
-        const localDate = date.toLocaleString('en-GB', {month: "numeric", day: "numeric"})
-        const localTime = date.toLocaleTimeString('en-GB',{hour:"numeric", minute:'numeric'})
-        return [localDate, localTime, date]
+        const dateUnix = new Date(toFormat);
+
+        const dayMonth = moment(dateUnix).format('DD/MM')
+        const time = moment(dateUnix).format('hh:mm')
+        const dayMonthYear = moment(dateUnix).format('DD/MM/YYYY')
+
+        return [dayMonth, time, dayMonthYear, dateUnix]
+        
     }
 
     const handlePress = async(autoSearch) =>{
 
         setLoadingState(true)
         if (appID.length != 0 && deviceUID.length != 0 || uidPresent == false){
-            console.log('here')
+
             const dData = await getDeviceData()
             if (dData != null){
                 const cData = await getCommData(dData)
                 changeDevData(dData)
                 changeCommData(cData)
-                console.log(cData)
+
                 collectedChange(true)
                 calcLastSeen(cData)
             }
