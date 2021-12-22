@@ -121,8 +121,6 @@ def getAllDevices(appID):
 
 def create(appID, dev_uid = None, dev_name = None, dev_eui = None, moveDir = None):
 
-	sys.stdout.write('Saving QR code...\r')
-
 	dev_uid = generateUID() if dev_uid == None or dev_uid == "" else generateUID()
 
 	data = {
@@ -140,7 +138,6 @@ def create(appID, dev_uid = None, dev_name = None, dev_eui = None, moveDir = Non
 	directory = '.' if moveDir == None else moveDir
 
 	filename = f"{directory}/QR_Code-{appID}-{dev_uid}"
-	print(filename)
 
 	jsonData = json.dumps(data)
 	qr_code = generateQR(jsonData, filename)		
@@ -148,7 +145,7 @@ def create(appID, dev_uid = None, dev_name = None, dev_eui = None, moveDir = Non
 
 def getApplications():
 
-	sys.stdout.write('Retrieving applications\r')
+	sys.stdout.write('Retrieving applications...\r')
 
 	url = f"{BASE}"
 	r = requests.get(url, headers=headers)
@@ -169,7 +166,6 @@ def main():
 	parser.add_argument("--all", help="Create a QR code for every device in application (requires -a or -g)", action="store_true")
 
 	args = vars(parser.parse_args())
-	print(args)
 
 	if args['a'] is None and args['g'] is False:
 		parser.error('Invalid use: Please specify either -a or -g')
@@ -215,24 +211,35 @@ def main():
 			if not os.path.isdir(f"{path}/{app}"):
 				os.mkdir(f"{path}/{app}")
 
-			if num == 0:
 				devices = getAllDevices(app)
-				for device in devices:
+
+				for i, device in enumerate(devices):
+					dash = '-' if i%2 ==0 else '|'
+					sys.stdout.write(f'Creating QR codes for application {app}...{dash}\r')
 					create(app, device['uid'], moveDir=f"{path}/{app}")
-			else:
-				for i in range(num):
-					create(app,moveDir=f"{path}/{app}")
+
+	elif args['t'] != None:
+		for app in applications:
+
+			if not os.path.isdir(f"{path}/{app}"):
+				os.mkdir(f"{path}/{app}")
+
+			for i in range(num):
+				dash = '-' if i%2 ==0 else '|'
+				sys.stdout.write(f'Creating QR codes for application {app}...{dash}\r')
+				create(app,moveDir=f"{path}/{app}")
+
+			print('')
+
 	else:
 		create(applications[0])
 
 	
-	print(f"QR code(s) successfully saved to")
+	print(f"QR code(s) successfully generated")
 
 if __name__ == "__main__":
 
 	main()
-
-
 
 
 
