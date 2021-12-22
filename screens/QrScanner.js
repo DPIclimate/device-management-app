@@ -37,6 +37,7 @@ export default function Scanner({ route, navigation }) {
                   break;
                 case 'dev_uid':
                   devData['uid'] = result[key]
+                  devData['uidPresent'] = true
                   break;
                 case 'dev_name':
                   devData['name'] = result[key]

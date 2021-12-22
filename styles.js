@@ -47,7 +47,7 @@ const globalStyles = StyleSheet.create({
         fontSize:14
     },
     title:{
-        fontSize:20,
+        fontSize:23,
         paddingTop:20,
         width:'100%',
         alignItems:'flex-end',

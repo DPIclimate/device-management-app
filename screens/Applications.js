@@ -5,16 +5,44 @@ import globalStyles from '../styles';
 import config from '../config.json'
 import Card from '../shared/Card';
 import LoadingComponent from '../shared/LoadingComponent';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { useIsFocused } from '@react-navigation/native';
 
 function Applications({navigation}) {
 
-    const [data, changeData] = useState({});
+    const [data, changeData] = useState([]);
     const [isLoading, setLoading] = useState(true)
-    
+    const [savedDevices, setSavedDevices] = useState(false)
+    const isFocused = useIsFocused()
+
     useEffect(()=>{
         getApplications()
     },[])
 
+    useEffect(() =>{
+        checkSavedReg()
+    }, [isFocused])
+ 
+    const checkSavedReg = async() =>{
+        let currentDevices = []
+
+        console.log('reading')
+        try{
+            const fromStore = await AsyncStorage.getItem('devices')
+            currentDevices = JSON.parse(fromStore)
+
+        }catch(error){
+            console.log(error)
+        }
+
+        if (currentDevices.length != 0){
+            setSavedDevices(true)
+        }
+        else{
+            setSavedDevices(false)
+        }
+    }
+    
     const getApplications = async() => {
 
         const url = `${config.ttnBaseURL}`
@@ -38,15 +66,25 @@ function Applications({navigation}) {
             </TouchableOpacity>
         </Card>
       );
-
+    
+    const SavedDevices = () =>{
+        if (savedDevices == true){
+            return (
+                <View style={{width:45, height:45, position:'absolute', right:0, top:0, margin:10}} >
+                    <TouchableHighlight acitveOpacity={0.6} underlayColor="#DDDDDD" onPress={() => navigation.navigate('OfflineDevices')}>
+                        <Image style={{width:'100%', height:'100%', borderRadius:50}} source={require('../assets/uploadFailed.png')}/>
+                    </TouchableHighlight>
+                </View>
+            )
+        }
+        else{
+            return null
+        }
+    }
     return (
         <View style={globalStyles.screen}>
             <Text style={[globalStyles.title,{padding:10, paddingTop:25}]}>Applications</Text>
-            <View style={{width:45, height:45, position:'absolute', right:0, top:0, margin:10}} >
-                <TouchableHighlight acitveOpacity={0.6} underlayColor="#DDDDDD" onPress={() => console.log("offline pressed")}>
-                    <Image style={{width:'100%', height:'100%', borderRadius:50}} source={require('../assets/uploadFailed.png')}/>
-                </TouchableHighlight>
-            </View>
+            <SavedDevices/>
 
                 <LoadingComponent loading={isLoading}/>
 

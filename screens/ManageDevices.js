@@ -48,7 +48,7 @@ const ManageDevices = ({route, navigation}) => {
     useEffect(() =>{
         if (route.params != undefined){
             let data = route.params.autofill
-
+            console.log(data)
             if (data != null){
                 appIDChange(data['appID'])
                 route.params = undefined

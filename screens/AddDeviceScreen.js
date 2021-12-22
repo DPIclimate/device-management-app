@@ -10,8 +10,7 @@ import {
     TouchableHighlight, 
     Alert,
     TextInput,
-    Pressable,
-    Platform,} from 'react-native';
+    Pressable} from 'react-native';
 import config from '../config';
 import newDeviceData from '../repositories/newDeviceData';
 import * as Location from 'expo-location';
@@ -19,8 +18,8 @@ import { Switch } from 'react-native-gesture-handler';
 import Error from '../shared/ErrorClass'
 import LoadingComponent from '../shared/LoadingComponent';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import NetInfo from "@react-native-community/netinfo";
-
+import {registerDevice, getEUI} from '../shared/Register'
+import checkNetworkStatus from '../shared/NetworkStatus';
 
 const AddDeviceScreen = ({ route, navigation }) => {
 
@@ -216,28 +215,36 @@ const AddDeviceScreen = ({ route, navigation }) => {
         return null
     }
     const handleButtonPress = async () =>{
-        // console.log("pressed")
-        // setLoadingState(true)
+        console.log("pressed")
+        setLoadingState(true)
 
-        // for (const item in validInputDict){
-        //     if (validInputDict[item] == false){
-        //         Alert.alert("Invalid inputs", "Could not register device because one or more inputs were invalid.")
-        //         setLoadingState(false)
-        //         return null
-        //     }
-        // }
+        for (const item in validInputDict){
+            if (validInputDict[item] == false){
+                Alert.alert("Invalid inputs", "Could not register device because one or more inputs were invalid.")
+                setLoadingState(false)
+                return null
+            }
+        }
 
         const isConnected = await checkNetworkStatus()
-        if (!isConnected){
-            // console.log('passed input validation')
-            // const flag = await checkDetails()
-            // flag == true ? registerDevice() : setLoadingState(false)
+        if (isConnected){
+            console.log('passed input validation')
+            const flag = await checkDetails()
+
+            if (flag){
+                let device = await createDevice()
+                const success = await registerDevice(device)
+                if (success){
+                    clearFields()
+                }
+                setLoadingState(false)
+            }
         }
         else{
             Alert.alert("No internet connection", "Would you like to save the device for when you are back online?",[
                 {
                     text:'Yes',
-                    onPress:() => saveDevice()
+                    onPress:async() => await saveDevice()
                 },
                 {
                     text:'No',
@@ -250,18 +257,20 @@ const AddDeviceScreen = ({ route, navigation }) => {
     const saveDevice = async() =>{
 
         let currentDevices = []
-
+        console.log('reading')
         try{
             const fromStore = await AsyncStorage.getItem('devices')
-            console.log('from storage', fromStore)
+            currentDevices = JSON.parse(fromStore)
 
         }catch(error){
             console.log(error)
         }
 
+        console.log('creating')
         const data = await createDevice()
         currentDevices.push(data)
-
+        
+        console.log('writing')
         try{
             await AsyncStorage.setItem('devices', JSON.stringify(currentDevices))
 
@@ -269,19 +278,10 @@ const AddDeviceScreen = ({ route, navigation }) => {
             console.log(error)
         }
 
-        try{
-            const fromStore = await AsyncStorage.getItem('devices')
-            console.log('from storage', fromStore)
-
-        }catch(error){
-            console.log(error)
-        }
+        clearFields()
+        Alert.alert("Device Saved","Device details have been saved for registration when back online")
     }
-    const checkNetworkStatus = async() =>{
 
-        const isConnected = await NetInfo.fetch().then(state => state.isConnected)
-        return isConnected
-    }
     const checkDetails = async () =>{
 
         let url =  `${config.ttnBaseURL}/${appID}/devices?field_mask=attributes`
@@ -424,12 +424,9 @@ const AddDeviceScreen = ({ route, navigation }) => {
     }
     const createDevice = async() =>{
 
-        let eui = deviceEUI // Move dev eui to a mutable variable
-        if (eui.length == 0){
-            //If eui was not providered request one from TTN
-            eui = await getEUI()
-        }
-        else{
+        let eui = deviceEUI 
+
+        if (eui.length != 0){
             eui = eui.replace(/-/g,'')
         }
 
@@ -461,52 +458,6 @@ const AddDeviceScreen = ({ route, navigation }) => {
             }
         }
         return data
-    }
-    const registerDevice = async() =>{
-
-        //Compose device information
-       let data = createDevice()
-        
-        // console.log(data)
-        try{
-            console.log('making request')
-
-            const url = `${config.ttnBaseURL}/${appID}/devices`
-            let json = await fetch(url,
-                {
-                    method:'POST',
-                    headers:config.headers,
-                    body:JSON.stringify(data)
-                },
-                // console.log(JSON.stringify(data))
-            ).then((response) => response.json())
-
-            if ('code' in json){
-                //If key code exists then an error occured
-                throw new Error(json['code'], json['message'], deviceName)
-            }
-            else{
-                Alert.alert("Success!", "Device was successfully registered.")
-                clearFields()
-            }
-        }
-        catch (error){
-            console.log("An error occured", error)
-            error.alertWithCode()
-            setLoadingState(false)
-
-        }
-    }
-    const getEUI = async () =>{
-
-        //Request EUI from ttn
-        let url = `${config.ttnBaseURL}/${appID}/dev-eui`
-        console.log(url)
-        let json = await fetch(url,{
-            method:'POST',
-            headers: config.headers
-        }).then((response) => response.json())
-        return json['dev_eui'];
     }
     const clearFields = () =>{
         onAppIDChange("")

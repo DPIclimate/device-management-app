@@ -10,6 +10,7 @@ import {
   ManageDevices,
   Applications,
   Devices,
+  OfflineDevices
 } from '../screens/index';
 
 const { Screen, Navigator } = createStackNavigator();
@@ -59,6 +60,11 @@ function ScreenStack() {
         component={ManageDevices}
         options={{title:"Manage Devices"}}
         />
+      <Screen
+      name="OfflineDevices"
+      component={OfflineDevices}
+      options={{title:"Saved Devices"}}
+      />
     </Navigator>
   );
 }
