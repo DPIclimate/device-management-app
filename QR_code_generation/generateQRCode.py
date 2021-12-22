@@ -11,18 +11,20 @@ import sys
 import time
 import argparse
 import os
+from dotenv import load_dotenv
+load_dotenv()
 
 BASE = "https://eu1.cloud.thethings.network/api/v3/applications"
 
 headers = {
-    "Authorization":"Bearer NNSXS.7F3JEGKWDTXOG6NCF2NHF3RBFLKNCSLRUKR37LY.SUXH6HZGBK7WTHRDS3NT4XKGZANMXMHKKHQTW4VKF4SU2KCNAQAQ",
-    }
+	"Authorization": os.getenv("TTN_TOKEN")
+}
 
 def generateQR(jsonData, filename):
 
 	qr = qrcode.QRCode(
-	    version=1,
-	    error_correction=qrcode.constants.ERROR_CORRECT_L,
+		version=1,
+		error_correction=qrcode.constants.ERROR_CORRECT_L,
 	)
 	qr.add_data(jsonData)
 	qr.make(fit=True)
@@ -32,28 +34,37 @@ def generateQR(jsonData, filename):
 
 def makeImage(data, qr_code, filename):
 
-	logo = Image.open('dpiLogo.png')
+	logo = Image.open('dpiLogo.png')	
+	logo = logo.resize((1000, 300), Image.ANTIALIAS)
 
 	img = Image.new('RGB', (1240, 1748), color="white")
 	width, height = img.size
+
+	y_offset = 40
 
 	qr_width, qr_height = 1200,1200
 	qr_code = qr_code.resize((qr_width, qr_height), Image.ANTIALIAS)
 
 	x_pos = int((width/2) - (qr_width/2))
-	y_pos = int((height/2) - (qr_height/2))
+	y_pos = int((height/2) - (qr_height/2)) + y_offset
 	img.paste(qr_code,(x_pos,y_pos))
 	draw = ImageDraw.Draw(img)
-	font = ImageFont.truetype('./arial-cufonfonts/ARIAL.ttf', 55)
+	font = ImageFont.truetype('./arial-cufonfonts/ARIAL.ttf', 58)
 
 	for i, key in enumerate(data):
-		x_post_text = width/2
-		y_post_text = (height/2) + (qr_height/2) - 20 + i*60
+		x_post_text = x_pos + 120
+		y_post_text = ((height/2) + (qr_height/2) - 80 + i*150) + y_offset
+		text = f"Device UID: {data[key]}"
+		if(key == "application_id"):
+			text = f"Application ID:\n{data[key]}"
+		draw.text((x_post_text, y_post_text), text, font=font, fill="#000000", stroke_width=1)
 
-		text = f"{key} - {data[key]}"
-		draw.text((x_post_text, y_post_text), text, font=font, fill="#000000", stroke_width=1, anchor="mm")
+	img.paste(logo,(x_pos + 100, y_pos - 270))
 
-	img.paste(logo,(30,30))
+	font = ImageFont.truetype('./arial-cufonfonts/ARIAL.ttf', 55)
+	text = "FarmDecisionTECH™"
+	draw.text(( x_pos + 120, 310 + y_offset), text, font=font, fill="#000", stroke_width=1)
+
 	img.save(f"{filename}.png")
 
 def generateUID():
@@ -173,6 +184,9 @@ def main():
 	if args['a'] is not None and args['g'] is True:
 		parser.error("Invalid use: Can only use either -a or -g")
 
+	if args['t'] is not None and args['all'] is True:
+		parser.error("Invalid use: Can only use --all or -t")
+
 	f = Figlet(font='slant')
 	print(f.renderText('Create QR Code'))
 
@@ -195,13 +209,6 @@ def main():
 			print("Application ID is invalid, please try again")
 			exit()
 
-	if args['t'] != None:
-		try:
-			num = int(args['t'])
-		except ValueError:
-			print("Invalid integer in -t")
-			exit()
-
 	if args['g'] == True:
 		applications = getApplications()
 
@@ -217,8 +224,15 @@ def main():
 					dash = '-' if i%2 ==0 else '|'
 					sys.stdout.write(f'Creating QR codes for application {app}...{dash}\r')
 					create(app, device['uid'], moveDir=f"{path}/{app}")
+				print('')
 
 	elif args['t'] != None:
+		try:
+			num = int(args['t'])
+		except ValueError:
+			print("Invalid integer in -t")
+			exit()
+
 		for app in applications:
 
 			if not os.path.isdir(f"{path}/{app}"):
@@ -228,8 +242,8 @@ def main():
 				dash = '-' if i%2 ==0 else '|'
 				sys.stdout.write(f'Creating QR codes for application {app}...{dash}\r')
 				create(app,moveDir=f"{path}/{app}")
-
 			print('')
+
 
 	else:
 		create(applications[0])
