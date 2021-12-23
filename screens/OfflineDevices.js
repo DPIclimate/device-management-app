@@ -13,65 +13,111 @@ import globalStyles from '../styles';
 import Card from '../shared/Card';
 import LoadingComponent from '../shared/LoadingComponent';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import {registerDevice, getEUI} from '../shared/Register'
+import {registerDevice, updateDevice} from '../shared/Register'
 import Swipeable from 'react-native-gesture-handler/Swipeable';
 
 function OfflineDevices({ route, navigation }) {
     const [isLoading, setLoading] = useState(true)
     const [savedDevices, changeSavedDevices] = useState([]);
+    const [savedLocations, changeSavedLocations] = useState([])
     const [reload, setReload] = useState(true)
+    const [saved, changeSaved] = useState([])
 
     useEffect (() =>{
-        getSavedDevices()
-        console.log('reload')
+        getSaved()
     },[reload])
 
-    const getSavedDevices = async() =>{
+    const getSaved = async() =>{
 
-        let currentDevices = []
+        let locSaved = []
         try{
-            const fromStore = await AsyncStorage.getItem('devices')
-            currentDevices = JSON.parse(fromStore)
+            let fromStore = await AsyncStorage.getItem('devices')
+            fromStore = JSON.parse(fromStore)
+            fromStore != null? locSaved = [...locSaved, ...fromStore] : locSaved = []
+            changeSavedDevices(fromStore != null? fromStore : [])
 
         }catch(error){
             console.log(error)
         }
 
-        changeSavedDevices(currentDevices)
+        try{
+            let fromStore = await AsyncStorage.getItem('locationUpdates')
+            fromStore = JSON.parse(fromStore)
+            fromStore != null? locSaved = [...locSaved, ...fromStore] : locSaved = []
+
+            changeSavedLocations(fromStore != null? fromStore : [])
+
+        }catch(error){
+            console.log(error)
+        }
+
+        changeSaved([...locSaved])
+
+        if (locSaved.length == 0){
+            navigation.goBack()
+        }
+
         setLoading(false)
 
     }
-    const handlePress = async(index) =>{
+    const handlePress = async(item, index) =>{
 
-        const selectedDevice = savedDevices[index]
+        const renderLocaition = item.type == 'locationUpdate'? true: false
+        let success = false
 
-        const success = await registerDevice(selectedDevice)
+        if (renderLocaition){
+            const selected = saved[index - savedDevices.length]
+            console.log("This is an item", item)
+            success = await updateDevice(selected)
+            console.log("This is an item2", item)
 
+        
+        }else{
+            const selectedDevice = savedDevices[index]
+
+            success = await registerDevice(selectedDevice)
+        }
+    
         if (success){
-            handleDelete(index)
+            handleDelete(item, index)
         }
 
     }
-    const handleDelete = async (index) =>{
+    
+    const handleDelete = async (item, index) =>{
+        const renderLocaition = item.type == 'locationUpdate'? true: false
 
-        const selectedDevice = savedDevices[index]
+        if (renderLocaition){
 
-        let devices = savedDevices
-        devices.splice(index, 1)
-        changeSavedDevices(devices)
+            console.log(index - savedDevices.length)
+            let devices = savedLocations
+            devices.splice(index - savedDevices.length, 1)
+            changeSavedLocations(devices)
 
-        try{
-            await AsyncStorage.setItem('devices', JSON.stringify(devices))
+            try{
+                await AsyncStorage.setItem('locationUpdates', JSON.stringify(devices))
+                console.log('here')
 
-        }catch(error){
-            console.log(error)
+            }catch(error){
+                console.log(error)
+            }
         }
+        else{
+            let devices = savedDevices
+            devices.splice(index, 1)
+            changeSavedDevices(devices)
+
+            try{
+                await AsyncStorage.setItem('devices', JSON.stringify(devices))
+
+            }catch(error){
+                console.log(error)
+            }
+            setReload(!reload)
+        }
+
         setReload(!reload)
 
-        if (savedDevices.length == 0){
-            navigation.goBack()
-        }
-        
     }
 
     const renderItem = ({ item, index }) => {
@@ -82,7 +128,7 @@ function OfflineDevices({ route, navigation }) {
               extrapolate: 'clamp',
             });
             return (
-              <TouchableOpacity onPress={() => handleDelete(index)} activeOpacity={0.6}>
+              <TouchableOpacity onPress={() => handleDelete(item, index)} activeOpacity={0.6}>
                 <Card red={true}>
                     <View style={{height:'100%', width:50, justifyContent:'center', alignItems:'center'}}> 
                         <Image style={{height:60, width:60}} source={require('../assets/bin.png')}/>
@@ -91,35 +137,59 @@ function OfflineDevices({ route, navigation }) {
               </TouchableOpacity>
             );
           };
+        
+        const Content = () =>{
+            const renderLocaition = item.type == 'locationUpdate'? true: false
 
-        return(
-            <Swipeable renderRightActions={rightSwipe}>
-                <Card>
-                    <View style={{flexDirection:'row'}}>
-                        <View style={{flex:1}}>
-                            <Text style={styles.cardTitle}>{item.end_device.ids.device_id}</Text>
-                            <Text style={[globalStyles.text, styles.cardText]}>App ID: {item.end_device.ids.application_ids.application_id}</Text>
-                            <Text style={[globalStyles.text, styles.cardText]}>UID: {item.end_device.attributes.uid}</Text>
+            if (renderLocaition == false){
+                return(
+                    <> 
+                        <Text style={styles.cardTitle}>Register New Device</Text>
+                        <Text style={[globalStyles.text, styles.cardText]}>Device Name: {item.end_device.ids.device_id}</Text>
+                        <Text style={[globalStyles.text, styles.cardText]}>App ID: {item.end_device.ids.application_ids.application_id}</Text>
+                        <Text style={[globalStyles.text, styles.cardText]}>UID: {item.end_device.attributes.uid}</Text>
+                    </>
+                )
+            }
+            else if (renderLocaition == true){
+                return(
+                    <>
+                        <Text style={styles.cardTitle}>Update Location</Text>
+                        <Text style={[globalStyles.text, styles.cardText]}>Device Name: {item.end_device.ids.device_id}</Text>
+                        <Text style={[globalStyles.text, styles.cardText]}>Longitude: {item.end_device.locations.user.latitude}</Text>
+                        <Text style={[globalStyles.text, styles.cardText]}>Latitude: {item.end_device.locations.user.longitude}</Text>
+                        <Text style={[globalStyles.text, styles.cardText]}>Altitude: {item.end_device.locations.user.altitude}</Text>
+    
+                    </>
+                )
+            }
+        }
+    
+            return(
+                <Swipeable renderRightActions={rightSwipe}>
+                    <Card>
+                        <View style={{flexDirection:'row'}}>
+                            <View style={{flex:1}}>
+                                <Content/>
+                            </View>
+                            <TouchableHighlight acitveOpacity={0.6} underlayColor="#DDDDDD" onPress={() => handlePress(item, index)}>
+                                <Image style={{width:70, height:70}} source={require('../assets/retry.png')}/>
+                            </TouchableHighlight>
                         </View>
-                        <TouchableHighlight acitveOpacity={0.6} underlayColor="#DDDDDD" onPress={() => handlePress(index)}>
-                            <Image style={{width:70, height:70}} source={require('../assets/retry.png')}/>
-                        </TouchableHighlight>
-                    </View>
-                </Card>
-            </Swipeable>
+                    </Card>
+                </Swipeable>
 
-        )
+            )
     }
-
     return (
         <View style={globalStyles.screen}>
-            <Text style={[globalStyles.title,{padding:10, paddingTop:25}]}>Devices to deploy</Text>
+            <Text style={[globalStyles.title,{padding:10, paddingTop:25}]}>Deploy / Update</Text>
 
             <LoadingComponent loading={isLoading}/>
 
             <FlatList
-            style={[{flex:1},globalStyles.list]} 
-            data={savedDevices}
+            style={[globalStyles.list]} 
+            data={saved}
             renderItem={renderItem}
             keyExtractor={(item, index) => index.toString()}
             />
@@ -151,7 +221,8 @@ const styles = StyleSheet.create({
 
     },
     cardText:{
-        paddingTop:5
+        paddingTop:4,
+        fontSize:14
     },
     cardTitle:{
         fontSize: 18,

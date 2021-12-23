@@ -7,6 +7,7 @@ import Card from '../shared/Card';
 import LoadingComponent from '../shared/LoadingComponent';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useIsFocused } from '@react-navigation/native';
+import checkNetworkStatus from '../shared/NetworkStatus';
 
 function Applications({navigation}) {
 
@@ -14,6 +15,7 @@ function Applications({navigation}) {
     const [isLoading, setLoading] = useState(true)
     const [savedDevices, setSavedDevices] = useState(false)
     const isFocused = useIsFocused()
+    const [isConnected, changeIsConnected] = useState(false)
 
     useEffect(()=>{
         getApplications()
@@ -21,21 +23,32 @@ function Applications({navigation}) {
 
     useEffect(() =>{
         checkSavedReg()
+        changeIsConnected(checkNetworkStatus())
     }, [isFocused])
  
     const checkSavedReg = async() =>{
-        let currentDevices = []
+        let saved = []
 
         console.log('reading')
         try{
-            const fromStore = await AsyncStorage.getItem('devices')
-            currentDevices = JSON.parse(fromStore)
+            let fromStore = await AsyncStorage.getItem('devices')
+            fromStore = JSON.parse(fromStore)
+            fromStore != null? saved = [...saved, ...fromStore] : saved = []
 
         }catch(error){
             console.log(error)
         }
 
-        if (currentDevices.length != 0){
+        try{
+            let fromStore = await AsyncStorage.getItem('locationUpdates')
+            fromStore = JSON.parse(fromStore)
+            fromStore != null? saved = [...saved, ...fromStore] : saved = []
+
+        }catch(error){
+            console.log(error)
+        }
+
+        if (saved.length != 0){
             setSavedDevices(true)
         }
         else{

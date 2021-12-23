@@ -7,6 +7,9 @@ import MapView, {Marker, PROVIDER_DEFAULT, Circle} from 'react-native-maps';
 import * as Location from 'expo-location';
 import config from '../config';
 import Error from '../shared/ErrorClass'
+import checkNetworkStatus from '../shared/NetworkStatus';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { updateDevice } from '../shared/Register';
 
 
 function LocationCard({data}) {
@@ -30,6 +33,12 @@ function LocationCard({data}) {
 
             const body = {
                 "end_device":{
+                    'ids':{
+                        'device_id': data.name,
+                        "application_ids": {
+                            "application_id": data.appID
+                        }
+                    },
                     "locations":{
                         "user":{
                             "latitude": loc['coords']['latitude'],
@@ -44,38 +53,59 @@ function LocationCard({data}) {
                   "paths": [
                     "locations"
                   ]
-                }
+                },
+                'type':'locationUpdate'
             }
-            try{
-                console.log('requesting loc data')
-                const url =  `${config.ttnBaseURL}/${data.appID}/devices/${data.name}`
-                const response = await fetch(url,{
-                    method:"PUT",
-                    headers:config.headers,
-                    body:JSON.stringify(body)
-                }).then((response) => response.json())
-                console.log(response)
+            const isConnected = await checkNetworkStatus()
 
-                if ('code' in response){
-                    //If key code exists then an error occured
-                    throw new Error(json['code'], json['message'], deviceName)
-                }
-                else{
-                    data.location = response['locations']['user']
-                    console.log(data.location)
-                    setLoadingState(false)
-                }
-            }
-            catch(error){
-                console.log("An error occured", error)
-                error.alertWithCode()
+            if (isConnected){
+                await updateDevice(body)
                 setLoadingState(false)
-
+                
+            }else{
+                Alert.alert("No internet connection","Would you like to save this updated location for when you are back online?",[
+                    {
+                        text:'Yes',
+                        onPress:async() => await queLocationUpdate(body)
+                    },
+                    {
+                        text:'No',
+                        onPress:() => console.log('no')
+                    }
+            ])
+            setLoadingState(false)
             }
         }
         else{
             Alert.alert("Unable to update location","Unable to update location as location services have not been enabled")
         }
+    }
+    const queLocationUpdate = async(body) =>{
+
+        let locationUpdates = []
+        try{
+            let fromStore = await AsyncStorage.getItem('locationUpdates')
+            fromStore = JSON.parse(fromStore)
+            fromStore != null? locationUpdates = [...locationUpdates, ...fromStore] : locationUpdates = []
+
+        }catch(error){
+            console.log(error)
+        }
+
+        console.log('creating')
+        locationUpdates.push(body)     
+        console.log('writing')
+        console.log(locationUpdates)
+        try{
+            await AsyncStorage.setItem('locationUpdates', JSON.stringify(locationUpdates))
+
+        }catch(error){
+            console.log(error)
+            Alert.alert("An error occured", error)
+        }
+
+        Alert.alert("Location saved","Location details have been saved successfully")
+
     }
     const UpdateLocationIcon = () =>{
         return (

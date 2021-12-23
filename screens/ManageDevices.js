@@ -12,12 +12,15 @@ import{
 } from 'react-native'
 import { ScrollView } from 'react-native-gesture-handler';
 import globalStyles from '../styles';
-import DeviceCard from './DeviceCard';
-import CommCard from './CommCard';
-import LocationCard from './LocationCard';
 import config from '../config';
 import LoadingComponent from '../shared/LoadingComponent';
 import moment from 'moment';
+import { 
+    DeviceCard,
+    CommCard,
+    LocationCard,
+    NotesCard
+ } from '.';
 
 const ManageDevices = ({route, navigation}) => {
 
@@ -290,6 +293,8 @@ const ManageDevices = ({route, navigation}) => {
                     <CommCard commData={commData}/>
                     {/* Card view of device location if available */}
                     <LocationCard data={devData}/>  
+
+                    <NotesCard data={devData}/>
                 </>
             )
         }

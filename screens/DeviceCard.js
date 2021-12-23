@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import Card from '../shared/Card';
 import { Col, Row, Grid } from "react-native-easy-grid";
-import { Text, StyleSheet, Linking } from 'react-native';
+import { Text } from 'react-native';
 import globalStyles from '../styles';
 
 

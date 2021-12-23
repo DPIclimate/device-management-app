@@ -18,7 +18,7 @@ import { Switch } from 'react-native-gesture-handler';
 import Error from '../shared/ErrorClass'
 import LoadingComponent from '../shared/LoadingComponent';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import {registerDevice, getEUI} from '../shared/Register'
+import {registerDevice} from '../shared/Register'
 import checkNetworkStatus from '../shared/NetworkStatus';
 
 const AddDeviceScreen = ({ route, navigation }) => {
@@ -259,8 +259,9 @@ const AddDeviceScreen = ({ route, navigation }) => {
         let currentDevices = []
         console.log('reading')
         try{
-            const fromStore = await AsyncStorage.getItem('devices')
-            currentDevices = JSON.parse(fromStore)
+            let fromStore = await AsyncStorage.getItem('devices')
+            fromStore = JSON.parse(fromStore)
+            fromStore != null? currentDevices = [...currentDevices, ...fromStore] : currentDevices = []
 
         }catch(error){
             console.log(error)
@@ -457,6 +458,7 @@ const AddDeviceScreen = ({ route, navigation }) => {
                 }
             }
         }
+        data['type'] = 'registerDevice'
         return data
     }
     const clearFields = () =>{

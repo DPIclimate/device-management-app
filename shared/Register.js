@@ -51,5 +51,33 @@ const getEUI = async (appID) =>{
     }).then((response) => response.json())
     return json['dev_eui'];
 }
+const updateDevice = async(data) =>{
+    let device = {...data}
+    delete device['type']
+    const appID = device['end_device']['ids']['application_ids']['application_id']
+    const deviceName = device['end_device']['ids']['device_id']
 
-export {registerDevice, getEUI}
+    try{
+        const url =  `${config.ttnBaseURL}/${appID}/devices/${deviceName}`
+        const response = await fetch(url,{
+            method:"PUT",
+            headers:config.headers,
+            body:JSON.stringify(device)
+        }).then((response) => response.json())
+
+        if ('code' in response){
+            //If key code exists then an error occured
+            throw new Error(json['code'], json['message'], deviceName)
+        }
+        else{
+            Alert.alert('Device Successfully updated')
+        }
+        return true
+    }
+    catch(error){
+        console.log("An error occured", error)
+        error.alertWithCode()
+        return false
+    }
+}
+export {registerDevice, getEUI, updateDevice}
