@@ -5,15 +5,25 @@ import globalStyles from '../styles';
 import config from '../config.json'
 import Card from '../shared/Card';
 import LoadingComponent from '../shared/LoadingComponent';
+import checkNetworkStatus from '../shared/NetworkStatus';
 
 
 function Devices({route, navigation}) {
 
     const [data, changeData] = useState({});
     const [isLoading, setLoading] = useState(true)
+    const [isConnected, changeIsConnected] = useState(false)
 
     useEffect(() =>{
         getDevices()
+        changeIsConnected(true)
+        // let connected = checkNetworkStatus()
+        // if (connected){
+        //     getDevices()
+        // }
+        // else{
+        //     readFromCache()
+        // }
     },[])
 
     const getDevices = async () =>{
@@ -27,6 +37,30 @@ function Devices({route, navigation}) {
         const devices = response.map((device) => device['ids']['device_id'])
         changeData(devices)
         setLoading(false)
+    }
+
+    const readFromCache = async() =>{
+
+        console.log('reading chache')
+        let apps = []
+
+        try{
+            let fromStore = await AsyncStorage.getItem(APP_CACHE)
+            fromStore = JSON.parse(fromStore)
+            apps = fromStore
+
+        }catch(error){
+            console.log(error)
+        }
+
+        if (apps != null){
+            let devices = apps.map((app) => app['end_devices'])
+            let listOfIds = devices.map((dev) => dev[['ids']['device_id']])
+            changeData(listOfIds)
+            setLoading(false)
+
+        }
+        console.log('finished reading chache')
     }
 
     const handlePress = async(device) =>{
@@ -77,11 +111,29 @@ function Devices({route, navigation}) {
         }
         navigation.navigate(screen,{autofill:devData})
     }
+    const Connection = () =>{
+        if (isConnected){
+
+            return null
+        }else{
+            return(
+                <View style={{justifyContent:'flex-end', alignContent:'flex-end'}}>
+                    {/* <Image style={{width:'100%', height:'100%', borderRadius:50}} source={require('../assets/noConnection.png')}/> */}
+                    <Text style={[globalStyles.text, {color:'red'}]}>(Cached)</Text>
+                </View>
+            );
+        }
+    }
+
     const renderItem = ({ item }) => (
         <Card>
             <TouchableOpacity style={{flexDirection:'row', alignItems:'center', justifyContent:'space-between', width:'100%', height:30}} onPress={() => handlePress(item)}>
-                <Text>{item}</Text>
-                <Image source={require('../assets/arrow.png')} style={{height:20, width:20}}/>
+            <Text style={globalStyles.text}>{item}</Text>
+
+            <View style={{flexDirection:'row', alignItems:'center', justifyContent:'space-between', height:30}}>
+                    <Connection/>
+                    <Image source={require('../assets/arrow.png')} style={{height:20, width:20}}/>
+                </View>
             </TouchableOpacity>
         </Card>
       );

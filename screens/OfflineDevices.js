@@ -165,19 +165,19 @@ function OfflineDevices({ route, navigation }) {
             }
         }
     
-            return(
-                <Swipeable renderRightActions={rightSwipe}>
-                    <Card>
-                        <View style={{flexDirection:'row'}}>
-                            <View style={{flex:1}}>
-                                <Content/>
-                            </View>
-                            <TouchableHighlight acitveOpacity={0.6} underlayColor="#DDDDDD" onPress={() => handlePress(item, index)}>
-                                <Image style={{width:70, height:70}} source={require('../assets/retry.png')}/>
-                            </TouchableHighlight>
+        return(
+            <Swipeable renderRightActions={rightSwipe}>
+                <Card>
+                    <View style={{flexDirection:'row'}}>
+                        <View style={{flex:1}}>
+                            <Content/>
                         </View>
-                    </Card>
-                </Swipeable>
+                        <TouchableHighlight acitveOpacity={0.6} underlayColor="#DDDDDD" onPress={() => handlePress(item, index)}>
+                            <Image style={{width:70, height:70}} source={require('../assets/retry.png')}/>
+                        </TouchableHighlight>
+                    </View>
+                </Card>
+            </Swipeable>
 
             )
     }

@@ -78,6 +78,7 @@ function LocationCard({data}) {
         }
         else{
             Alert.alert("Unable to update location","Unable to update location as location services have not been enabled")
+            setLoadingState(false)
         }
     }
     const queLocationUpdate = async(body) =>{

@@ -16,22 +16,33 @@ function Applications({navigation}) {
     const [savedDevices, setSavedDevices] = useState(false)
     const isFocused = useIsFocused()
     const [isConnected, changeIsConnected] = useState(false)
+    const APP_CACHE = 'applicationCache'
+    const DEV_STORE = 'devices'
 
     useEffect(()=>{
-        getApplications()
+        async function getDetails(){
+            let connected = await checkNetworkStatus()
+            console.log(connected)
+            if (connected){
+                getApplications()
+                cacheTTNdata()
+            }else{
+                readFromCache()
+            }
+            changeIsConnected(connected)
+        }
+        getDetails()
     },[])
 
     useEffect(() =>{
         checkSavedReg()
-        changeIsConnected(checkNetworkStatus())
     }, [isFocused])
  
     const checkSavedReg = async() =>{
         let saved = []
 
-        console.log('reading')
         try{
-            let fromStore = await AsyncStorage.getItem('devices')
+            let fromStore = await AsyncStorage.getItem(DEV_STORE)
             fromStore = JSON.parse(fromStore)
             fromStore != null? saved = [...saved, ...fromStore] : saved = []
 
@@ -55,7 +66,70 @@ function Applications({navigation}) {
             setSavedDevices(false)
         }
     }
-    
+    const readFromCache = async() =>{
+
+        console.log('reading chache')
+        let apps = []
+
+        try{
+            let fromStore = await AsyncStorage.getItem(APP_CACHE)
+            fromStore = JSON.parse(fromStore)
+            apps = fromStore
+
+        }catch(error){
+            console.log(error)
+        }
+
+        if (apps != null){
+
+            let listOfIds = apps.map((app) => app['application_id'])
+            changeData(listOfIds)
+            setLoading(false)
+
+        }
+        console.log('finished reading chache')
+    }
+
+    const cacheTTNdata = async() =>{
+        
+        console.log('retreiving list of applications')
+        const url = `${config.ttnBaseURL}`
+        let response = await fetch(url, {
+            method:"GET",
+            headers:config.headers
+        }).then((response) => response.json())
+
+        response = response['applications']
+        const apps = response.map((app) => app['ids']['application_id'])
+        let applications = []
+
+        for (let app in apps){
+            app = apps[app]
+
+            const url = `${config.ttnBaseURL}/${app}/devices?field_mask=attribute`
+            let response = await fetch(url, {
+                method:"GET",
+                headers:config.headers
+            }).then((response) => response.json())
+
+            applications.push(
+                {
+                    'application_id':app,
+                    'end_devices': response
+                }
+            )
+        }
+
+        try{
+            await AsyncStorage.setItem(APP_CACHE, JSON.stringify(applications))
+
+        }catch(error){
+            console.log(error)
+        }
+        console.log('Chaded ttn data successfully')
+
+    }
+
     const getApplications = async() => {
 
         const url = `${config.ttnBaseURL}`
@@ -75,7 +149,11 @@ function Applications({navigation}) {
         <Card>
             <TouchableOpacity style={{flexDirection:'row', alignItems:'center', justifyContent:'space-between', width:'100%', height:30}} onPress={() => navigation.navigate('Devices',{application_id: item})}>
                 <Text style={globalStyles.text}>{item}</Text>
-                <Image source={require('../assets/arrow.png')} style={{height:20, width:20}}/>
+
+                <View style={{flexDirection:'row', alignItems:'center', justifyContent:'space-between', height:30}}>
+                    <Connection/>
+                    <Image source={require('../assets/arrow.png')} style={{height:20, width:20}}/>
+                </View>
             </TouchableOpacity>
         </Card>
       );
@@ -92,6 +170,19 @@ function Applications({navigation}) {
         }
         else{
             return null
+        }
+    }
+    const Connection = () =>{
+        if (isConnected){
+
+            return null
+        }else{
+            return(
+                <View style={{justifyContent:'flex-end', alignContent:'flex-end'}}>
+                    {/* <Image style={{width:'100%', height:'100%', borderRadius:50}} source={require('../assets/noConnection.png')}/> */}
+                    <Text style={[globalStyles.text, {color:'red'}]}>(Cached)</Text>
+                </View>
+            );
         }
     }
     return (
