@@ -1,15 +1,11 @@
-import React, {useRef, useState} from 'react';
-import Card from '../shared/Card';
+import React,  {useState} from 'react';
 import { Col, Row, Grid } from "react-native-easy-grid";
 import { Text, StyleSheet, Switch, View, Image, TouchableHighlight, Alert, ActivityIndicator } from 'react-native';
 import globalStyles from '../styles';
 import MapView, {Marker, PROVIDER_DEFAULT, Circle} from 'react-native-maps';
 import * as Location from 'expo-location';
-import config from '../config';
-import Error from '../shared/ErrorClass'
-import checkNetworkStatus from '../shared/NetworkStatus';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { updateDevice } from '../shared/Register';
+import {updateDevice, checkNetworkStatus, Card} from '../shared/index'
 
 
 function LocationCard({data}) {

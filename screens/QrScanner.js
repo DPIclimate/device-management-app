@@ -19,11 +19,11 @@ export default function Scanner({ route, navigation }) {
   const handleBarCodeScanned = ({ type, data }) => {
     setScanned(true);
     const devData = passData(data)
+    console.log("In qrcode", devData)
     navigation.navigate(route.params.screen,{autofill:devData})
   };
   const passData = (data) =>{
     //Only occurs once qr code has been scanned
-    console.log(data)
     try{
       let result = JSON.parse(data)
       

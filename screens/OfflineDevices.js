@@ -1,20 +1,10 @@
 import React, { useEffect, useState } from 'react';
-import {
-    View, 
-    Text, 
-    StyleSheet, 
-    Image, 
-    TouchableHighlight,
-    TouchableOpacity,
-    Animated
-} from 'react-native'
+import { View, Text, StyleSheet, Image, TouchableHighlight, TouchableOpacity, Alert} from 'react-native'
 import { FlatList } from 'react-native-gesture-handler';
 import globalStyles from '../styles';
-import Card from '../shared/Card';
-import LoadingComponent from '../shared/LoadingComponent';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import {registerDevice, updateDevice} from '../shared/Register'
 import Swipeable from 'react-native-gesture-handler/Swipeable';
+import {registerDevice, updateDevice, Card, LoadingComponent, checkNetworkStatus} from '../shared'
 
 function OfflineDevices({ route, navigation }) {
     const [isLoading, setLoading] = useState(true)
@@ -22,9 +12,14 @@ function OfflineDevices({ route, navigation }) {
     const [savedLocations, changeSavedLocations] = useState([])
     const [reload, setReload] = useState(true)
     const [saved, changeSaved] = useState([])
+    const [isConnected, changeConnectionStatus] = useState(false)
 
     useEffect (() =>{
         getSaved()
+        async() =>{
+            let connected = await checkNetworkStatus()
+            changeConnectionStatus(connected)
+        }
     },[reload])
 
     const getSaved = async() =>{
@@ -62,32 +57,36 @@ function OfflineDevices({ route, navigation }) {
     }
     const handlePress = async(item, index) =>{
 
-        const renderLocaition = item.type == 'locationUpdate'? true: false
-        let success = false
+        if (isConnected){
+            const locUpdate = item.type == 'locationUpdate'? true: false
+            let success = false
 
-        if (renderLocaition){
-            const selected = saved[index - savedDevices.length]
-            console.log("This is an item", item)
-            success = await updateDevice(selected)
-            console.log("This is an item2", item)
+            if (locUpdate){
+                const selected = saved[index - savedDevices.length]
+                console.log("This is an item", item)
+                success = await updateDevice(selected)
+                console.log("This is an item2", item)
 
+            
+            }else{
+                const selectedDevice = savedDevices[index]
+
+                success = await registerDevice(selectedDevice)
+            }
         
-        }else{
-            const selectedDevice = savedDevices[index]
-
-            success = await registerDevice(selectedDevice)
+            if (success){
+                handleDelete(item, index)
+            }
         }
-    
-        if (success){
-            handleDelete(item, index)
+        else{
+            Alert.alert("No Connection","Please connect to the internet to deploy/update this device")
         }
-
     }
     
     const handleDelete = async (item, index) =>{
-        const renderLocaition = item.type == 'locationUpdate'? true: false
+        const locUpdate = item.type == 'locationUpdate'? true: false
 
-        if (renderLocaition){
+        if (locUpdate){
 
             console.log(index - savedDevices.length)
             let devices = savedLocations
@@ -139,9 +138,9 @@ function OfflineDevices({ route, navigation }) {
           };
         
         const Content = () =>{
-            const renderLocaition = item.type == 'locationUpdate'? true: false
+            const locUpdate = item.type == 'locationUpdate'? true: false
 
-            if (renderLocaition == false){
+            if (locUpdate == false){
                 return(
                     <> 
                         <Text style={styles.cardTitle}>Register New Device</Text>
@@ -151,7 +150,7 @@ function OfflineDevices({ route, navigation }) {
                     </>
                 )
             }
-            else if (renderLocaition == true){
+            else if (locUpdate == true){
                 return(
                     <>
                         <Text style={styles.cardTitle}>Update Location</Text>
@@ -172,9 +171,9 @@ function OfflineDevices({ route, navigation }) {
                         <View style={{flex:1}}>
                             <Content/>
                         </View>
-                        <TouchableHighlight acitveOpacity={0.6} underlayColor="#DDDDDD" onPress={() => handlePress(item, index)}>
+                        <TouchableOpacity acitveOpacity={0.6} underlayColor="#DDDDDD" onPress={() => handlePress(item, index)}>
                             <Image style={{width:70, height:70}} source={require('../assets/retry.png')}/>
-                        </TouchableHighlight>
+                        </TouchableOpacity>
                     </View>
                 </Card>
             </Swipeable>
@@ -197,29 +196,6 @@ function OfflineDevices({ route, navigation }) {
     );
 }
 const styles = StyleSheet.create({
-    
-    title:{
-        fontSize:20,
-        paddingTop:20,
-        width:'100%',
-        alignItems:'flex-end',
-        fontWeight:'bold',
-    },
-    addDeviceLoc:{
-        position:'absolute',
-        left:20, 
-        bottom:20,
-        height:45,
-        width:'40%'
-    },
-    manDeviceLoc:{
-        position:'absolute',
-        right:20, 
-        bottom:20,
-        height:45,
-        width:'40%'
-
-    },
     cardText:{
         paddingTop:4,
         fontSize:14

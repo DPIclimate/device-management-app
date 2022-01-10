@@ -42,14 +42,14 @@ const AddDeviceScreen = ({ route, navigation }) => {
     const [euiValid, setEUIValid] = useState(true)
 
     const [title, setTitle] = useState('Register Device')
+
     useEffect(() =>{
         if (route.params != undefined){
             console.log(route.params)
+
             let data = route.params.autofill
             if (data != null){
-
-                setTitle("Update Device")
-
+                console.log(route)
                 for (let item in data){
                     console.log(item)
                     if (item == 'appID'){
@@ -58,6 +58,8 @@ const AddDeviceScreen = ({ route, navigation }) => {
                         onDeviceUIDChange(data['uid'])
                     }else if (item == 'name'){
                         onDeviceNameChange(data['name'])
+                        setTitle('Update Device')
+                        
                     }else if (item == 'eui'){
                         data['eui'] != undefined ? onEUIChangeHandler(data['eui']) : undefined
                     }

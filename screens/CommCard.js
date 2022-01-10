@@ -1,10 +1,9 @@
-import React, { useEffect, useState } from 'react';
-import Card from '../shared/Card';
+import React from 'react';
 import { Col, Row, Grid } from "react-native-easy-grid";
-import { Text, StyleSheet, View } from 'react-native';
+import { Text, View } from 'react-native';
 import globalStyles from '../styles';
-import config from '../config';
 import { ScrollView } from 'react-native-gesture-handler';
+import {Card} from '../shared/index'
 
 const RowContent = ({data}) =>{
     return(
@@ -12,7 +11,7 @@ const RowContent = ({data}) =>{
             <Col size={1}>
                 <Text>{data.date}</Text>
                 <Text>{data.time}</Text>
-            </Col>
+            </Col> 
             <Col size={1}>
                 <Text>{data.rssi}</Text>
             </Col>

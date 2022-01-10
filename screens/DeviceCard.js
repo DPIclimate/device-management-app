@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React from 'react';
 import Card from '../shared/Card';
 import { Col, Row, Grid } from "react-native-easy-grid";
 import { Text } from 'react-native';

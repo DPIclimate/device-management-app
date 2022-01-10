@@ -1,25 +1,14 @@
 import React, {useEffect, useState} from 'react';
-import{
-    View,
-    StyleSheet,
-    Text,
-    TextInput,
-    Image,
-    Pressable,
-    TouchableHighlight,
-    Alert,
-    Platform
-} from 'react-native'
+import{View, StyleSheet, Text, TextInput, Image, Pressable, TouchableHighlight, Alert} from 'react-native'
 import { ScrollView } from 'react-native-gesture-handler';
 import globalStyles from '../styles';
 import config from '../config';
-import LoadingComponent from '../shared/LoadingComponent';
 import moment from 'moment';
 import DeviceCard from './DeviceCard';
 import CommCard from './CommCard';
 import LocationCard from './LocationCard';
 import NotesCard from './NotesCard';
-import checkNetworkStatus from '../shared/NetworkStatus';
+import { checkNetworkStatus, LoadingComponent } from '../shared';
 
 const ManageDevices = ({route, navigation}) => {
 
@@ -42,8 +31,6 @@ const ManageDevices = ({route, navigation}) => {
     const [uidPresent, setUIDpresent] = useState(true)
     const [isConnected, changeIsConnected] = useState(true)
 
-    // const [devObj, setDevObj] = useState({})
-
     useEffect(() =>{
         collectedChange(false)
     },[appID, deviceUID])
@@ -57,13 +44,14 @@ const ManageDevices = ({route, navigation}) => {
 
             let connected = await checkNetworkStatus()
             changeIsConnected(connected)
-
+            
+            console.log(route)
             if (route.params != undefined){
 
                 if (route.params.autofill != undefined){
-
+                    console.log('here')
                     let data = route.params.autofill
-                    console.log('this is data', data)
+
                     if (data != null){
                         appIDChange(data['appID'])
 
@@ -82,7 +70,7 @@ const ManageDevices = ({route, navigation}) => {
             }
         }
         autoLookup()
-    },[])
+    },[route])
 
     const getDeviceData = async() => {
 
@@ -299,7 +287,6 @@ const ManageDevices = ({route, navigation}) => {
         setLoadingState(true)
 
         if (isConnected){
-            console.log('here2')
             if (appID.length != 0 && deviceUID.length != 0 || uidPresent == false){
 
                 const dData = await getDeviceData()
@@ -313,13 +300,16 @@ const ManageDevices = ({route, navigation}) => {
                 }
             }
         }
-        else{
+        else if (route.params.devObj != undefined){
             console.log('here')
             const data = await getOffline()
             changeDevData(data)
             changeCommData(undefined)
             collectedChange(true)
             calcLastSeen(undefined)
+        }
+        else{
+            Alert.alert("Failed Search", "Failed to find the device because you are offline.")
         }
         setLoadingState(false)
     }
@@ -362,18 +352,27 @@ const ManageDevices = ({route, navigation}) => {
     }
     const SearchButton = () =>{
 
-        if (dataCollected == false){
+        if (isConnected){
+            if (dataCollected == false){
+                return(
+                <Pressable style={[{width:120},globalStyles.button]} onPress={handlePress}>
+                    <Text style={globalStyles.buttonText}>Search</Text>
+                </Pressable>
+                )
+            
+            }else{
+                return(
+                    <Pressable style={[{width:140},globalStyles.button]} onPress={handlePress}>
+                        <Text style={globalStyles.buttonText}>Refresh</Text>
+                    </Pressable>
+                )
+            }
+        }
+        else{
             return(
-            <Pressable style={[{width:120},globalStyles.button]} onPress={handlePress}>
-                <Text style={globalStyles.buttonText}>Search</Text>
-            </Pressable>
-            )
-        
-        }else{
-            return(
-                <Pressable style={[{width:140},globalStyles.button]} onPress={handlePress}>
-                <Text style={globalStyles.buttonText}>Refresh</Text>
-            </Pressable>
+                <TouchableHighlight acitveOpacity={0.6} underlayColor="#DDDDDD" onPress={() => Alert.alert("No Connection", "This is the last known state of this device")}>
+                    <Image style={{width:40, height:40}} source={require('../assets/storage.png')}/>
+                </TouchableHighlight>
             )
         }
     }

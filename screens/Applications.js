@@ -1,17 +1,13 @@
 import React, { useEffect, useState } from 'react';
-import {View, SafeAreaView, Pressable, Text, StyleSheet, TouchableOpacity, Image, TouchableHighlight} from 'react-native'
+import {View, Text, Image, TouchableHighlight, Alert} from 'react-native'
 import { FlatList } from 'react-native-gesture-handler';
 import globalStyles from '../styles';
 import config from '../config.json'
-import Card from '../shared/Card';
-import LoadingComponent from '../shared/LoadingComponent';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useIsFocused } from '@react-navigation/native';
-import checkNetworkStatus from '../shared/NetworkStatus';
+import {NavButtons, renderItem, checkNetworkStatus, LoadingComponent} from '../shared/index.js'
 
 function Applications({navigation}) {
-
-    //TODO - Consolidate with devices screen, Lots of unnecessary duplicate code
 
     const [data, changeData] = useState([]);
     const [isLoading, setLoading] = useState(true)
@@ -95,7 +91,7 @@ function Applications({navigation}) {
         setLoading(false)
     }
 
-    const cacheTTNdata = async() =>{ // Cache TTN data for ofline use
+    const cacheTTNdata = async() =>{ // Cache TTN data for offline use
         
         console.log('Caching ttn data')
         const url = `${config.ttnBaseURL}`
@@ -134,7 +130,7 @@ function Applications({navigation}) {
 
     }
 
-    const getApplications = async() => {
+    const getApplications = async() => {//Request applications from ttn
 
         const url = `${config.ttnBaseURL}`
         let response = await fetch(url, {
@@ -147,48 +143,7 @@ function Applications({navigation}) {
         changeData(apps)
         setLoading(false)
     }
-    
-    
-    const renderItem = ({ item }) => (
-        <Card>
-            <TouchableOpacity style={{flexDirection:'row', alignItems:'center', justifyContent:'space-between', width:'100%', height:30}} onPress={() => navigation.navigate('Devices',{application_id: item})}>
-                <Text style={globalStyles.text}>{item}</Text>
 
-                <View style={{flexDirection:'row', alignItems:'center', justifyContent:'space-between', height:30}}>
-                    <Connection/>
-                    <Image source={require('../assets/arrow.png')} style={{height:20, width:20}}/>
-                </View>
-            </TouchableOpacity>
-        </Card>
-      );
-    
-    const SavedDevices = () =>{
-        if (savedDevices == true){
-            return (
-                <View style={{width:45, height:45, position:'absolute', right:0, top:0, margin:10}} >
-                    <TouchableHighlight acitveOpacity={0.6} underlayColor="#DDDDDD" onPress={() => navigation.navigate('OfflineDevices')}>
-                        <Image style={{width:'100%', height:'100%', borderRadius:50}} source={require('../assets/uploadFailed.png')}/>
-                    </TouchableHighlight>
-                </View>
-            )
-        }
-        else{
-            return null
-        }
-    }
-    const Connection = () =>{
-        if (isConnected){
-
-            return null
-        }else{
-            return(
-                <View style={{justifyContent:'flex-end', alignContent:'flex-end'}}>
-                    {/* <Image style={{width:'100%', height:'100%', borderRadius:50}} source={require('../assets/noConnection.png')}/> */}
-                    <Text style={[globalStyles.text, {color:'red'}]}>(Cached)</Text>
-                </View>
-            );
-        }
-    }
     const DataError = () =>{
         
         if (!isConnected && data == null){
@@ -201,56 +156,67 @@ function Applications({navigation}) {
             return(<View/>)
         }
     }
+    const handlePress = (item) =>{
+        navigation.navigate('Devices',{application_id: item})
+    }
+
+    const Icons = () =>{
+        
+        const SavedDevices = () =>{
+            if (savedDevices == true){
+                return (
+                    <View style={{paddingLeft:10}}>
+                        <TouchableHighlight style={{width:45, height:45, borderRadius:50}} acitveOpacity={0.6} underlayColor="#DDDDDD" onPress={() => navigation.navigate('OfflineDevices')}>
+                            <Image style={{width:'100%', height:'100%', borderRadius:50}} source={require('../assets/uploadFailed.png')}/>
+                        </TouchableHighlight>
+                    </View>
+                )
+            }
+            else{
+                return <View/>
+            }
+        }
+
+        const Offline = () =>{
+
+            if (!isConnected){
+                return(
+                    <TouchableHighlight style={{width:45, height:45, borderRadius:50}} acitveOpacity={0.6} underlayColor="#DDDDDD" onPress={() => Alert.alert("No Connection Detected", "The data you see below is a local copy of TTN data and is not a live data from TTN")}>
+                        <Image style={{width:'100%', height:'100%', borderRadius:50}} source={require('../assets/noConnection.png')}/>
+                    </TouchableHighlight>
+                );
+            }
+            else{
+                return null
+            }
+        }
+
+        return(
+            <View style={{width:200, height:45, position:'absolute', justifyContent:'flex-end', flexDirection:'row', right:0, top:0, margin:10}} >
+                <Offline/>
+                <SavedDevices/>
+            </View>
+        )
+    }
     return (
         <View style={globalStyles.screen}>
             <Text style={[globalStyles.title,{padding:10, paddingTop:25}]}>Applications</Text>
-            <SavedDevices/>
+            <Icons/>
 
-                <LoadingComponent loading={isLoading}/>
-                <DataError/>
+            <LoadingComponent loading={isLoading}/>
+            <DataError/>
 
-                <FlatList
-                style={[{flex:1},globalStyles.list]} 
-                data={data}
-                renderItem={renderItem}
-                keyExtractor={(item, index) => index.toString()}
-                />
+            <FlatList
+            style={[{flex:1},globalStyles.list]} 
+            data={data}
+            renderItem={(item) => renderItem(item, handlePress, isConnected)}
+            keyExtractor={(item, index) => index.toString()}
+            />
 
             <View style={{flex:0.15}}>
-                <Pressable style={[globalStyles.button, styles.addDeviceLoc]} onPress={() => {navigation.navigate('AddDeviceScreen')}}>
-                    <Text style={globalStyles.buttonText}>Add Device</Text>
-                </Pressable>
-
-                <Pressable style={[globalStyles.button, styles.manDeviceLoc]} onPress={() => {navigation.navigate('ManageDevices')}}>
-                    <Text style={globalStyles.buttonText}>Manage</Text>
-                </Pressable>
+                <NavButtons navigation={navigation}/>
             </View>
         </View>
     );
 }
-const styles = StyleSheet.create({
-    
-    title:{
-        fontSize:20,
-        paddingTop:20,
-        width:'100%',
-        alignItems:'flex-end',
-        fontWeight:'bold',
-    },
-    addDeviceLoc:{
-        position:'absolute',
-        left:20, 
-        bottom:20,
-        height:45,
-        width:'40%'
-    },
-    manDeviceLoc:{
-        position:'absolute',
-        right:20, 
-        bottom:20,
-        height:45,
-        width:'40%'
-
-    }
-});
 export default Applications;

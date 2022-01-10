@@ -1,6 +1,6 @@
 import React from 'react';
-import Card from '../shared/Card';
-import { Col, Row, Grid } from "react-native-easy-grid";
+import {Card} from '../shared';
+import { Grid } from "react-native-easy-grid";
 import { Text, View, TouchableHighlight, Image } from 'react-native';
 import globalStyles from '../styles';
 
