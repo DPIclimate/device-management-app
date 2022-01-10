@@ -48,7 +48,7 @@ function ScreenStack() {
       <Screen
         name='AddDeviceScreen'
         component={AddDeviceScreen}
-        options={{ title: 'Add New Device'}}
+        options={{ title: 'Register/Update Device'}}
       />
       <Screen
         name="QrScanner"

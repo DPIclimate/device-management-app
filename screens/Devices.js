@@ -6,6 +6,7 @@ import config from '../config.json'
 import Card from '../shared/Card';
 import LoadingComponent from '../shared/LoadingComponent';
 import checkNetworkStatus from '../shared/NetworkStatus';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 
 function Devices({route, navigation}) {
@@ -13,17 +14,22 @@ function Devices({route, navigation}) {
     const [data, changeData] = useState({});
     const [isLoading, setLoading] = useState(true)
     const [isConnected, changeIsConnected] = useState(false)
+    const [appObj, changeAppObj] = useState({})
+
+    const APP_CACHE = 'applicationCache'
 
     useEffect(() =>{
-        getDevices()
-        changeIsConnected(true)
-        // let connected = checkNetworkStatus()
-        // if (connected){
-        //     getDevices()
-        // }
-        // else{
-        //     readFromCache()
-        // }
+        async function retrieveData(){
+            let connected = await checkNetworkStatus()
+            if (connected){
+                getDevices()
+            }
+            else{
+                readFromCache()
+            }
+            changeIsConnected(connected)
+        }
+        retrieveData()
     },[])
 
     const getDevices = async () =>{
@@ -54,8 +60,21 @@ function Devices({route, navigation}) {
         }
 
         if (apps != null){
-            let devices = apps.map((app) => app['end_devices'])
-            let listOfIds = devices.map((dev) => dev[['ids']['device_id']])
+            //Get respective app oblject and devices within app
+
+            let devices = []
+            for (let app in apps){
+
+                let app_obj = apps[app]
+                const id = app_obj['application_id']
+
+                if (id == route.params.application_id){
+                    changeAppObj(app_obj)
+                    devices = app_obj['end_devices']
+                }
+            }
+
+            let listOfIds = devices.map((dev) => dev['ids']['device_id'])
             changeData(listOfIds)
             setLoading(false)
 
@@ -63,15 +82,32 @@ function Devices({route, navigation}) {
         console.log('finished reading chache')
     }
 
-    const handlePress = async(device) =>{
+    const handlePress = async(devName) =>{
 
-        const url = `${config.ttnBaseURL}/${route.params.application_id}/devices/${device}?field_mask=attributes`
+        let response = null
 
-        let response = await fetch(url, {
-            method:"GET",
-            headers:config.headers
-        }).then((response) => response.json())
+        if (isConnected){
+            const url = `${config.ttnBaseURL}/${route.params.application_id}/devices/${devName}?field_mask=attributes`
 
+            let res = await fetch(url, {
+                method:"GET",
+                headers:config.headers
+            }).then((response) => response.json())
+
+            response = res
+        }
+        else{
+            console.log('getting details from cache')
+
+            for (let i in appObj['end_devices']){
+
+                let deviceName = appObj['end_devices'][i]['ids']['device_id']
+
+                if (deviceName == devName){
+                    response = appObj['end_devices'][i]
+                }
+            }
+        }
         try{
             let uid = response['attributes']['uid']
             let application_id = response['ids']['application_ids']['application_id']
@@ -81,7 +117,12 @@ function Devices({route, navigation}) {
                 'uid':uid,
                 'uidPresent':true
             }
-            navigation.navigate('ManageDevices', {autofill:devData})
+            if (isConnected){
+                navigation.navigate('ManageDevices', {autofill:devData})
+
+            }else{
+                navigation.navigate('ManageDevices', {devObj:response, autofill:devData})
+            }
 
         }catch(error){
             Alert.alert("No UID exists", "Would you like to assign a UID to this device?",[
@@ -95,7 +136,7 @@ function Devices({route, navigation}) {
                 },
                 {
                     text: "View details",
-                    onPress:() => navigate(response, 'ManageDevices')
+                    onPress:() => isConnected ? navigate(response, 'ManageDevices'): Alert.alert('Cannot show details', 'Cannot show device with no UID while you are offline')
                 }
             ])
         }

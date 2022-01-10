@@ -15,12 +15,11 @@ import globalStyles from '../styles';
 import config from '../config';
 import LoadingComponent from '../shared/LoadingComponent';
 import moment from 'moment';
-import { 
-    DeviceCard,
-    CommCard,
-    LocationCard,
-    NotesCard
- } from '.';
+import DeviceCard from './DeviceCard';
+import CommCard from './CommCard';
+import LocationCard from './LocationCard';
+import NotesCard from './NotesCard';
+import checkNetworkStatus from '../shared/NetworkStatus';
 
 const ManageDevices = ({route, navigation}) => {
 
@@ -32,13 +31,18 @@ const ManageDevices = ({route, navigation}) => {
     const [commData, changeCommData] = useState({})
     const [requestData, changeRequestData] = useState({})
     const [dataCollected, collectedChange] = useState(false)
+
     const greenCircle = require('../assets/greenCircle.png')
     const redCirle = require('../assets/redCircle.png')
     const orangeCirle = require('../assets/orangeCircle.png')
     const [circleImg, changeCirlce] = useState(greenCircle)
+
     const [isLoading, setLoadingState] = useState(false)
     const [autoSearch, setAutoSearch] = useState(false)
     const [uidPresent, setUIDpresent] = useState(true)
+    const [isConnected, changeIsConnected] = useState(true)
+
+    // const [devObj, setDevObj] = useState({})
 
     useEffect(() =>{
         collectedChange(false)
@@ -49,26 +53,36 @@ const ManageDevices = ({route, navigation}) => {
     },[autoSearch])
 
     useEffect(() =>{
-        if (route.params != undefined){
-            let data = route.params.autofill
-            console.log(data)
-            if (data != null){
-                appIDChange(data['appID'])
-                route.params = undefined
-                setAutoSearch(true)
+        async function autoLookup(){
 
-                if (data['uidPresent'] == true){
-                    uidChange(data['uid'])
-                    changeRequestData(data)
-                    setUIDpresent(true)
-                }
-                else{
-                    setUIDpresent(false)
-                    changeRequestData(data)
+            let connected = await checkNetworkStatus()
+            changeIsConnected(connected)
+
+            if (route.params != undefined){
+
+                if (route.params.autofill != undefined){
+
+                    let data = route.params.autofill
+                    console.log('this is data', data)
+                    if (data != null){
+                        appIDChange(data['appID'])
+
+                        if (data['uidPresent'] == true){
+                            uidChange(data['uid'])
+                            changeRequestData(data)
+                            setUIDpresent(true)
+                        }
+                        else{
+                            setUIDpresent(false)
+                            changeRequestData(data)
+                        }
+                        setAutoSearch(true)
+                    }
                 }
             }
         }
-    })
+        autoLookup()
+    },[])
 
     const getDeviceData = async() => {
 
@@ -233,7 +247,13 @@ const ManageDevices = ({route, navigation}) => {
             }
         }
         else {
-            changeLastSeen(`Never`)
+            
+            if (isConnected){
+                changeLastSeen(`Never`)
+            }
+            else{
+                changeLastSeen('Unknown')
+            }
             changeCirlce(redCirle)
         }
     }
@@ -247,21 +267,59 @@ const ManageDevices = ({route, navigation}) => {
         return [dayMonth, time, dayMonthYear, dateUnix]
         
     }
+    const getOffline = () =>{
 
+        let device = route.params.devObj
+        const devName = device['ids']['device_id']
+        const appID = device['ids']['application_ids']['application_id']
+        const devUID = device['attributes']['uid']
+        const devEui = device['ids']['dev_eui']
+        const dates = formatTime(device['created_at'])
+
+        const created = `${dates[2]} ${dates[1]}` 
+
+        const ttn_link = `https://au1.cloud.thethings.network/console/applications/${appID}/devices/${devName}`
+
+        let location = undefined 
+        device['locations'] != undefined ? location = device['locations']['user'] : location = undefined
+        
+        const data = {
+            "appID":appID,
+            'uid':devUID,
+            'name':devName,
+            'eui':devEui,
+            'creationDate':created,
+            'location':location,
+            'ttn_link':ttn_link
+        }
+        return data
+    }
     const handlePress = async(autoSearch) =>{
 
         setLoadingState(true)
-        if (appID.length != 0 && deviceUID.length != 0 || uidPresent == false){
 
-            const dData = await getDeviceData()
-            if (dData != null){
-                const cData = await getCommData(dData)
-                changeDevData(dData)
-                changeCommData(cData)
+        if (isConnected){
+            console.log('here2')
+            if (appID.length != 0 && deviceUID.length != 0 || uidPresent == false){
 
-                collectedChange(true)
-                calcLastSeen(cData)
+                const dData = await getDeviceData()
+                if (dData != null){
+                    const cData = await getCommData(dData)
+                    changeDevData(dData)
+                    changeCommData(cData)
+
+                    collectedChange(true)
+                    calcLastSeen(cData)
+                }
             }
+        }
+        else{
+            console.log('here')
+            const data = await getOffline()
+            changeDevData(data)
+            changeCommData(undefined)
+            collectedChange(true)
+            calcLastSeen(undefined)
         }
         setLoadingState(false)
     }

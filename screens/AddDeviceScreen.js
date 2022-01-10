@@ -41,12 +41,15 @@ const AddDeviceScreen = ({ route, navigation }) => {
     const [nameValid, setNameValid] = useState(true)
     const [euiValid, setEUIValid] = useState(true)
 
+    const [title, setTitle] = useState('Register Device')
     useEffect(() =>{
         if (route.params != undefined){
             console.log(route.params)
             let data = route.params.autofill
             if (data != null){
-                
+
+                setTitle("Update Device")
+
                 for (let item in data){
                     console.log(item)
                     if (item == 'appID'){
@@ -56,7 +59,7 @@ const AddDeviceScreen = ({ route, navigation }) => {
                     }else if (item == 'name'){
                         onDeviceNameChange(data['name'])
                     }else if (item == 'eui'){
-                        onEUIChangeHandler(data['eui'])
+                        data['eui'] != undefined ? onEUIChangeHandler(data['eui']) : undefined
                     }
                 }
                 route.params = undefined
@@ -476,7 +479,7 @@ const AddDeviceScreen = ({ route, navigation }) => {
 
                 <View style={styles.contentView}>                    
                     {/* Enter details */}
-                    <Text style={styles.title}>Register Device</Text>
+                    <Text style={styles.title}>{title}</Text>
 
                     <View style={{width:60, height:60, position:'absolute', right:0, top:0, margin:10}} >
                         <TouchableHighlight acitveOpacity={0.6} underlayColor="#DDDDDD" onPress={() => navigation.navigate('QrScanner',{screen:'AddDeviceScreen'})}>

@@ -11,6 +11,8 @@ import checkNetworkStatus from '../shared/NetworkStatus';
 
 function Applications({navigation}) {
 
+    //TODO - Consolidate with devices screen, Lots of unnecessary duplicate code
+
     const [data, changeData] = useState([]);
     const [isLoading, setLoading] = useState(true)
     const [savedDevices, setSavedDevices] = useState(false)
@@ -18,9 +20,10 @@ function Applications({navigation}) {
     const [isConnected, changeIsConnected] = useState(false)
     const APP_CACHE = 'applicationCache'
     const DEV_STORE = 'devices'
+    const LOC_UPDATES = 'locationUpdates'
 
     useEffect(()=>{
-        async function getDetails(){
+        async function retrieveData(){
             let connected = await checkNetworkStatus()
             console.log(connected)
             if (connected){
@@ -31,14 +34,14 @@ function Applications({navigation}) {
             }
             changeIsConnected(connected)
         }
-        getDetails()
+        retrieveData()
     },[])
 
     useEffect(() =>{
         checkSavedReg()
     }, [isFocused])
  
-    const checkSavedReg = async() =>{
+    const checkSavedReg = async() =>{ //Check for saved devices or updates
         let saved = []
 
         try{
@@ -51,7 +54,7 @@ function Applications({navigation}) {
         }
 
         try{
-            let fromStore = await AsyncStorage.getItem('locationUpdates')
+            let fromStore = await AsyncStorage.getItem(LOC_UPDATES)
             fromStore = JSON.parse(fromStore)
             fromStore != null? saved = [...saved, ...fromStore] : saved = []
 
@@ -66,9 +69,9 @@ function Applications({navigation}) {
             setSavedDevices(false)
         }
     }
-    const readFromCache = async() =>{
+    const readFromCache = async() =>{ //Read application data from cache
 
-        console.log('reading chache')
+        console.log('No internet connection, reading applications from chache')
         let apps = []
 
         try{
@@ -84,15 +87,17 @@ function Applications({navigation}) {
 
             let listOfIds = apps.map((app) => app['application_id'])
             changeData(listOfIds)
-            setLoading(false)
 
         }
-        console.log('finished reading chache')
+        else{
+            changeData(null)
+        }
+        setLoading(false)
     }
 
-    const cacheTTNdata = async() =>{
+    const cacheTTNdata = async() =>{ // Cache TTN data for ofline use
         
-        console.log('retreiving list of applications')
+        console.log('Caching ttn data')
         const url = `${config.ttnBaseURL}`
         let response = await fetch(url, {
             method:"GET",
@@ -106,7 +111,7 @@ function Applications({navigation}) {
         for (let app in apps){
             app = apps[app]
 
-            const url = `${config.ttnBaseURL}/${app}/devices?field_mask=attribute`
+            const url = `${config.ttnBaseURL}/${app}/devices?field_mask=attributes,locations`
             let response = await fetch(url, {
                 method:"GET",
                 headers:config.headers
@@ -115,18 +120,17 @@ function Applications({navigation}) {
             applications.push(
                 {
                     'application_id':app,
-                    'end_devices': response
+                    'end_devices': response['end_devices']
                 }
             )
         }
-
         try{
             await AsyncStorage.setItem(APP_CACHE, JSON.stringify(applications))
 
         }catch(error){
             console.log(error)
         }
-        console.log('Chaded ttn data successfully')
+        console.log('Cached ttn data successfully')
 
     }
 
@@ -185,12 +189,25 @@ function Applications({navigation}) {
             );
         }
     }
+    const DataError = () =>{
+        
+        if (!isConnected && data == null){
+
+            return(
+                <Text style={[globalStyles.text, {justifyContent:'center'}]}>No applications to display</Text>
+            )  
+        }
+        else{
+            return(<View/>)
+        }
+    }
     return (
         <View style={globalStyles.screen}>
             <Text style={[globalStyles.title,{padding:10, paddingTop:25}]}>Applications</Text>
             <SavedDevices/>
 
                 <LoadingComponent loading={isLoading}/>
+                <DataError/>
 
                 <FlatList
                 style={[{flex:1},globalStyles.list]} 
@@ -198,6 +215,7 @@ function Applications({navigation}) {
                 renderItem={renderItem}
                 keyExtractor={(item, index) => index.toString()}
                 />
+
             <View style={{flex:0.15}}>
                 <Pressable style={[globalStyles.button, styles.addDeviceLoc]} onPress={() => {navigation.navigate('AddDeviceScreen')}}>
                     <Text style={globalStyles.buttonText}>Add Device</Text>
