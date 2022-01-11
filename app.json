@@ -1,7 +1,7 @@
 {
   "expo": {
-    "name": "device-management-app",
-    "slug": "device-management-app",
+    "name": "deviceManagementApp",
+    "slug": "deviceManagementApp",
     "version": "1.0.0",
     "orientation": "default",
     "icon": "./assets/icon.png",
@@ -17,9 +17,11 @@
       "**/*"
     ],
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": true,
+      "bundleIdentifier":"com.dpi.deviceManagementApp"
     },
     "android": {
+      "package":"com.dpi.deviceManagementApp",
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#FFFFFF"

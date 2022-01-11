@@ -11,9 +11,9 @@ const renderItem = ({ item }, handlePress, isConnected) => {
             <Text style={globalStyles.text}>{item}</Text>
 
             <View style={{flexDirection:'row', alignItems:'center', justifyContent:'space-between', height:30}}>
-                <View style={{width:40, height:30, paddingRight:10}}>
+                {/* <View style={{width:40, height:30, paddingRight:10}}>
                     <Connection status={isConnected}/>
-                </View>
+                </View> */}
                 <Image source={require('../assets/arrow.png')} style={{height:20, width:20}}/>
             </View>
         </TouchableOpacity>

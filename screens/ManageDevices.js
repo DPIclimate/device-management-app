@@ -9,6 +9,7 @@ import CommCard from './CommCard';
 import LocationCard from './LocationCard';
 import NotesCard from './NotesCard';
 import { checkNetworkStatus, LoadingComponent } from '../shared';
+import {getDevice} from '../shared/ManageLocStorage'
 
 const ManageDevices = ({route, navigation}) => {
 
@@ -255,9 +256,10 @@ const ManageDevices = ({route, navigation}) => {
         return [dayMonth, time, dayMonthYear, dateUnix]
         
     }
-    const getOffline = () =>{
+    const getOffline = async() =>{
 
-        let device = route.params.devObj
+        let device = await getDevice(route.params.autofill['appID'], route.params.autofill['name'], route.params.autofill['uid'])
+
         const devName = device['ids']['device_id']
         const appID = device['ids']['application_ids']['application_id']
         const devUID = device['attributes']['uid']
@@ -272,7 +274,7 @@ const ManageDevices = ({route, navigation}) => {
         device['locations'] != undefined ? location = device['locations']['user'] : location = undefined
         
         const data = {
-            "appID":appID,
+            "appID": appID,
             'uid':devUID,
             'name':devName,
             'eui':devEui,
@@ -286,8 +288,9 @@ const ManageDevices = ({route, navigation}) => {
 
         setLoadingState(true)
 
-        if (isConnected){
-            if (appID.length != 0 && deviceUID.length != 0 || uidPresent == false){
+        if (appID.length != 0 && deviceUID.length != 0 || uidPresent == false){
+
+            if (isConnected){
 
                 const dData = await getDeviceData()
                 if (dData != null){
@@ -299,17 +302,14 @@ const ManageDevices = ({route, navigation}) => {
                     calcLastSeen(cData)
                 }
             }
-        }
-        else if (route.params.devObj != undefined){
-            console.log('here')
-            const data = await getOffline()
-            changeDevData(data)
-            changeCommData(undefined)
-            collectedChange(true)
-            calcLastSeen(undefined)
-        }
-        else{
-            Alert.alert("Failed Search", "Failed to find the device because you are offline.")
+            else if (route.params.autofill != undefined){
+
+                const data = await getOffline()
+                changeDevData(data)
+                changeCommData(undefined)
+                collectedChange(true)
+                calcLastSeen(undefined)
+            }
         }
         setLoadingState(false)
     }
@@ -352,26 +352,24 @@ const ManageDevices = ({route, navigation}) => {
     }
     const SearchButton = () =>{
 
-        if (isConnected){
-            if (dataCollected == false){
-                return(
-                <Pressable style={[{width:120},globalStyles.button]} onPress={handlePress}>
-                    <Text style={globalStyles.buttonText}>Search</Text>
-                </Pressable>
-                )
-            
-            }else{
-                return(
-                    <Pressable style={[{width:140},globalStyles.button]} onPress={handlePress}>
-                        <Text style={globalStyles.buttonText}>Refresh</Text>
-                    </Pressable>
-                )
-            }
-        }
-        else{
+        if (!dataCollected){
             return(
-                <TouchableHighlight acitveOpacity={0.6} underlayColor="#DDDDDD" onPress={() => Alert.alert("No Connection", "This is the last known state of this device")}>
-                    <Image style={{width:40, height:40}} source={require('../assets/storage.png')}/>
+            <Pressable style={[{width:120},globalStyles.button]} onPress={handlePress}>
+                <Text style={globalStyles.buttonText}>Search</Text>
+            </Pressable>
+            )
+        
+        }else if (dataCollected && isConnected){
+            return(
+                <Pressable style={[{width:140},globalStyles.button]} onPress={handlePress}>
+                    <Text style={globalStyles.buttonText}>Refresh</Text>
+                </Pressable>
+            )
+        }
+        else if (dataCollected && !isConnected){
+            return(
+                <TouchableHighlight style={{borderRadius:50}} acitveOpacity={0.6} underlayColor="#DDDDDD" onPress={() => Alert.alert("No Connection", "This is the last known state of this device")}>
+                    <Image style={{width:50, height:50, borderRadius:50}} source={require('../assets/noConnection.png')}/>
                 </TouchableHighlight>
             )
         }

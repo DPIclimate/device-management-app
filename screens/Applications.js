@@ -6,6 +6,7 @@ import config from '../config.json'
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useIsFocused } from '@react-navigation/native';
 import {NavButtons, renderItem, checkNetworkStatus, LoadingComponent} from '../shared/index.js'
+import getApplicationList, {cacheTTNdata} from '../shared/ManageLocStorage'
 
 function Applications({navigation}) {
 
@@ -14,7 +15,6 @@ function Applications({navigation}) {
     const [savedDevices, setSavedDevices] = useState(false)
     const isFocused = useIsFocused()
     const [isConnected, changeIsConnected] = useState(false)
-    const APP_CACHE = 'applicationCache'
     const DEV_STORE = 'devices'
     const LOC_UPDATES = 'locationUpdates'
 
@@ -26,7 +26,7 @@ function Applications({navigation}) {
                 getApplications()
                 cacheTTNdata()
             }else{
-                readFromCache()
+                getAppIds()
             }
             changeIsConnected(connected)
         }
@@ -65,19 +65,9 @@ function Applications({navigation}) {
             setSavedDevices(false)
         }
     }
-    const readFromCache = async() =>{ //Read application data from cache
+    const getAppIds = async() =>{ //Read application data from cache
 
-        console.log('No internet connection, reading applications from chache')
-        let apps = []
-
-        try{
-            let fromStore = await AsyncStorage.getItem(APP_CACHE)
-            fromStore = JSON.parse(fromStore)
-            apps = fromStore
-
-        }catch(error){
-            console.log(error)
-        }
+        const apps = await getApplicationList()
 
         if (apps != null){
 
@@ -89,45 +79,6 @@ function Applications({navigation}) {
             changeData(null)
         }
         setLoading(false)
-    }
-
-    const cacheTTNdata = async() =>{ // Cache TTN data for offline use
-        
-        console.log('Caching ttn data')
-        const url = `${config.ttnBaseURL}`
-        let response = await fetch(url, {
-            method:"GET",
-            headers:config.headers
-        }).then((response) => response.json())
-
-        response = response['applications']
-        const apps = response.map((app) => app['ids']['application_id'])
-        let applications = []
-
-        for (let app in apps){
-            app = apps[app]
-
-            const url = `${config.ttnBaseURL}/${app}/devices?field_mask=attributes,locations`
-            let response = await fetch(url, {
-                method:"GET",
-                headers:config.headers
-            }).then((response) => response.json())
-
-            applications.push(
-                {
-                    'application_id':app,
-                    'end_devices': response['end_devices']
-                }
-            )
-        }
-        try{
-            await AsyncStorage.setItem(APP_CACHE, JSON.stringify(applications))
-
-        }catch(error){
-            console.log(error)
-        }
-        console.log('Cached ttn data successfully')
-
     }
 
     const getApplications = async() => {//Request applications from ttn

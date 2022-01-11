@@ -1,20 +1,16 @@
 import React, { useEffect, useState } from 'react';
-import {View, Text, Alert} from 'react-native'
+import {View, Text, Alert, TouchableHighlight, Image} from 'react-native'
 import { FlatList } from 'react-native-gesture-handler';
 import globalStyles from '../styles';
 import config from '../config.json'
-import AsyncStorage from '@react-native-async-storage/async-storage';
 import {NavButtons, renderItem, checkNetworkStatus, LoadingComponent} from '../shared/index.js'
-
+import {getDevice, getApplication} from '../shared/ManageLocStorage'
 
 function Devices({route, navigation}) {
 
     const [data, changeData] = useState({});
     const [isLoading, setLoading] = useState(true)
     const [isConnected, changeIsConnected] = useState(false)
-    const [appObj, changeAppObj] = useState({})
-
-    const APP_CACHE = 'applicationCache'
 
     useEffect(() =>{
         async function retrieveData(){
@@ -23,7 +19,7 @@ function Devices({route, navigation}) {
                 getDevices()
             }
             else{
-                readFromCache()
+                getDevIds()
             }
             changeIsConnected(connected)
         }
@@ -43,41 +39,15 @@ function Devices({route, navigation}) {
         setLoading(false)
     }
 
-    const readFromCache = async() =>{
+    const getDevIds = async() =>{
 
-        console.log('reading chache')
-        let apps = []
+        const app = await getApplication(route.params.application_id)
+        const devices = app['end_devices']
 
-        try{
-            let fromStore = await AsyncStorage.getItem(APP_CACHE)
-            fromStore = JSON.parse(fromStore)
-            apps = fromStore
+        let listOfIds = devices.map((dev) => dev['ids']['device_id'])
+        changeData(listOfIds)
+        setLoading(false)
 
-        }catch(error){
-            console.log(error)
-        }
-
-        if (apps != null){
-            //Get respective app object and devices within app
-
-            let devices = []
-            for (let app in apps){
-
-                let app_obj = apps[app]
-                const id = app_obj['application_id']
-
-                if (id == route.params.application_id){
-                    changeAppObj(app_obj)
-                    devices = app_obj['end_devices']
-                }
-            }
-
-            let listOfIds = devices.map((dev) => dev['ids']['device_id'])
-            changeData(listOfIds)
-            setLoading(false)
-
-        }
-        console.log('finished reading chache')
     }
 
     const handlePress = async(devName) =>{
@@ -95,34 +65,24 @@ function Devices({route, navigation}) {
             response = res
         }
         else{
-            console.log('getting details from cache')
-
-            for (let i in appObj['end_devices']){
-
-                let deviceName = appObj['end_devices'][i]['ids']['device_id']
-
-                if (deviceName == devName){
-                    response = appObj['end_devices'][i]
-                }
-            }
+            response = await getDevice(route.params.application_id, devName)
         }
         try{
-            let uid = response['attributes']['uid']
-            let application_id = response['ids']['application_ids']['application_id']
-
+            const uid = response['attributes']['uid']
+            const application_id = response['ids']['application_ids']['application_id']
+            const name = response['ids']['device_id']
+            
             let devData = {
                 'appID':application_id,
                 'uid':uid,
+                'name':name,
                 'uidPresent':true
             }
-            if (isConnected){
-                navigation.navigate('ManageDevices', {autofill:devData})
+            navigation.navigate('ManageDevices', {autofill:devData})
 
-            }else{
-                navigation.navigate('ManageDevices', {devObj:response, autofill:devData})
-            }
 
         }catch(error){
+            console.log(error)
             Alert.alert("No UID exists", "Would you like to assign a UID to this device?",[
                 {
                     text:"Yes",
@@ -139,7 +99,20 @@ function Devices({route, navigation}) {
             ])
         }
     }
-    
+    const Offline = () =>{
+
+        if (!isConnected){
+            return(
+                <TouchableHighlight style={{width:45, height:45, borderRadius:50, position:'absolute', right:0, top:0, margin:10}} acitveOpacity={0.6} underlayColor="#DDDDDD" onPress={() => Alert.alert("No Connection Detected", "The data you see below is a local copy of TTN data and is not a live data from TTN")}>
+                    <Image style={{width:'100%', height:'100%', borderRadius:50}} source={require('../assets/noConnection.png')}/>
+                </TouchableHighlight>
+            );
+        }
+        else{
+            return null
+        }
+    }
+
     const navigate = (response, screen) =>{
         //Navigate to withough a UID
         let devData ={
@@ -154,6 +127,7 @@ function Devices({route, navigation}) {
     return (
         <View style={globalStyles.screen}>
             <Text style={[globalStyles.title,{padding:10, paddingTop:25}]}>{route.params.application_id} - Devices</Text>
+            <Offline/>
             <LoadingComponent loading={isLoading}/>
                 <FlatList
                 style={[{flex:1},globalStyles.list]} 
