@@ -16,10 +16,13 @@ function OfflineDevices({ route, navigation }) {
 
     useEffect (() =>{
         getSaved()
-        async() =>{
+        async function net(){
+            console.log('here2')
             let connected = await checkNetworkStatus()
+            console.log(connected)
             changeConnectionStatus(connected)
         }
+        net()
     },[reload])
 
     const getSaved = async() =>{
@@ -38,7 +41,7 @@ function OfflineDevices({ route, navigation }) {
         try{
             let fromStore = await AsyncStorage.getItem('locationUpdates')
             fromStore = JSON.parse(fromStore)
-            fromStore != null? locSaved = [...locSaved, ...fromStore] : locSaved = []
+            fromStore != null? locSaved = [...locSaved, ...fromStore] : locSaved = locSaved
 
             changeSavedLocations(fromStore != null? fromStore : [])
 

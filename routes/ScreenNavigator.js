@@ -11,6 +11,7 @@ import {
   Devices,
   OfflineDevices
 } from '../screens/index';
+import Camera from '../screens/Camera'
 
 const { Screen, Navigator } = createStackNavigator();
 
@@ -24,7 +25,7 @@ function ScreenStack() {
       initialRouteName="Applications"
       screenOptions={{
         headerStyle: {
-          backgroundColor: '#063f5c',
+          backgroundColor: '#128cde',
           //063f5c
         },
         headerTintColor: 'white',
@@ -37,7 +38,7 @@ function ScreenStack() {
       <Screen
         name='Applications'
         component={Applications}
-        options={{ title: 'Browse Devices'}}
+        options={{ title: 'Browse Application'}}
       />
       <Screen
         name='Devices'
@@ -63,6 +64,11 @@ function ScreenStack() {
       name="OfflineDevices"
       component={OfflineDevices}
       options={{title:"Saved Devices"}}
+      />
+      <Screen
+      name="Camera"
+      component={Camera}
+      options={{title:"Camera"}}
       />
     </Navigator>
   );

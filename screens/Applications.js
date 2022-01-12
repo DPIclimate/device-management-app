@@ -52,7 +52,7 @@ function Applications({navigation}) {
         try{
             let fromStore = await AsyncStorage.getItem(LOC_UPDATES)
             fromStore = JSON.parse(fromStore)
-            fromStore != null? saved = [...saved, ...fromStore] : saved = []
+            fromStore != null? saved = [...saved, ...fromStore] : saved = saved
 
         }catch(error){
             console.log(error)

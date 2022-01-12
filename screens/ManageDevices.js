@@ -1,5 +1,5 @@
-import React, {useEffect, useState} from 'react';
-import{View, StyleSheet, Text, TextInput, Image, Pressable, TouchableHighlight, Alert} from 'react-native'
+import React, {useEffect, useState, useRef} from 'react';
+import{View, StyleSheet, Text, TextInput, Image, Pressable, TouchableHighlight, Alert, KeyboardAvoidingView} from 'react-native'
 import { ScrollView } from 'react-native-gesture-handler';
 import globalStyles from '../styles';
 import config from '../config';
@@ -8,6 +8,7 @@ import DeviceCard from './DeviceCard';
 import CommCard from './CommCard';
 import LocationCard from './LocationCard';
 import NotesCard from './NotesCard';
+import PhotosCard from './PhotosCard'
 import { checkNetworkStatus, LoadingComponent } from '../shared';
 import {getDevice} from '../shared/ManageLocStorage'
 
@@ -46,7 +47,6 @@ const ManageDevices = ({route, navigation}) => {
             let connected = await checkNetworkStatus()
             changeIsConnected(connected)
             
-            console.log(route)
             if (route.params != undefined){
 
                 if (route.params.autofill != undefined){
@@ -84,38 +84,46 @@ const ManageDevices = ({route, navigation}) => {
                 requestedDevice = await getDeviceNoUID()
             }
             if (requestedDevice != null){
-                const applicationID = requestedDevice['ids']['application_ids']['application_id']
-                let devUID = null
-                if(requestData['uidPresent'] ==true) devUID = requestedDevice['attributes']['uid'] 
-                const devName = requestedDevice['ids']['device_id']
-                const devEui = requestedDevice['ids']['dev_eui']
-                const dates = formatTime(requestedDevice['created_at'])
 
-                const created = `${dates[2]} ${dates[1]}` 
+                return createDeviceObj(requestedDevice)
 
-                const ttn_link = `https://au1.cloud.thethings.network/console/applications/${applicationID}/devices/${devName}`
-
-                let location = undefined 
-                requestedDevice['locations'] != undefined ? location = requestedDevice['locations']['user'] : location = undefined
-                
-                const data = {
-                    "appID":applicationID,
-                    'uid':devUID,
-                    'name':devName,
-                    'eui':devEui,
-                    'creationDate':created,
-                    'location':location,
-                    'ttn_link':ttn_link
-                }
-                console.log('finished')
-                return data
             }
         
+    }
+    const createDeviceObj = (device) =>{
+
+        const applicationID = device['ids']['application_ids']['application_id']
+        let devUID = null
+        if(requestData['uidPresent'] ==true) devUID = device['attributes']['uid'] 
+        const devName = device['ids']['device_id']
+        const devEui = device['ids']['dev_eui']
+        const dates = formatTime(device['created_at'])
+
+        const created = `${dates[2]} ${dates[1]}` 
+
+        const ttn_link = `https://au1.cloud.thethings.network/console/applications/${applicationID}/devices/${devName}`
+
+        let location = undefined 
+        device['locations'] != undefined ? location = device['locations']['user'] : location = undefined
+        
+        const notes = device['description']
+        const data = {
+            "appID":applicationID,
+            'uid':devUID,
+            'name':devName,
+            'eui':devEui,
+            'creationDate':created,
+            'location':location,
+            'ttn_link':ttn_link,
+            'notes':notes
+        }
+        console.log('finished')
+        return data
     }
     const getDeviceWithUID = async() =>{
         console.log('requesting device with a uid')
         try{
-            let url =  `${config.ttnBaseURL}/${appID}/devices?field_mask=attributes,locations`
+            let url =  `${config.ttnBaseURL}/${appID}/devices?field_mask=attributes,locations,description`
             let response = await fetch(url,{
                 method:"GET",
                 headers:config.headers
@@ -155,7 +163,7 @@ const ManageDevices = ({route, navigation}) => {
         try{
             console.log('requesting device without uid')
 
-            let url =  `${config.ttnBaseURL}/${appID}/devices/${requestData.name}?field_mask=attributes,locations`
+            let url =  `${config.ttnBaseURL}/${appID}/devices/${requestData.name}?field_mask=attributes,locations,description`
             console.log(url)
             let response = await fetch(url,{
                 method:"GET",
@@ -259,30 +267,7 @@ const ManageDevices = ({route, navigation}) => {
     const getOffline = async() =>{
 
         let device = await getDevice(route.params.autofill['appID'], route.params.autofill['name'], route.params.autofill['uid'])
-
-        const devName = device['ids']['device_id']
-        const appID = device['ids']['application_ids']['application_id']
-        const devUID = device['attributes']['uid']
-        const devEui = device['ids']['dev_eui']
-        const dates = formatTime(device['created_at'])
-
-        const created = `${dates[2]} ${dates[1]}` 
-
-        const ttn_link = `https://au1.cloud.thethings.network/console/applications/${appID}/devices/${devName}`
-
-        let location = undefined 
-        device['locations'] != undefined ? location = device['locations']['user'] : location = undefined
-        
-        const data = {
-            "appID": appID,
-            'uid':devUID,
-            'name':devName,
-            'eui':devEui,
-            'creationDate':created,
-            'location':location,
-            'ttn_link':ttn_link
-        }
-        return data
+        return createDeviceObj(device)
     }
     const handlePress = async(autoSearch) =>{
 
@@ -343,6 +328,7 @@ const ManageDevices = ({route, navigation}) => {
                     <LocationCard data={devData}/>  
 
                     <NotesCard data={devData}/>
+                    <PhotosCard params={route.params} navigation={navigation}/>
                 </>
             )
         }
@@ -374,9 +360,13 @@ const ManageDevices = ({route, navigation}) => {
             )
         }
     }
+    
     return (
-        <View style={globalStyles.screen}>
+        <KeyboardAvoidingView style={{ flex: 1 }}
+        keyboardVerticalOffset={50}
+        behavior={Platform.OS === "ios" ? "position" : "height"}>
             <ScrollView style={globalStyles.scrollView}>
+
                 <View style={styles.contentView}>
                     <Text style={styles.title}>Device lookup</Text>
                     <View style={{width:60, height:60, position:'absolute', right:0, top:0, margin:10}} >
@@ -398,7 +388,7 @@ const ManageDevices = ({route, navigation}) => {
                 </View>
                     <LoadingComponent loading={isLoading}/>
             </ScrollView>
-        </View>
+        </KeyboardAvoidingView>
     );
 };
 const styles = StyleSheet.create({

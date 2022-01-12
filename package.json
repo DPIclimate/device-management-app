@@ -51,7 +51,9 @@
     "react-qr-reader": "^2.2.1",
     "victory-native": "^35.5.5",
     "@react-native-async-storage/async-storage": "^1.13.0",
-    "@react-native-community/netinfo": "6.0.0"
+    "@react-native-community/netinfo": "6.0.0",
+    "expo-camera": "~11.0.2",
+    "expo-image-picker": "~10.1.4"
   },
   "devDependencies": {
     "@babel/core": "^7.9.9",

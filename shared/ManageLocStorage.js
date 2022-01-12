@@ -78,7 +78,7 @@ const cacheTTNdata = async() =>{ // Cache TTN data for offline use
     for (let app in apps){
         app = apps[app]
 
-        const url = `${config.ttnBaseURL}/${app}/devices?field_mask=attributes,locations`
+        const url = `${config.ttnBaseURL}/${app}/devices?field_mask=attributes,locations,description`
         let response = await fetch(url, {
             method:"GET",
             headers:config.headers
