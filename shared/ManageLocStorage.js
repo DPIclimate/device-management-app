@@ -1,8 +1,6 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import config from '../config.json'
 
-const APP_CACHE = 'applicationCache'
-
 const getDevice = async(appID, devName, uid) =>{
 
     let devices = await getApplication(appID)
@@ -52,7 +50,7 @@ const getApplicationList = async(arg) =>{
     let apps = []
 
     try{
-        let fromStore = await AsyncStorage.getItem(APP_CACHE)
+        let fromStore = await AsyncStorage.getItem(global.APP_CACHE)
         fromStore = JSON.parse(fromStore)
         apps = fromStore
 
@@ -68,7 +66,7 @@ const cacheTTNdata = async() =>{ // Cache TTN data for offline use
     const url = `${config.ttnBaseURL}`
     let response = await fetch(url, {
         method:"GET",
-        headers:config.headers
+        headers:global.headers
     }).then((response) => response.json())
 
     response = response['applications']
@@ -81,7 +79,7 @@ const cacheTTNdata = async() =>{ // Cache TTN data for offline use
         const url = `${config.ttnBaseURL}/${app}/devices?field_mask=attributes,locations,description`
         let response = await fetch(url, {
             method:"GET",
-            headers:config.headers
+            headers:global.headers
         }).then((response) => response.json())
 
         applications.push(
@@ -92,7 +90,7 @@ const cacheTTNdata = async() =>{ // Cache TTN data for offline use
         )
     }
     try{
-        await AsyncStorage.setItem(APP_CACHE, JSON.stringify(applications))
+        await AsyncStorage.setItem(global.APP_CACHE, JSON.stringify(applications))
 
     }catch(error){
         console.log(error)

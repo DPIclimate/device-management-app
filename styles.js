@@ -52,7 +52,10 @@ const globalStyles = StyleSheet.create({
         width:'100%',
         alignItems:'flex-end',
         fontWeight:'bold',
-    }
+    },
+    contentView:{
+        padding:10 
+    },
   });
   
   export default globalStyles;

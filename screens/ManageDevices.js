@@ -126,7 +126,7 @@ const ManageDevices = ({route, navigation}) => {
             let url =  `${config.ttnBaseURL}/${appID}/devices?field_mask=attributes,locations,description`
             let response = await fetch(url,{
                 method:"GET",
-                headers:config.headers
+                headers:global.headers
             })
             response = await response.json()
 
@@ -167,7 +167,7 @@ const ManageDevices = ({route, navigation}) => {
             console.log(url)
             let response = await fetch(url,{
                 method:"GET",
-                headers:config.headers
+                headers:global.headers
             })
             response = await response.json()
 
@@ -189,31 +189,33 @@ const ManageDevices = ({route, navigation}) => {
 
         const response = await fetch(url,{
             method:"GET",
-            headers:config.headers
+            headers:global.headers
         }).then((response) => response.json())
 
         let recent_uplinks = ""
+
         try{
             recent_uplinks = response['mac_state']['recent_uplinks']
+
+            const m_types = recent_uplinks.map((data) => data['payload']['m_hdr']['m_type']).reverse()
+            const r_uplinks = recent_uplinks.map((data) => data['rx_metadata'][0]['rssi']).reverse()
+            const snrs = recent_uplinks.map((data) => data['rx_metadata'][0]['snr']).reverse()
+
+            const utcTimes = recent_uplinks.map((data) => data['received_at']).reverse()
+            const times = utcTimes.map((time) => formatTime(time))
+
+            const data = {
+                'm_types':m_types,
+                'rssis':r_uplinks,
+                'snrs':snrs,
+                'times':times
+            }
+            return data
 
         }catch(error){
             return undefined
         }
-
-        const m_types = recent_uplinks.map((data) => data['payload']['m_hdr']['m_type']).reverse()
-        const r_uplinks = recent_uplinks.map((data) => data['rx_metadata'][0]['rssi']).reverse()
-        const snrs = recent_uplinks.map((data) => data['rx_metadata'][0]['snr']).reverse()
-
-        const utcTimes = recent_uplinks.map((data) => data['received_at']).reverse()
-        const times = utcTimes.map((time) => formatTime(time))
-
-        const data = {
-            'm_types':m_types,
-            'rssis':r_uplinks,
-            'snrs':snrs,
-            'times':times
-        }
-        return data
+        
     }
     const calcLastSeen = (cData) =>{
         if (cData != undefined){

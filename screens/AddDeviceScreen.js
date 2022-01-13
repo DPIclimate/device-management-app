@@ -11,15 +11,11 @@ import {
     Alert,
     TextInput,
     Pressable} from 'react-native';
-import config from '../config';
 import newDeviceData from '../repositories/newDeviceData';
 import * as Location from 'expo-location';
 import { Switch } from 'react-native-gesture-handler';
-import Error from '../shared/ErrorClass'
-import LoadingComponent from '../shared/LoadingComponent';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import {registerDevice} from '../shared/Register'
-import checkNetworkStatus from '../shared/NetworkStatus';
+import {checkNetworkStatus, registerDevice, LoadingComponent} from '../shared'
 
 const AddDeviceScreen = ({ route, navigation }) => {
 
@@ -234,16 +230,13 @@ const AddDeviceScreen = ({ route, navigation }) => {
         const isConnected = await checkNetworkStatus()
         if (isConnected){
             console.log('passed input validation')
-            const flag = await checkDetails()
 
-            if (flag){
-                let device = await createDevice()
-                const success = await registerDevice(device)
-                if (success){
-                    clearFields()
-                }
-                setLoadingState(false)
+            let device = await createDevice()
+            const success = await registerDevice(device)
+            if (success){
+                clearFields()
             }
+            setLoadingState(false)
         }
         else{
             Alert.alert("No internet connection", "Would you like to save the device for when you are back online?",[
@@ -264,7 +257,7 @@ const AddDeviceScreen = ({ route, navigation }) => {
         let currentDevices = []
         console.log('reading')
         try{
-            let fromStore = await AsyncStorage.getItem('devices')
+            let fromStore = await AsyncStorage.getItem(global.DEV_STORE)
             fromStore = JSON.parse(fromStore)
             fromStore != null? currentDevices = [...currentDevices, ...fromStore] : currentDevices = []
 
@@ -278,7 +271,7 @@ const AddDeviceScreen = ({ route, navigation }) => {
         
         console.log('writing')
         try{
-            await AsyncStorage.setItem('devices', JSON.stringify(currentDevices))
+            await AsyncStorage.setItem(global.DEV_STORE, JSON.stringify(currentDevices))
 
         }catch(error){
             console.log(error)
@@ -288,146 +281,6 @@ const AddDeviceScreen = ({ route, navigation }) => {
         Alert.alert("Device Saved","Device details have been saved for registration when back online")
     }
 
-    const checkDetails = async () =>{
-
-        let url =  `${config.ttnBaseURL}/${appID}/devices?field_mask=attributes`
-        let response = await fetch(url,{
-            method:"GET",
-            headers:config.headers
-        }).then((response) => response.json())
-        .then((response) =>{
-            if ('code' in response) throw new Error(response['code'], response['message'], deviceName)
-            return response
-
-        }).catch((error) =>{ 
-            error.alertWithCode()
-            console.log('this error')
-            setLoadingState(false)
-            return null
-        })
-
-        if (response == null) return null
-
-        const devices = response['end_devices']
-        let euiList = []
-        let uidList = []
-        let nameList = []
-        for (const object in devices){
-            const device = devices[object]
-
-            try{
-                euiList.push(device['ids']['dev_eui'])
-                nameList.push(device['ids']['device_id'])
-                uidList.push(device['attributes']['uid'])
-
-            }catch(error){//Error may occur if device does not have uid
-                console.log(error, "moving on")
-            }
-        }
-        try{
-
-            for (const item in euiList){
-                let eui = euiList[item]
-                if (deviceEUI == eui && eui != undefined){
-                    throw new Error(null, 'Device EUI already exists')
-                }
-            }
-            for (const item in uidList){
-                let uid = uidList[item]
-                if (deviceUID == uid && uid != undefined){
-                    throw new Error(null, 'Device UID already exists', deviceName)
-                }
-            }
-            
-        }catch(error){
-            error.alert()
-            setLoadingState(false)
-            return false
-        }
-
-        for (const item in nameList){
-            let name = nameList[item]
-            if (deviceName == name && name != undefined){
-                Alert.alert("Device already exists",`Device ${deviceName} already exists in application ${appID}, would you like to add these details to the device?`,[
-                    {
-                        text:'Yes', 
-                        onPress:() => appendDetails()
-                    },
-                    {
-                        text:'No',
-                        onPress:() => console.log("No")
-                    }
-                ])
-                return false
-            }
-        }
-
-        return true
-    }
-    const appendDetails = async() =>{
-
-        setLoadingState(true)
-        const body = {
-            "end_device":{
-                "attributes":{
-                    "uid":deviceUID
-                }
-            },
-            "field_mask": {
-              "paths": [
-                "attributes"
-              ]
-            }
-        }
-
-        let loc = null
-        if (location == undefined && locGranted==true){
-            loc = await getLocation()
-        }
-        else if(locGranted == true){ 
-            loc = location
-            console.log('location was received in effect')
-        }
-
-        if (isEnabled == true){
-            body['end_device']['locations'] = {
-                "user":{
-                "latitude": loc['coords']['latitude'],
-                "longitude": loc['coords']['longitude'],
-                "altitude": Math.round(loc['coords']['altitude']),
-                "accuracy":  Math.round(loc['coords']['accuracy']),
-                "source": "SOURCE_REGISTRY"
-                }
-            }
-            body['field_mask']['paths'].push('locations')
-        }
-        console.log(body)
-
-        try{
-            const url =  `${config.ttnBaseURL}/${appID}/devices/${deviceName}`
-            const response = await fetch(url,{
-                method:"PUT",
-                headers:config.headers,
-                body:JSON.stringify(body)
-            }).then((response) => response.json())
-
-            console.log(response)
-            if ('code' in response){
-                //If key code exists then an error occured
-                throw new Error(json['code'], json['message'], deviceName)
-            }
-            else{
-                Alert.alert("Success!", "Details were successfully updated")
-                clearFields()
-            }
-        }
-        catch(error){
-            console.log("An error occured", error)
-            error.alertWithCode()
-            setLoadingState(false)
-        }
-
-    }
     const createDevice = async() =>{
 
         let eui = deviceEUI 
@@ -442,7 +295,6 @@ const AddDeviceScreen = ({ route, navigation }) => {
         }
         else if(locGranted == true){ 
             loc = location
-            console.log('location was received in effect')
         }
 
         let data = newDeviceData()
@@ -531,9 +383,6 @@ const AddDeviceScreen = ({ route, navigation }) => {
 }
 const styles = StyleSheet.create({
     
-    contentView:{
-        padding:10 
-    },
     subtitleView:{
         padding:3,
         flexDirection:'row', 

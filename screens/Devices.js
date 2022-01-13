@@ -30,7 +30,7 @@ function Devices({route, navigation}) {
         const url = `${config.ttnBaseURL}/${route.params.application_id}/devices`
         let response = await fetch(url, {
             method:"GET",
-            headers:config.headers
+            headers:global.headers
         }).then((response) => response.json())
 
         response = response['end_devices']
@@ -59,7 +59,7 @@ function Devices({route, navigation}) {
 
             let res = await fetch(url, {
                 method:"GET",
-                headers:config.headers
+                headers:global.headers
             }).then((response) => response.json())
 
             response = res
@@ -132,7 +132,7 @@ function Devices({route, navigation}) {
                 <FlatList
                 style={[{flex:1},globalStyles.list]} 
                 data={data}
-                renderItem={(item) => renderItem(item, handlePress, isConnected)}
+                renderItem={(item) => renderItem(item, handlePress, 'Devices')}
                 keyExtractor={(item, index) => index.toString()}
                 />
             <View style={{flex:0.15}}>

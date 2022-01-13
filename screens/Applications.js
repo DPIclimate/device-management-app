@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import {View, Text, Image, TouchableHighlight, Alert} from 'react-native'
+import {View, Text, Image, TouchableHighlight,TouchableOpacity, Alert} from 'react-native'
 import { FlatList } from 'react-native-gesture-handler';
 import globalStyles from '../styles';
 import config from '../config.json'
@@ -7,6 +7,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useIsFocused } from '@react-navigation/native';
 import {NavButtons, renderItem, checkNetworkStatus, LoadingComponent} from '../shared/index.js'
 import getApplicationList, {cacheTTNdata} from '../shared/ManageLocStorage'
+import '../global.js'
 
 function Applications({navigation}) {
 
@@ -15,8 +16,13 @@ function Applications({navigation}) {
     const [savedDevices, setSavedDevices] = useState(false)
     const isFocused = useIsFocused()
     const [isConnected, changeIsConnected] = useState(false)
-    const DEV_STORE = 'devices'
-    const LOC_UPDATES = 'locationUpdates'
+
+    React.useLayoutEffect(() => {
+        //Settings icon
+        navigation.setOptions({
+            headerRight: () => <Icon/>,
+        });
+      }, [navigation]);
 
     useEffect(()=>{
         async function retrieveData(){
@@ -36,12 +42,21 @@ function Applications({navigation}) {
     useEffect(() =>{
         checkSavedReg()
     }, [isFocused])
- 
+    
+    const Icon = () =>{
+  
+        return (
+          <TouchableOpacity onPress={() => navigation.navigate('SettingsScreen')}>
+            <Image source={require('../assets/settingsWhite.png')} style={{width:25, height:25, marginRight:15}}/>
+          </TouchableOpacity>
+        )
+      }
+
     const checkSavedReg = async() =>{ //Check for saved devices or updates
         let saved = []
 
         try{
-            let fromStore = await AsyncStorage.getItem(DEV_STORE)
+            let fromStore = await AsyncStorage.getItem(global.DEV_STORE)
             fromStore = JSON.parse(fromStore)
             fromStore != null? saved = [...saved, ...fromStore] : saved = []
 
@@ -50,7 +65,7 @@ function Applications({navigation}) {
         }
 
         try{
-            let fromStore = await AsyncStorage.getItem(LOC_UPDATES)
+            let fromStore = await AsyncStorage.getItem(global.LOC_UPDATES)
             fromStore = JSON.parse(fromStore)
             fromStore != null? saved = [...saved, ...fromStore] : saved = saved
 
@@ -86,7 +101,7 @@ function Applications({navigation}) {
         const url = `${config.ttnBaseURL}`
         let response = await fetch(url, {
             method:"GET",
-            headers:config.headers
+            headers:global.headers
         }).then((response) => response.json())
 
         response = response['applications']
@@ -160,7 +175,7 @@ function Applications({navigation}) {
             <FlatList
             style={[{flex:1},globalStyles.list]} 
             data={data}
-            renderItem={(item) => renderItem(item, handlePress, isConnected)}
+            renderItem={(item) => renderItem(item, handlePress, 'Applications')}
             keyExtractor={(item, index) => index.toString()}
             />
 

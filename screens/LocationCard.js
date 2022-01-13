@@ -81,7 +81,7 @@ function LocationCard({data}) {
 
         let locationUpdates = []
         try{
-            let fromStore = await AsyncStorage.getItem('locationUpdates')
+            let fromStore = await AsyncStorage.getItem(global.LOC_UPDATES)
             fromStore = JSON.parse(fromStore)
             fromStore != null? locationUpdates = [...locationUpdates, ...fromStore] : locationUpdates = []
 
@@ -94,7 +94,7 @@ function LocationCard({data}) {
         console.log('writing')
         console.log(locationUpdates)
         try{
-            await AsyncStorage.setItem('locationUpdates', JSON.stringify(locationUpdates))
+            await AsyncStorage.setItem(global.LOC_UPDATES, JSON.stringify(locationUpdates))
 
         }catch(error){
             console.log(error)

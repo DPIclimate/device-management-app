@@ -12,6 +12,7 @@ import {
   OfflineDevices
 } from '../screens/index';
 import Camera from '../screens/Camera'
+import SettingsScreen from '../screens/SettingsScreen';
 
 const { Screen, Navigator } = createStackNavigator();
 
@@ -32,13 +33,13 @@ function ScreenStack() {
         headerTitleStyle: {
           fontWeight: 'bold',
         },
-        gestureEnabled: true 
+        gestureEnabled: true,
       }}
     >
       <Screen
         name='Applications'
         component={Applications}
-        options={{ title: 'Browse Application'}}
+        options={{ title: 'Browse Applications'}}
       />
       <Screen
         name='Devices'
@@ -70,10 +71,14 @@ function ScreenStack() {
       component={Camera}
       options={{title:"Camera"}}
       />
+      <Screen
+      name="SettingsScreen"
+      component={SettingsScreen}
+      options={{title:"Settings"}}
+      />
     </Navigator>
   );
 }
-
 function ScreenNavigator() {
     return (
         <NavigationContainer>

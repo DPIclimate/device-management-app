@@ -29,7 +29,7 @@ function OfflineDevices({ route, navigation }) {
 
         let locSaved = []
         try{
-            let fromStore = await AsyncStorage.getItem('devices')
+            let fromStore = await AsyncStorage.getItem(global.DEV_STORE)
             fromStore = JSON.parse(fromStore)
             fromStore != null? locSaved = [...locSaved, ...fromStore] : locSaved = []
             changeSavedDevices(fromStore != null? fromStore : [])
@@ -39,7 +39,7 @@ function OfflineDevices({ route, navigation }) {
         }
 
         try{
-            let fromStore = await AsyncStorage.getItem('locationUpdates')
+            let fromStore = await AsyncStorage.getItem(global.LOC_UPDATES)
             fromStore = JSON.parse(fromStore)
             fromStore != null? locSaved = [...locSaved, ...fromStore] : locSaved = locSaved
 
@@ -97,7 +97,7 @@ function OfflineDevices({ route, navigation }) {
             changeSavedLocations(devices)
 
             try{
-                await AsyncStorage.setItem('locationUpdates', JSON.stringify(devices))
+                await AsyncStorage.setItem(global.LOC_UPDATES, JSON.stringify(devices))
                 console.log('here')
 
             }catch(error){
@@ -110,7 +110,7 @@ function OfflineDevices({ route, navigation }) {
             changeSavedDevices(devices)
 
             try{
-                await AsyncStorage.setItem('devices', JSON.stringify(devices))
+                await AsyncStorage.setItem(global.DEV_STORE, JSON.stringify(devices))
 
             }catch(error){
                 console.log(error)
