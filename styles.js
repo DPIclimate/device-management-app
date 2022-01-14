@@ -56,6 +56,7 @@ const globalStyles = StyleSheet.create({
     contentView:{
         padding:10 
     },
+    
   });
   
   export default globalStyles;

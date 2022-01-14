@@ -1,5 +1,5 @@
 import config from '../config';
-import Error from '../shared/ErrorClass'
+import Error from './ErrorClass'
 import { Alert } from 'react-native';
 
 const registerDevice = async(device) =>{
@@ -207,5 +207,31 @@ const updateDetails = async(data) =>{
 
     await updateDevice(body)
 }
+const validateToken = async(token) =>{
 
-export {registerDevice, getEUI, updateDevice}
+    if (token != undefined){
+        token = token.replace('Bearer ','')
+        token = `Bearer ${token}`
+    }
+
+    headers = token == undefined? global.headers : {"Authorization":token}
+
+    let req = await fetch(`https://eu1.cloud.thethings.network/api/v3/applications`, {
+        method:"GET",
+        headers:headers
+    }).then((response) => response.json())
+    
+    if (req == undefined || 'code' in req){
+        console.log("TTN Token is invalid")
+        return false
+    }
+    else{
+        console.log("TTN Token is valid")
+
+        global.headers = {"Authorization":token}
+        global.TTN_TOKEN = token
+
+        return true
+    }
+}
+export {registerDevice, getEUI, updateDevice, validateToken}

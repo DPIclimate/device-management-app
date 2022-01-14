@@ -9,8 +9,10 @@
     "test": "jest"
   },
   "dependencies": {
+    "@react-native-async-storage/async-storage": "^1.13.0",
     "@react-native-community/datetimepicker": "3.2.0",
     "@react-native-community/masked-view": "0.1.10",
+    "@react-native-community/netinfo": "6.0.0",
     "@react-native-segmented-control/segmented-control": "2.3.0",
     "@react-native-seoul/masonry-list": "^1.0.6",
     "@react-navigation/bottom-tabs": "^5.11.13",
@@ -22,6 +24,8 @@
     "crypto-js": "^4.1.1",
     "expo": "~41.0.1",
     "expo-barcode-scanner": "^11.1.2",
+    "expo-camera": "~11.0.2",
+    "expo-image-picker": "~10.1.4",
     "expo-localization": "~10.1.0",
     "expo-location": "~12.0.4",
     "expo-status-bar": "~1.0.4",
@@ -37,6 +41,7 @@
     "react-native-collapsible": "^1.6.0",
     "react-native-device-info": "^8.4.8",
     "react-native-easy-grid": "^0.2.2",
+    "react-native-elements": "^3.4.2",
     "react-native-event-source": "^1.1.0",
     "react-native-gesture-handler": "~1.10.2",
     "react-native-maps": "0.27.1",
@@ -49,11 +54,7 @@
     "react-navigation-stack": "^2.10.4",
     "react-navigation-tabs": "^2.11.1",
     "react-qr-reader": "^2.2.1",
-    "victory-native": "^35.5.5",
-    "@react-native-async-storage/async-storage": "^1.13.0",
-    "@react-native-community/netinfo": "6.0.0",
-    "expo-camera": "~11.0.2",
-    "expo-image-picker": "~10.1.4"
+    "victory-native": "^35.5.5"
   },
   "devDependencies": {
     "@babel/core": "^7.9.9",

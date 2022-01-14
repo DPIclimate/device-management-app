@@ -9,8 +9,8 @@ import CommCard from './CommCard';
 import LocationCard from './LocationCard';
 import NotesCard from './NotesCard';
 import PhotosCard from './PhotosCard'
-import { checkNetworkStatus, LoadingComponent } from '../shared';
-import {getDevice} from '../shared/ManageLocStorage'
+import { checkNetworkStatus, LoadingComponent, getDevice} from '../shared';
+
 
 const ManageDevices = ({route, navigation}) => {
 

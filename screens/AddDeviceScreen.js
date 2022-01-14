@@ -236,8 +236,7 @@ const AddDeviceScreen = ({ route, navigation }) => {
             if (success){
                 clearFields()
             }
-            setLoadingState(false)
-        }
+         }
         else{
             Alert.alert("No internet connection", "Would you like to save the device for when you are back online?",[
                 {
@@ -382,7 +381,9 @@ const AddDeviceScreen = ({ route, navigation }) => {
     );
 }
 const styles = StyleSheet.create({
-    
+    contentView:{
+        padding:10 
+    },
     subtitleView:{
         padding:3,
         flexDirection:'row', 

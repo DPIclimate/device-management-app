@@ -2,18 +2,21 @@ import React, {useEffect, useState} from 'react';
 import { View,Text, ScrollView,StyleSheet ,TextInput, Pressable, Alert} from 'react-native';
 import globalStyles from '../styles';
 import {Card} from '../shared';
-import config from '../config.json'
 import helpText from '../HelpText.json'
-import AsyncStorage from '@react-native-async-storage/async-storage';
+import {updateToken} from '../shared/ManageLocStorage'
+import { LoadingComponent } from '../shared';
+import { validateToken } from '../shared';
 
-function SettingsScreen({navigation}) {
-
+function SettingsScreen() {
+    
     const [token, changeToken] = useState('')
     const [currentToken, changeCurrentToken] = useState()
+    const [validating, setValidating] = useState(false)
+    const [invalidToken, setInvalid] = useState(false)
 
     useEffect(() =>{
         getCurrentToken()
-    })
+    },[])
 
     const getCurrentToken = () =>{
         
@@ -37,8 +40,8 @@ function SettingsScreen({navigation}) {
         }else{
             privBearer = '-'
         }
-        console.log('updating token', privBearer)
         changeCurrentToken(privBearer)
+        
     }
 
     const handlePress = () =>{
@@ -46,30 +49,38 @@ function SettingsScreen({navigation}) {
         Alert.alert("Are you sure?","Are you sure you want to change your TTN bearer token, this cannot be undone?",[
             {
                 text: "Yes",
-                onPress: () => updateToken()
+                onPress: () => writeToken(token)
             },
             {
                 text:"No",
                 onPress: () => console.log('no')
             }
         ])
-    }
-    const updateToken = async() =>{
-        
-        let bToken = `Bearer ${token}`
-        try{
-            await AsyncStorage.setItem(global.AUTH_TOKEN, bToken)
-            global.headers = {"Authorization":bToken}
-            Alert.alert("Success", "Bearer token successfully updated, please relaunch application to ensure changes take affect")
 
+    }
+    const writeToken = async(token) =>{
+
+        setValidating(true)
+
+        const validToken = await validateToken(token)
+        console.log('in settings', validToken)
+
+        if (validToken){
+            setInvalid(false)
+            await updateToken(token)
+            getCurrentToken()
+            changeToken('')  
+            Alert.alert("Success", "Bearer token successfully updated, please relaunch application to ensure changes take affect")  
+                
         }
-        catch(error){
-            console.log(error)
+        else{
+            console.log('token was invalid')
+            setInvalid(true)
         }
 
-        getCurrentToken()
-        changeToken('')
+        setValidating(false)
     }
+    
     return (
         <View style={[globalStyles.screen,{justifyContent:'flex-start'}]}>
             <ScrollView style={globalStyles.scrollView}>
@@ -81,28 +92,38 @@ function SettingsScreen({navigation}) {
                         <Text style={[globalStyles.text,styles.text]}>{currentToken}</Text>
 
                         <Text  style={[globalStyles.text,styles.subTitle]}>New TTN Bearer Token</Text>
-                        <TextInput value={token} placeholder='e.g NNSXS.ABCDEF.........' style={styles.input} onChangeText={changeToken} autoCorrect={false} autoCapitalize='none'/>
+                        <TextInput value={token} placeholder='e.g NNSXS.ABCDEF.........' style={[styles.input, invalidToken?{borderColor:'red', borderWidth:1}:null]} onChangeText={changeToken} autoCorrect={false} autoCapitalize='none'/>
 
-                        <Pressable style={[globalStyles.button, styles.buttonLocation]} onPress={handlePress} disabled={token.length == 0? true: false}>
-                            <Text style={globalStyles.buttonText}>Update</Text>
-                        </Pressable>
+                        {!validating?
+                            <Pressable style={[globalStyles.button, styles.buttonLocation]} onPress={handlePress} disabled={token.length == 0? true: false}>
+                                <Text style={globalStyles.buttonText}>Update</Text>
+                            </Pressable>
+                            :
+                            <LoadingComponent loading={validating}/>
+                        }
+                        {invalidToken? <Text style={{paddingTop:10, color:'red'}}>Invalid TTN Bearer Token</Text>:<View></View>  }
                     </Card>
-
-                    <Card>
-                        <Text style={styles.title}>Help</Text>
-                        <Text style={styles.subTitle}>What is a bearer token?</Text>
-                        <Text style={styles.text}>{helpText['whatBearer']}</Text>
-
-                        <Text style={styles.subTitle}>Why do I need this?</Text>
-                        <Text style={styles.text}>{helpText['whyBearer']}</Text>
-
-                        <Text style={styles.subTitle}>How do I get one?</Text>
-                        <Text style={styles.text}>{helpText['how']}</Text>
-                    </Card>
+                    <HelpCard/>
+                    
                 </View>
             </ScrollView>
         </View>
     );
+}
+const HelpCard = () =>{
+    return(
+        <Card>
+            <Text style={styles.title}>Help</Text>
+            <Text style={styles.subTitle}>What is a bearer token?</Text>
+            <Text style={styles.text}>{helpText['whatBearer']}</Text>
+
+            <Text style={styles.subTitle}>Why do I need this?</Text>
+            <Text style={styles.text}>{helpText['whyBearer']}</Text>
+
+            <Text style={styles.subTitle}>How do I get one?</Text>
+            <Text style={styles.text}>{helpText['how']}</Text>
+        </Card>
+    )
 }
 const styles = StyleSheet.create({
 
@@ -121,7 +142,9 @@ const styles = StyleSheet.create({
     },
     input:{
         height:40,
-        marginTop:2
+        marginTop:2,
+        width:'100%',
+        borderRadius:10,
     },
     buttonLocation:{
         width:'100%',
@@ -130,3 +153,4 @@ const styles = StyleSheet.create({
     }
 })
 export default SettingsScreen;
+export {HelpCard}

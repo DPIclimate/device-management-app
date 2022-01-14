@@ -44,7 +44,7 @@ const getApplication = async(appID) =>{
     console.log('finished reading cache')
     return null
 }
-const getApplicationList = async(arg) =>{
+const getApplicationList = async() =>{
 
     console.log('reading cache')
     let apps = []
@@ -61,43 +61,101 @@ const getApplicationList = async(arg) =>{
     return apps
 }
 const cacheTTNdata = async() =>{ // Cache TTN data for offline use
-        
-    console.log('Caching ttn data')
-    const url = `${config.ttnBaseURL}`
-    let response = await fetch(url, {
-        method:"GET",
-        headers:global.headers
-    }).then((response) => response.json())
+    
+    if (global.valid_token){
 
-    response = response['applications']
-    const apps = response.map((app) => app['ids']['application_id'])
-    let applications = []
+        let applications = []
 
-    for (let app in apps){
-        app = apps[app]
+        try{
+            console.log('Caching ttn data')
+            const url = `${config.ttnBaseURL}`
+            let response = await fetch(url, {
+                method:"GET",
+                headers:global.headers
+            }).then((response) => response.json())
 
-        const url = `${config.ttnBaseURL}/${app}/devices?field_mask=attributes,locations,description`
-        let response = await fetch(url, {
-            method:"GET",
-            headers:global.headers
-        }).then((response) => response.json())
+            response = response['applications']
+            const apps = response.map((app) => app['ids']['application_id'])
 
-        applications.push(
-            {
-                'application_id':app,
-                'end_devices': response['end_devices']
+            for (let app in apps){
+                app = apps[app]
+
+                const url = `${config.ttnBaseURL}/${app}/devices?field_mask=attributes,locations,description`
+                let response = await fetch(url, {
+                    method:"GET",
+                    headers:global.headers
+                }).then((response) => response.json())
+
+                applications.push(
+                    {
+                        'application_id':app,
+                        'end_devices': response['end_devices']
+                    }
+                )
             }
-        )
-    }
-    try{
-        await AsyncStorage.setItem(global.APP_CACHE, JSON.stringify(applications))
+        }catch(error){
+            console.log(error)
+            console.log("Caching TTN data failed")
+        }
 
-    }catch(error){
+        try{
+            await AsyncStorage.setItem(global.APP_CACHE, JSON.stringify(applications))
+            console.log('TTN data saved successfully')
+
+        }catch(error){
+            console.log(error)
+            console.log("Caching TTN data failed")
+        }
+    }
+}
+const updateToken = async(token) =>{
+    
+    console.log('here')
+
+    let tmpToken = token.replace('Bearer ','') //Does not matter whether user includes the word Bearer or not
+    let bToken = `Bearer ${tmpToken}`
+
+    try{
+        await AsyncStorage.setItem(global.AUTH_TOKEN, bToken)
+        global.headers = {"Authorization":bToken}
+
+    }
+    catch(error){
         console.log(error)
     }
-    console.log('Cached ttn data successfully')
-
+    
 }
 
-export {getDevice, getApplication, cacheTTNdata}
-export default getApplicationList
+const getTTNToken = async() =>{
+// Gets bearer token from memory and updates the global req header and returns the auth token
+    try{
+        let authToken = await AsyncStorage.getItem(global.AUTH_TOKEN)
+        return authToken
+
+    }
+    catch (error){
+        console.log(error)
+    }
+}
+
+const isFirstLogon = async() =>{
+
+    try{
+        let first = await AsyncStorage.getItem('isFirstLogons')
+
+        if (first == null){
+
+            await AsyncStorage.setItem('isFirstLogons', 'false')
+            console.log("Users first logon")
+            return true
+        }
+        else{
+            console.log("Is not first logon")
+            return false
+        }
+    }
+    catch(error){
+        console.log(error)
+    }
+}
+export {getDevice, getApplication, cacheTTNdata, updateToken, getTTNToken, isFirstLogon, getApplicationList}
