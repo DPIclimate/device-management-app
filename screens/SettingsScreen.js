@@ -1,11 +1,12 @@
 import React, {useEffect, useState} from 'react';
-import { View,Text, ScrollView,StyleSheet ,TextInput, Pressable, Alert} from 'react-native';
+import { View,Text, ScrollView,StyleSheet ,TextInput, Pressable, Alert, Linking} from 'react-native';
 import globalStyles from '../styles';
 import {Card} from '../shared';
 import helpText from '../HelpText.json'
 import {updateToken} from '../shared/ManageLocStorage'
 import { LoadingComponent } from '../shared';
 import { validateToken } from '../shared';
+import version from '../app.json'
 
 function SettingsScreen() {
     
@@ -104,7 +105,9 @@ function SettingsScreen() {
                         {invalidToken? <Text style={{paddingTop:10, color:'red'}}>Invalid TTN Bearer Token</Text>:<View></View>  }
                     </Card>
                     <HelpCard/>
-                    
+                </View>
+                <View style={{height:50, alignItems:'center'}}>
+                    <Text>v{version['expo']['version']}</Text>
                 </View>
             </ScrollView>
         </View>
@@ -121,7 +124,7 @@ const HelpCard = () =>{
             <Text style={styles.text}>{helpText['whyBearer']}</Text>
 
             <Text style={styles.subTitle}>How do I get one?</Text>
-            <Text style={styles.text}>{helpText['how']}</Text>
+            <Text style={styles.text}>{helpText['how1']}<Text style={{color:'blue'}} onPress={() => Linking.openURL(helpText['apiLink'])}>Personal API Keys </Text>{helpText['how2']}</Text>
         </Card>
     )
 }

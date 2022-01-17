@@ -1,11 +1,12 @@
-import React from 'react';
+import React, { useContext } from 'react';
 import Card from '../shared/Card';
 import { Col, Row, Grid } from "react-native-easy-grid";
 import { Text } from 'react-native';
 import globalStyles from '../styles';
+import {useDataContext} from '../shared/DataContextManager'
 
-
-function DeviceCard({data}) {
+function DeviceCard() {
+    const data = useDataContext()
 
     const RowTemplate = ({title, item}) =>{
         return(

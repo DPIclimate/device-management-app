@@ -5,13 +5,15 @@ import globalStyles from '../styles';
 import MapView, {Marker, PROVIDER_DEFAULT, Circle} from 'react-native-maps';
 import * as Location from 'expo-location';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import {updateDevice, checkNetworkStatus, Card} from '../shared/index'
+import {updateDevice, checkNetworkStatus, Card, LoadingComponent} from '../shared/index'
+import { useDataContext } from '../shared/DataContextManager';
 
-
-function LocationCard({data}) {
+function LocationCard() {
     const [isEnabled, setIsEnabled] = useState(true);
     const [mapType, setMapType] = useState('satellite')
     const [isLoading, setLoadingState] = useState(false)
+
+    const [data, changeData] = useState(useDataContext())
 
     const toggleSwitch = () => {
         isEnabled == false ? setMapType('satellite') : setMapType('terrain')
@@ -55,7 +57,9 @@ function LocationCard({data}) {
             const isConnected = await checkNetworkStatus()
 
             if (isConnected){
+                console.log("connected")
                 await updateDevice(body)
+                changeData(body)
                 setLoadingState(false)
                 
             }else{
@@ -92,7 +96,7 @@ function LocationCard({data}) {
         console.log('creating')
         locationUpdates.push(body)     
         console.log('writing')
-        console.log(locationUpdates)
+
         try{
             await AsyncStorage.setItem(global.LOC_UPDATES, JSON.stringify(locationUpdates))
 
@@ -114,7 +118,7 @@ function LocationCard({data}) {
                     },
                     {
                         text:"Cancel",
-                        onPress:() => console.log("Cenceled")
+                        onPress:() => console.log("canceled")
                     }
             ])}>
                 <Image style={{width:23, height:23, padding:5}} source={require('../assets/settingsIcon.png')}/>
@@ -134,27 +138,6 @@ function LocationCard({data}) {
         )
     }
     
-    let rows=[]
-    if (data.location != undefined){
-        rows.push(<Row key={1}><RowTemplate title={'Latitude'} data={data.location['latitude']}/></Row>)
-        rows.push(<Row key={2}><RowTemplate title={'Longitude'} data={data.location['longitude']}/></Row>)
-        rows.push(<Row key={3}><RowTemplate title={'Altitude (m)'} data={data.location['altitude'] != undefined? data.location['altitude']: "-"}/></Row>)
-        rows.push(<Row key={4}><RowTemplate title={'Accuracy (m)'} data={data.location['accuracy'] != undefined? data.location['accuracy']: "-"}/></Row>)
-    }else{
-        return (
-        <Card>
-            <View style={{flexDirection:'row', justifyContent:'space-between', alignItems:'center'}}>
-                <Text style={globalStyles.cardTitle}>Location</Text>
-                <UpdateLocationIcon/>
-            </View>
-                <Row>
-                    <Text>
-                    No location information available
-                    </Text>
-                </Row>
-            </Card>
-        )
-    }
     const AccuracyCircle = () =>{
         if (data.location['accuracy'] != undefined){
             return <Circle center={{latitude: data.location['latitude'], longitude: data.location['longitude']}} radius={data.location['accuracy']} strokeWidth={1} strokeColor='red'/>
@@ -164,7 +147,7 @@ function LocationCard({data}) {
         }
 
     }
-    const Content = () =>{
+    const Content = ({rows}) =>{
 
         if (isLoading == false){
             return(
@@ -172,6 +155,7 @@ function LocationCard({data}) {
                 <Grid style={{paddingTop:10, paddingBottom:10}}>
                     {rows}
                 </Grid>
+                {console.log("rendering")}
                 <MapView style={styles.map}
                         mapType={mapType}
                         provider={PROVIDER_DEFAULT}
@@ -195,13 +179,34 @@ function LocationCard({data}) {
             return <ActivityIndicator size="large"/>
         }
     }
+
+    let rows=[]
+    if (data.location != undefined){
+        rows.push(<Row key={1}><RowTemplate title={'Latitude'} data={data.location['latitude']}/></Row>)
+        rows.push(<Row key={2}><RowTemplate title={'Longitude'} data={data.location['longitude']}/></Row>)
+        rows.push(<Row key={3}><RowTemplate title={'Altitude (m)'} data={data.location['altitude'] != undefined? data.location['altitude']: "-"}/></Row>)
+        rows.push(<Row key={4}><RowTemplate title={'Accuracy (m)'} data={data.location['accuracy'] != undefined? data.location['accuracy']: "-"}/></Row>)
+    }else{
+        return (
+        <Card>
+            <View style={{flexDirection:'row', justifyContent:'space-between', alignItems:'center'}}>
+                <Text style={globalStyles.cardTitle}>Location</Text>
+                <UpdateLocationIcon/>
+            </View>
+                <Row>
+                {!isLoading ? <Text>No location information available</Text>:<View style={{justifyContent:'center', alignItems:'center', width:'100%'}}><LoadingComponent loading={isLoading}/></View>}
+                </Row>
+            </Card>
+        )
+    }
+
     return (
         <Card>
             <View style={{flexDirection:'row', justifyContent:'space-between', alignItems:'center'}}>
                 <Text style={globalStyles.cardTitle}>Location</Text>
                 <UpdateLocationIcon/>
             </View>
-            <Content/>
+            <Content rows={rows}/>
         </Card>
     );
 }

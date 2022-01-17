@@ -1,4 +1,4 @@
-import React, {useEffect, useState, useRef} from 'react';
+import React, {useEffect, useState, useReducer} from 'react';
 import{View, StyleSheet, Text, TextInput, Image, Pressable, TouchableHighlight, Alert, KeyboardAvoidingView} from 'react-native'
 import { ScrollView } from 'react-native-gesture-handler';
 import globalStyles from '../styles';
@@ -10,7 +10,7 @@ import LocationCard from './LocationCard';
 import NotesCard from './NotesCard';
 import PhotosCard from './PhotosCard'
 import { checkNetworkStatus, LoadingComponent, getDevice} from '../shared';
-
+import { DataContextProvider } from '../shared/DataContextManager';
 
 const ManageDevices = ({route, navigation}) => {
 
@@ -322,15 +322,18 @@ const ManageDevices = ({route, navigation}) => {
         if (dataCollected == true){
             return (
                 <>
-                    {/* Card View of device details */}
-                    <DeviceCard data={devData}/>
-                    {/* Card view of Communication details */}
-                    <CommCard commData={commData}/>
-                    {/* Card view of device location if available */}
-                    <LocationCard data={devData}/>  
+                    <DataContextProvider value={devData}>
+                        {/* Card View of device details */}
+                        <DeviceCard/>
+                        {/* Card view of Communication details */}
+                        <CommCard commData={commData}/>
+                        {/* Card view of device location if available */}
+                        <LocationCard/>  
 
-                    <NotesCard data={devData}/>
-                    <PhotosCard params={route.params} navigation={navigation}/>
+                        <NotesCard/>
+
+                        <PhotosCard params={route.params} navigation={navigation}/>
+                    </DataContextProvider>
                 </>
             )
         }

@@ -4,12 +4,15 @@ import { Grid } from "react-native-easy-grid";
 import { Text, View, TouchableHighlight, Image,Button, ActivityIndicator, Pressable, TextInput, StyleSheet, KeyboardAvoidingView, Alert } from 'react-native';
 import globalStyles from '../styles';
 import {updateDevice, checkNetworkStatus} from '../shared/index'
+import { useDataContext } from '../shared/DataContextManager';
 
-function NotesCard({data}) {
+function NotesCard() {
 
     const [text, setText] = useState("")
     const [isLoading, setLoadingState] = useState(false)
-
+    
+    const data = useDataContext()
+    
     useEffect(()=>{
         
         let history = data.notes

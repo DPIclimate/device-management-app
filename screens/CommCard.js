@@ -54,24 +54,24 @@ function CommCard({commData}) {
             <Card>
             <View style={{height:250}}>
                     <Text style={globalStyles.cardTitle}>Last Communications</Text>
-                    <ScrollView>
-                <Grid>
-                    <Row style={globalStyles.cardRow}>
-                        <Col size={1}>
-                            <Text>Time</Text>
-                        </Col>
-                        <Col size={1}>
-                            <Text>RSSI</Text>
-                        </Col>
-                        <Col size={1}>
-                            <Text>SNR</Text>
-                        </Col>
-                        <Col size={2}>
-                            <Text>M_Type</Text>
-                        </Col>
-                    </Row>
-                    {rows}
-                </Grid>
+                    <ScrollView showsVerticalScrollIndicator={false}>
+                        <Grid>
+                            <Row style={globalStyles.cardRow}>
+                                <Col size={1}>
+                                    <Text>Time</Text>
+                                </Col>
+                                <Col size={1}>
+                                    <Text>RSSI</Text>
+                                </Col>
+                                <Col size={1}>
+                                    <Text>SNR</Text>
+                                </Col>
+                                <Col size={2}>
+                                    <Text>M_Type</Text>
+                                </Col>
+                            </Row>
+                            {rows}
+                        </Grid>
                 </ScrollView>
             </View>
         </Card>

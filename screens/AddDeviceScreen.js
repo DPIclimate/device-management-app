@@ -30,14 +30,12 @@ const AddDeviceScreen = ({ route, navigation }) => {
     const [locGranted, setGranted] = useState(false);
     const [isEnabled, setIsEnabled] = useState(false);
 
-    const [deployDisabled, setDisabled] = useState(false)
-    
     const [appIdValid, setAppIdValid] = useState(true)
     const [uidValid, setUIDValid] = useState(true)
     const [nameValid, setNameValid] = useState(true)
     const [euiValid, setEUIValid] = useState(true)
 
-    const [title, setTitle] = useState('Register Device')
+    const [isRegister, setRegister] = useState(true)
 
     useEffect(() =>{
         if (route.params != undefined){
@@ -54,7 +52,7 @@ const AddDeviceScreen = ({ route, navigation }) => {
                         onDeviceUIDChange(data['uid'])
                     }else if (item == 'name'){
                         onDeviceNameChange(data['name'])
-                        setTitle('Update Device')
+                        setRegister(false)
                         
                     }else if (item == 'eui'){
                         data['eui'] != undefined ? onEUIChangeHandler(data['eui']) : undefined
@@ -63,7 +61,7 @@ const AddDeviceScreen = ({ route, navigation }) => {
                 route.params = undefined
             }
         }
-    })
+    },[route])
 
     useEffect(() =>{
         checkInputs()
@@ -74,10 +72,8 @@ const AddDeviceScreen = ({ route, navigation }) => {
 
         if (isEnabled == false){
             setLoadingState(true)
-            setDisabled(true)
             await getLocation()
             setLoadingState(false)
-            setDisabled(false)
         }
     }
     
@@ -332,7 +328,7 @@ const AddDeviceScreen = ({ route, navigation }) => {
 
                 <View style={styles.contentView}>                    
                     {/* Enter details */}
-                    <Text style={styles.title}>{title}</Text>
+                    <Text style={styles.title}>{isRegister? <Text>Register Device</Text>:<Text>Update Device</Text>}</Text>
 
                     <View style={{width:60, height:60, position:'absolute', right:0, top:0, margin:10}} >
                         <TouchableHighlight acitveOpacity={0.6} underlayColor="#DDDDDD" onPress={() => navigation.navigate('QrScanner',{screen:'AddDeviceScreen'})}>
@@ -371,8 +367,8 @@ const AddDeviceScreen = ({ route, navigation }) => {
                         </View>
                     </View>
                     
-                    <Pressable style={[globalStyles.button, styles.buttonLocation]} onPress={handleButtonPress} disabled={deployDisabled}>
-                        <Text style={globalStyles.buttonText}>Deploy</Text>
+                    <Pressable style={[globalStyles.button, styles.buttonLocation]} onPress={handleButtonPress} disabled={isLoading}>
+                        <Text style={globalStyles.buttonText}>{isRegister?<Text>Deploy</Text>:<Text>Update</Text>}</Text>
                     </Pressable>
                 </View>
                 <LoadingComponent loading={isLoading}/>

@@ -100,7 +100,7 @@ const cacheTTNdata = async() =>{ // Cache TTN data for offline use
 
         try{
             await AsyncStorage.setItem(global.APP_CACHE, JSON.stringify(applications))
-            console.log('TTN data saved successfully')
+            // console.log('TTN data saved successfully')
 
         }catch(error){
             console.log(error)
@@ -130,6 +130,8 @@ const getTTNToken = async() =>{
 // Gets bearer token from memory and updates the global req header and returns the auth token
     try{
         let authToken = await AsyncStorage.getItem(global.AUTH_TOKEN)
+        global.headers = {"Authorization":authToken}
+        global.valid_token = true
         return authToken
 
     }
@@ -141,12 +143,12 @@ const getTTNToken = async() =>{
 const isFirstLogon = async() =>{
 
     try{
-        let first = await AsyncStorage.getItem('isFirstLogons')
+        let first = await AsyncStorage.getItem('isFirstLogon')
 
         if (first == null){
 
-            await AsyncStorage.setItem('isFirstLogons', 'false')
             console.log("Users first logon")
+            global.valid_token = true
             return true
         }
         else{
@@ -158,4 +160,5 @@ const isFirstLogon = async() =>{
         console.log(error)
     }
 }
+
 export {getDevice, getApplication, cacheTTNdata, updateToken, getTTNToken, isFirstLogon, getApplicationList}
