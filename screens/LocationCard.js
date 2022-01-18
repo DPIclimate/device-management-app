@@ -214,6 +214,7 @@ const styles = StyleSheet.create({
     map: {
         width: '100%',
         height: 300,
+        borderRadius:15
     },
 })
 export default LocationCard;

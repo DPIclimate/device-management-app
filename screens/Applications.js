@@ -1,13 +1,12 @@
 import React, { useEffect, useState, useLayoutEffect } from 'react';
 import '../global.js'
-import {View, Text, Image, TouchableHighlight,TouchableOpacity, Alert, Pressable, StyleSheet} from 'react-native'
+import {View, Text, Image, TouchableHighlight,TouchableOpacity, Alert, Pressable, InteractionManager, StyleSheet} from 'react-native'
 import { FlatList } from 'react-native-gesture-handler';
 import globalStyles from '../styles';
 import config from '../config.json'
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useIsFocused } from '@react-navigation/native';
-import {NavButtons, renderItem, checkNetworkStatus, LoadingComponent, cacheTTNdata, getTTNToken, isFirstLogon, getApplicationList} from '../shared'
-// import getApplicationList from '../shared/ManageLocStorage'
+import {NavButtons, renderItem, checkNetworkStatus, LoadingComponent, cacheTTNdata, getTTNToken, isFirstLogon, getApplicationList, validateToken} from '../shared'
 import { Overlay } from 'react-native-elements';
 import WelcomScreen from './WelcomScreen';
 
@@ -25,6 +24,8 @@ function Applications({navigation}) {
     const [validToken, changeValid] = useState(true)
     const [firstLoad, changeFirstLoad] = useState(true)
     const [welcomeVisable, setWelcVisable] = useState(false);
+    const [isRendered, changeRenderState] = useState(false)
+    const [reload, setReload] = useState(false)
 
     useLayoutEffect(() => {
         //Settings icon
@@ -33,10 +34,9 @@ function Applications({navigation}) {
         });
       }, [navigation]);
 
-
-    const toggleOverlay = () => {
-        setWelcVisable(!welcomeVisable);
-    };
+    const toggleReload = () =>{
+        setReload(!reload)
+    }
 
     useEffect(()=>{
         async function retrieveData(){
@@ -48,7 +48,9 @@ function Applications({navigation}) {
                 changeFirstLoad(false)
             }
             else if(welcomeVisable == false){
-                global.AUTH_TOKEN = await getTTNToken()
+                global.TTN_TOKEN = await getTTNToken()
+                global.valid_token = await validateToken(global.TTN_TOKEN)
+
                 let connected = await checkNetworkStatus()
                 if (connected){
                     getApplications()
@@ -57,15 +59,19 @@ function Applications({navigation}) {
                     getAppIds()
                 }
                 changeIsConnected(connected)
-                // checkSavedReg()
             }
         }
-        retrieveData()
+        InteractionManager.runAfterInteractions(() =>{
+            //Testing if this improves performance
+            changeRenderState(true)
+            retrieveData()
+        })
 
-    },[,welcomeVisable])
+    },[,welcomeVisable, reload])
 
     useEffect(() =>{
         checkSavedReg()
+        
     }, [isFocused])
 
     const Icon = () =>{
@@ -125,6 +131,7 @@ function Applications({navigation}) {
 
         console.log("in get applications", global.valid_token)
         if (global.valid_token){
+            changeValid(true)
             try{
                 const url = `${config.ttnBaseURL}`
                 let response = await fetch(url, {
@@ -139,6 +146,10 @@ function Applications({navigation}) {
             }catch(error){
                 console.log(error)
             }
+        }
+        else{
+            changeValid(false)
+
         }
         setLoading(false)
 
@@ -204,7 +215,7 @@ function Applications({navigation}) {
         if (validToken){
             return(
                 <>
-                    <Text style={[globalStyles.title,{padding:10, paddingTop:25}]}>Applications</Text>
+                    <Text style={[globalStyles.title,styles.title]}>Applications</Text>
                     <Icons/>
                     <LoadingComponent loading={isLoading}/>
                     <DataError/>
@@ -223,14 +234,18 @@ function Applications({navigation}) {
             )
         }
         else{
-
+            console.log("in validContent, not valid")
             return(
                 <>
                     <View style={{position:'absolute'}}>
 
-                        <Pressable style={[globalStyles.button, {backgroundColor:'red', width:300, height:50}]} onPress={toggleOverlay}>
-                            <Text style={globalStyles.buttonText}>Fix Token</Text>
+                        <Pressable style={[globalStyles.redButton, styles.redButtonLoc]} onPress={()=> navigation.navigate('SettingsScreen')}>
+                            <Text style={globalStyles.redText}>Fix Token</Text>
                         </Pressable>
+
+                        <TouchableOpacity style={{width:300, height:50, paddingTop:10}} onPress={()=> toggleReload()}>
+                            <Text style={globalStyles.redText}>Refresh</Text>
+                        </TouchableOpacity>
                     </View>
                 </>
             )
@@ -238,12 +253,22 @@ function Applications({navigation}) {
     }
     return (
         <View style={globalStyles.screen}>
-
-            <ValidContent/>
+            {isRendered? <ValidContent/>:<View/>}
             <Overlay isVisible={welcomeVisable} overlayStyle={{borderRadius:10, width:350, height:650, backgroundColor:'#f3f2f3'}}>
                 <WelcomScreen visible={setWelcVisable} firstLoad={changeFirstLoad} validT/>
             </Overlay >
         </View>
     );
 }
+const styles = StyleSheet.create({
+    title:{
+        padding:10, 
+        paddingTop:25
+    },
+    redButtonLoc:{
+        backgroundColor:'red', 
+        width:300, 
+        height:50
+    }
+})
 export default Applications;

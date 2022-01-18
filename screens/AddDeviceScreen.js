@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useLayoutEffect, useState, useReducer } from 'react';
 import globalStyles from '../styles';
 import {
     View, 
@@ -13,16 +13,16 @@ import {
     Pressable} from 'react-native';
 import newDeviceData from '../repositories/newDeviceData';
 import * as Location from 'expo-location';
-import { Switch } from 'react-native-gesture-handler';
+import { Switch, TouchableOpacity } from 'react-native-gesture-handler';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import {checkNetworkStatus, registerDevice, LoadingComponent} from '../shared'
 
 const AddDeviceScreen = ({ route, navigation }) => {
 
-    const [appID,onAppIDChange] = useState("")
-    const [deviceUID,onDeviceUIDChange] = useState("")
-    const [deviceName,onDeviceNameChange] = useState("")
-    const [deviceEUI,onDeviceEUIChange] = useState("")
+    const [appID,setAppID] = useState("")
+    const [deviceUID,setUID] = useState("")
+    const [deviceName,setDevName] = useState("")
+    const [deviceEUI,setEUI] = useState("")
 
     const [isLoading, setLoadingState] = useState(false)
 
@@ -37,6 +37,31 @@ const AddDeviceScreen = ({ route, navigation }) => {
 
     const [isRegister, setRegister] = useState(true)
 
+    const initialState = {
+        appID:'',
+        devName:'',
+        devUID:'',
+        devEUI:''
+    }
+
+    function reducer(state, action){
+        
+        switch(action.type){
+            
+            case 'upApp':
+                return {...state, appID:action.payload}
+            case 'upUID':
+                return {...state, devUID:action.payload}
+        }
+    }
+    const [state, dispatch] = useReducer(reducer, initialState)
+
+    useLayoutEffect(()=>{
+        navigation.setOptions({
+            title: isRegister? 'Register':'Update',
+            headerBackTitle: "Back"
+        });
+    })
     useEffect(() =>{
         if (route.params != undefined){
             console.log(route.params)
@@ -45,17 +70,22 @@ const AddDeviceScreen = ({ route, navigation }) => {
             if (data != null){
                 console.log(route)
                 for (let item in data){
-                    console.log(item)
-                    if (item == 'appID'){
-                        onAppIDChange(data['appID'])
-                    }else if (item == 'uid'){
-                        onDeviceUIDChange(data['uid'])
-                    }else if (item == 'name'){
-                        onDeviceNameChange(data['name'])
-                        setRegister(false)
-                        
-                    }else if (item == 'eui'){
-                        data['eui'] != undefined ? onEUIChangeHandler(data['eui']) : undefined
+                    
+                    switch (item){
+                        case 'appID':
+                            setAppID(data['appID'])
+                            break
+                        case 'uid':
+                            setUID(data['uid'])
+                            break
+                        case 'name':
+                            setDevName(data['name'])
+                            setRegister(false)
+                            break
+                        case 'eui':
+                            data['eui'] != undefined ? onEUIChangeHandler(data['eui']) : undefined
+                        default:
+                            console.log("Undable to detect param", item)
                     }
                 }
                 route.params = undefined
@@ -64,6 +94,7 @@ const AddDeviceScreen = ({ route, navigation }) => {
     },[route])
 
     useEffect(() =>{
+        console.log('effect', state)
         checkInputs()
     })
 
@@ -102,7 +133,7 @@ const AddDeviceScreen = ({ route, navigation }) => {
             }
         }
         text= chars.join('')
-        onDeviceEUIChange(text)
+        setEUI(text)
     }
 
     const allowedChars = new RegExp('^[a-z0-9](?:[-]?[a-z0-9]){2,}$')
@@ -164,7 +195,7 @@ const AddDeviceScreen = ({ route, navigation }) => {
             validInputDict['devUID'] = true
         }
     }
-    const AppID = () =>{
+    const AppIDErr = () =>{
         //TODO check ttn for valid app id
         if (!allowedChars.test(appID) && appID.length >=3){
             return <Text style={{color:'red'}}>Illegal character(s) present</Text>
@@ -175,7 +206,7 @@ const AddDeviceScreen = ({ route, navigation }) => {
         return null
     }
 
-    const DevName = () =>{
+    const DevNameErr = () =>{
 
         const devName = deviceName.toLowerCase() // To ignore uppercase, dev ID will be converted to all lowercase before registration
 
@@ -188,7 +219,7 @@ const AddDeviceScreen = ({ route, navigation }) => {
         return null
     }
 
-    const DevEUI = () =>{
+    const DevEUIErr = () =>{
         
         const eui = deviceEUI.toLowerCase()
         //Check len of 23 because eui + dashes
@@ -200,7 +231,7 @@ const AddDeviceScreen = ({ route, navigation }) => {
         }
         return null
     }
-    const DevUID = () =>{
+    const DevUIDErr = () =>{
 
         const uid = deviceUID.toLowerCase()
         if (!allowedChars.test(uid) && uid.length >=3){
@@ -314,66 +345,61 @@ const AddDeviceScreen = ({ route, navigation }) => {
         return data
     }
     const clearFields = () =>{
-        onAppIDChange("")
-        onDeviceUIDChange("")
-        onDeviceNameChange("")
-        onDeviceEUIChange("")
+        setAppID("")
+        setUID("")
+        setDevName("")
+        setEUI("")
         setLoadingState(false)
         route.params = undefined
     }
     
     return (
-        <SafeAreaView style={globalStyles.screen}>
-            <ScrollView style={globalStyles.scrollView}>
+        <ScrollView style={[globalStyles.scrollView,styles.contentView]}>
+                {/* Enter details */}
+                <View style={{paddingTop:15, flexDirection:'row', justifyContent:'space-between'}}>
+                    <Text style={[globalStyles.title, styles.title]}>{isRegister? <Text>Register Device</Text>:<Text>Update Device</Text>}</Text>
 
-                <View style={styles.contentView}>                    
-                    {/* Enter details */}
-                    <Text style={styles.title}>{isRegister? <Text>Register Device</Text>:<Text>Update Device</Text>}</Text>
-
-                    <View style={{width:60, height:60, position:'absolute', right:0, top:0, margin:10}} >
-                        <TouchableHighlight acitveOpacity={0.6} underlayColor="#DDDDDD" onPress={() => navigation.navigate('QrScanner',{screen:'AddDeviceScreen'})}>
-                            <Image style={{width:'100%', height:'100%', borderRadius:20}} source={require('../assets/QR-code-icon.png')}/>
-                        </TouchableHighlight>
-                    </View>
-                    
-                    <View style={[styles.subtitleView,{paddingTop:15}]}>
-                        <Text style={styles.text}>Application ID</Text>
-                        <AppID/>
-                    </View>
-                    <TextInput value={appID} placeholder='e.g example-app-id' style={[styles.input, appIdValid? styles.input: styles.inputInvalid]} onChangeText={onAppIDChange} autoCorrect={false} autoCapitalize='none'/>
-                    
-                    <View style={styles.subtitleView}>
-                        <Text style={styles.text}>Device UID</Text>
-                        <DevUID/>
-                    </View>
-                    <TextInput value={deviceUID} placeholder='e.g ABC123 (Max. 6 Characters)' style={[styles.input, uidValid? styles.input: styles.inputInvalid]} onChangeText={onDeviceUIDChange} autoCorrect={false} autoCapitalize='none'/>
-
-                    <View style={styles.subtitleView}>
-                        <Text style={styles.text}>Device Name</Text>
-                        <DevName/>
-                    </View>
-                    <TextInput value={deviceName} placeholder='e.g my-device (Min. 3 Characters)' style={[styles.input, nameValid? styles.input: styles.inputInvalid]} onChangeText={onDeviceNameChange} autoCorrect={false} autoCapitalize='none'/>
-
-                    <View style={styles.subtitleView}>
-                        <Text style={styles.text}>Device EUI (Optional)</Text>
-                        <DevEUI/>
-                    </View>
-                    <TextInput value={deviceEUI} style={[styles.input, euiValid? styles.input: styles.inputInvalid]} onChangeText={(text) => onEUIChangeHandler(text)} autoCorrect={false} autoCapitalize='none'/>
-
-                    <View style={{paddingTop:20, flexDirection:'row', justifyContent:'space-between', alignItems:'center'}}>
-                        <Text style={{fontSize:15}}>Record Location</Text>
-                        <View>
-                            <Switch onValueChange={toggleSwitch} value={isEnabled}/>
-                        </View>
-                    </View>
-                    
-                    <Pressable style={[globalStyles.button, styles.buttonLocation]} onPress={handleButtonPress} disabled={isLoading}>
-                        <Text style={globalStyles.buttonText}>{isRegister?<Text>Deploy</Text>:<Text>Update</Text>}</Text>
-                    </Pressable>
+                    <TouchableOpacity style={globalStyles.qrButton} onPress={() => navigation.navigate('QrScanner',{screen:'AddDeviceScreen'})}>
+                        <Image style={globalStyles.qrCode} source={require('../assets/QR-code-icon.png')}/>
+                    </TouchableOpacity>
                 </View>
-                <LoadingComponent loading={isLoading}/>
-            </ScrollView>
-        </SafeAreaView>
+                
+                <View style={[globalStyles.subtitleView,{paddingTop:15}]}>
+                    <Text style={globalStyles.text2}>Application ID</Text>
+                    <AppIDErr/>
+                </View>
+                <TextInput value={state.appID} placeholder='e.g example-app-id' style={[globalStyles.inputWborder, !appIdValid? globalStyles.inputInvalid:null]} onChangeText={(e) => dispatch({type:'upApp', payload:e})} autoCorrect={false} autoCapitalize='none'/>
+                
+                <View style={globalStyles.subtitleView}>
+                    <Text style={globalStyles.text2}>Device UID</Text>
+                    <DevUIDErr/>
+                </View>
+                <TextInput value={state.devUID} placeholder='e.g ABC123 (Max. 6 Characters)' style={[globalStyles.inputWborder, !uidValid? globalStyles.inputInvalid:null]} onChangeText={(e) => dispatch({type:'upUID', payload:e})} autoCorrect={false} autoCapitalize='none'/>
+
+                <View style={globalStyles.subtitleView}>
+                    <Text style={globalStyles.text2}>Device Name</Text>
+                    <DevNameErr/>
+                </View>
+                <TextInput value={deviceName} placeholder='e.g my-device (Min. 3 Characters)' style={[globalStyles.inputWborder, !nameValid? globalStyles.inputInvalid:null]} onChangeText={setDevName} autoCorrect={false} autoCapitalize='none'/>
+
+                <View style={globalStyles.subtitleView}>
+                    <Text style={globalStyles.text2}>Device EUI (Optional)</Text>
+                    <DevEUIErr/>
+                </View>
+                <TextInput value={deviceEUI} style={[globalStyles.inputWborder, !euiValid? globalStyles.inputInvalid:null]} onChangeText={(text) => onEUIChangeHandler(text)} autoCorrect={false} autoCapitalize='none'/>
+
+                <View style={{paddingTop:20, flexDirection:'row', justifyContent:'space-between', alignItems:'center'}}>
+                    <Text style={globalStyles.text2}>Record Location</Text>
+                    <View>
+                        <Switch onValueChange={toggleSwitch} value={isEnabled}/>
+                    </View>
+                </View>
+                
+                <Pressable style={[globalStyles.blueButton, styles.buttonLocation]} onPress={handleButtonPress} disabled={isLoading}>
+                    <Text style={globalStyles.blueButtonText}>{isRegister?<Text>Deploy</Text>:<Text>Update</Text>}</Text>
+                </Pressable>
+            <LoadingComponent loading={isLoading}/>
+        </ScrollView>
     );
 }
 const styles = StyleSheet.create({
@@ -381,30 +407,13 @@ const styles = StyleSheet.create({
         padding:10 
     },
     subtitleView:{
-        padding:3,
+        paddingTop:15,
         flexDirection:'row', 
-        justifyContent:'space-between', 
-        alignItems:'center',
+        justifyContent:'space-between',
     },
     title:{
-        fontSize:20,
         paddingTop:20,
-        width:'100%',
         alignItems:'flex-end',
-        fontWeight:'bold',
-    },
-    text:{
-        paddingTop:7,
-        fontSize:15
-    },
-    input:{
-        height:40,
-        borderColor:'gray',
-        borderWidth:1,
-        marginTop:2,
-    },
-    inputInvalid:{
-        borderColor:'red'
     },
     buttonLocation:{
         width:'100%',

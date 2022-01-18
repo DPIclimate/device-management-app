@@ -116,8 +116,9 @@ const updateToken = async(token) =>{
     let bToken = `Bearer ${tmpToken}`
 
     try{
-        await AsyncStorage.setItem(global.AUTH_TOKEN, bToken)
+        await AsyncStorage.setItem(global.AUTH_TOKEN_STOR, bToken)
         global.headers = {"Authorization":bToken}
+        console.log('written token', bToken)
 
     }
     catch(error){
@@ -129,9 +130,9 @@ const updateToken = async(token) =>{
 const getTTNToken = async() =>{
 // Gets bearer token from memory and updates the global req header and returns the auth token
     try{
-        let authToken = await AsyncStorage.getItem(global.AUTH_TOKEN)
+        let authToken = await AsyncStorage.getItem(global.AUTH_TOKEN_STOR)
         global.headers = {"Authorization":authToken}
-        global.valid_token = true
+        console.log('read token', authToken)
         return authToken
 
     }
@@ -148,7 +149,6 @@ const isFirstLogon = async() =>{
         if (first == null){
 
             console.log("Users first logon")
-            global.valid_token = true
             return true
         }
         else{

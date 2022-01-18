@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import {View, Text, Alert, TouchableHighlight, Image} from 'react-native'
+import {View, Text, Alert, TouchableHighlight, Image, InteractionManager, StyleSheet} from 'react-native'
 import { FlatList } from 'react-native-gesture-handler';
 import globalStyles from '../styles';
 import config from '../config.json'
@@ -11,6 +11,7 @@ function Devices({route, navigation}) {
     const [data, changeData] = useState({});
     const [isLoading, setLoading] = useState(true)
     const [isConnected, changeIsConnected] = useState(false)
+    const [isRendered, changeRenderState] = useState(false)
 
     useEffect(() =>{
         async function retrieveData(){
@@ -23,7 +24,12 @@ function Devices({route, navigation}) {
             }
             changeIsConnected(connected)
         }
-        retrieveData()
+
+        InteractionManager.runAfterInteractions(() =>{
+            //Testing if this improves performance
+            changeRenderState(true)
+            retrieveData()
+        })
     },[])
 
     const getDevices = async () =>{
@@ -126,20 +132,29 @@ function Devices({route, navigation}) {
 
     return (
         <View style={globalStyles.screen}>
-            <Text style={[globalStyles.title,{padding:10, paddingTop:25}]}>{route.params.application_id} - Devices</Text>
-            <Offline/>
+            <Text style={[globalStyles.title,styles.title]}>{route.params.application_id}</Text>
+
+            {isRendered?<Offline/>:<View/>}
+
             <LoadingComponent loading={isLoading}/>
-                <FlatList
+
+                {isRendered? <FlatList
                 style={[{flex:1},globalStyles.list]} 
                 data={data}
                 renderItem={(item) => renderItem(item, handlePress, 'Devices')}
                 keyExtractor={(item, index) => index.toString()}
-                />
+                />: <View style={{flex:1}}/>}
+
             <View style={{flex:0.15}}>
                 <NavButtons navigation={navigation}/>
             </View>
         </View>
     );
 }
-
+const styles = StyleSheet.create({
+    title:{
+        padding:10, 
+        paddingTop:25
+    }
+})
 export default Devices;

@@ -6,12 +6,12 @@ const NavButtons = ({navigation}) => {
 
     return(
         <>
-        <Pressable style={[globalStyles.button, styles.addDeviceLoc]} onPress={() => {navigation.navigate('AddDeviceScreen')}}>
-                <Text style={globalStyles.buttonText}>Add Device</Text>
+        <Pressable style={[globalStyles.blueButton, styles.addDeviceLoc]} onPress={() => {navigation.navigate('AddDeviceScreen')}}>
+                <Text style={globalStyles.blueButtonText}>Add Device</Text>
             </Pressable>
 
-            <Pressable style={[globalStyles.button, styles.manDeviceLoc]} onPress={() => {navigation.navigate('ManageDevices')}}>
-                <Text style={globalStyles.buttonText}>Manage</Text>
+            <Pressable style={[globalStyles.blueButton, styles.manDeviceLoc]} onPress={() => {navigation.navigate('ManageDevices')}}>
+                <Text style={globalStyles.blueButtonText}>Manage</Text>
             </Pressable>
         </>
     )

@@ -1,5 +1,5 @@
 import React, {useEffect, useState, useReducer} from 'react';
-import{View, StyleSheet, Text, TextInput, Image, Pressable, TouchableHighlight, Alert, KeyboardAvoidingView} from 'react-native'
+import{View, StyleSheet, Text, TextInput, Image, Pressable, TouchableHighlight, Alert, KeyboardAvoidingView, TouchableOpacity} from 'react-native'
 import { ScrollView } from 'react-native-gesture-handler';
 import globalStyles from '../styles';
 import config from '../config';
@@ -65,7 +65,7 @@ const ManageDevices = ({route, navigation}) => {
                             setUIDpresent(false)
                             changeRequestData(data)
                         }
-                        setAutoSearch(true)
+                        setAutoSearch(prev => !prev)
                     }
                 }
             }
@@ -345,16 +345,16 @@ const ManageDevices = ({route, navigation}) => {
 
         if (!dataCollected){
             return(
-            <Pressable style={[{width:120},globalStyles.button]} onPress={handlePress}>
-                <Text style={globalStyles.buttonText}>Search</Text>
-            </Pressable>
+            <TouchableOpacity style={[{width:120},globalStyles.blueButton]} onPress={handlePress}>
+                <Text style={globalStyles.blueButtonText}>Search</Text>
+            </TouchableOpacity>
             )
         
         }else if (dataCollected && isConnected){
             return(
-                <Pressable style={[{width:140},globalStyles.button]} onPress={handlePress}>
-                    <Text style={globalStyles.buttonText}>Refresh</Text>
-                </Pressable>
+                <TouchableOpacity style={[{width:140},globalStyles.blueButton]} onPress={handlePress}>
+                    <Text style={globalStyles.blueButtonText}>Refresh</Text>
+                </TouchableOpacity>
             )
         }
         else if (dataCollected && !isConnected){
@@ -371,54 +371,39 @@ const ManageDevices = ({route, navigation}) => {
         keyboardVerticalOffset={50}
         behavior={Platform.OS === "ios" ? "position" : "height"}>
             <ScrollView style={globalStyles.scrollView}>
-
                 <View style={styles.contentView}>
-                    <Text style={styles.title}>Device lookup</Text>
-                    <View style={{width:60, height:60, position:'absolute', right:0, top:0, margin:10}} >
-                        <TouchableHighlight acitveOpacity={0.6} underlayColor="#DDDDDD" onPress={() => navigation.navigate('QrScanner',{screen:'ManageDevices'})}>
-                            <Image style={{width:'100%', height:'100%', borderRadius:20}} source={require('../assets/QR-code-icon.png')}/>
-                        </TouchableHighlight>
+                    <View style={{paddingTop:15, flexDirection:'row', justifyContent:'space-between'}}>
+                        <Text style={[globalStyles.title, styles.title]}>Device Lookup</Text>
+
+                        <TouchableOpacity style={globalStyles.qrButton} onPress={() => navigation.navigate('QrScanner',{screen:'ManageDevices'})}>
+                            <Image style={globalStyles.qrCode} source={require('../assets/QR-code-icon.png')}/>
+                        </TouchableOpacity>
                     </View>
-                    <Text style={styles.text}>Application ID</Text>
-                    <TextInput value={appID} placeholder='e.g example-app-id' style={styles.input} onChangeText={appIDChange} autoCorrect={false} autoCapitalize='none'/>
+                    <Text style={[globalStyles.text2, globalStyles.subtitleView]}>Application ID</Text>
+                    <TextInput value={appID} placeholder='e.g example-app-id' style={globalStyles.inputWborder} onChangeText={appIDChange} autoCorrect={false} autoCapitalize='none'/>
                     
 
-                    <Text style={styles.text}>Device UID</Text>
-                    <TextInput value={deviceUID} placeholder='e.g ABC123 (Max. 6 Characters)' style={styles.input} onChangeText={uidChange} autoCorrect={false} autoCapitalize='none'/>
+                    <Text style={[globalStyles.text2, globalStyles.subtitleView]}>Device UID</Text>
+                    <TextInput value={deviceUID} placeholder='e.g ABC123 (Max. 6 Characters)' style={globalStyles.inputWborder} onChangeText={uidChange} autoCorrect={false} autoCapitalize='none'/>
                     <View style={{paddingTop:15, flexDirection:'row', justifyContent:'space-between'}}>
                         <LastSeen/>
                         <SearchButton/>        
                     </View>
                     <ShowData/>  
-                </View>
                     <LoadingComponent loading={isLoading}/>
+                </View>
             </ScrollView>
         </KeyboardAvoidingView>
     );
 };
 const styles = StyleSheet.create({
     contentView:{
-        padding:10
+        padding:10,
+        paddingBottom:15
     },
     title:{
-        fontSize:20,
         paddingTop:20,
-        width:'100%',
         alignItems:'flex-end',
-        fontWeight:'bold',
-    },
-    text:{
-        paddingTop:10,
-        fontSize:15
-    },
-    input:{
-        height:40,
-        borderColor:'gray',
-        borderWidth:1,
-        marginTop:2
-    },
-    row:{
-       padding:5 
-    },
+    }
 })
 export default ManageDevices;
