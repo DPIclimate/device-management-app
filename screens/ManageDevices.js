@@ -17,6 +17,7 @@ const ManageDevices = ({route, navigation}) => {
     const [appID, appIDChange] = useState("")
     const [deviceUID, uidChange] = useState("")
     const [lastSeen, changeLastSeen] = useState("")
+    const [uidPresent, setUIDpresent] = useState(true)
 
     const [devData, changeDevData] = useState({})
     const [commData, changeCommData] = useState({})
@@ -30,7 +31,6 @@ const ManageDevices = ({route, navigation}) => {
 
     const [isLoading, setLoadingState] = useState(false)
     const [autoSearch, setAutoSearch] = useState(false)
-    const [uidPresent, setUIDpresent] = useState(true)
     const [isConnected, changeIsConnected] = useState(true)
 
     useEffect(() =>{
@@ -44,30 +44,26 @@ const ManageDevices = ({route, navigation}) => {
     useEffect(() =>{
         async function autoLookup(){
 
+            if (route.params == undefined) return
+            if (route.params.autofill == undefined) return
+
             let connected = await checkNetworkStatus()
             changeIsConnected(connected)
             
-            if (route.params != undefined){
+            let data = route.params.autofill
+            if (data != null){
+                appIDChange(data['appID'])
 
-                if (route.params.autofill != undefined){
-                    console.log('here')
-                    let data = route.params.autofill
-
-                    if (data != null){
-                        appIDChange(data['appID'])
-
-                        if (data['uidPresent'] == true){
-                            uidChange(data['uid'])
-                            changeRequestData(data)
-                            setUIDpresent(true)
-                        }
-                        else{
-                            setUIDpresent(false)
-                            changeRequestData(data)
-                        }
-                        setAutoSearch(prev => !prev)
-                    }
+                if (data['uidPresent'] == true){
+                    uidChange(data['uid'])
+                    changeRequestData(data)
+                    setUIDpresent(true)
                 }
+                else{
+                    setUIDpresent(false)
+                    changeRequestData(data)
+                }
+                setAutoSearch(prev => !prev)
             }
         }
         autoLookup()
@@ -218,6 +214,7 @@ const ManageDevices = ({route, navigation}) => {
         
     }
     const calcLastSeen = (cData) =>{
+
         if (cData != undefined){
             const recent = new Date(cData['times'][0][3])
             const now = new Date()
@@ -318,28 +315,24 @@ const ManageDevices = ({route, navigation}) => {
         }
     }
     const ShowData = () =>{
+        if (!dataCollected) return <View/>
+        
+        return (
+            <>
+                <DataContextProvider value={devData}>
+                    {/* Card View of device details */}
+                    <DeviceCard/>
+                    {/* Card view of Communication details */}
+                    <CommCard commData={commData}/>
+                    {/* Card view of device location if available */}
+                    <LocationCard/>  
 
-        if (dataCollected == true){
-            return (
-                <>
-                    <DataContextProvider value={devData}>
-                        {/* Card View of device details */}
-                        <DeviceCard/>
-                        {/* Card view of Communication details */}
-                        <CommCard commData={commData}/>
-                        {/* Card view of device location if available */}
-                        <LocationCard/>  
+                    <NotesCard/>
 
-                        <NotesCard/>
-
-                        <PhotosCard params={route.params} navigation={navigation}/>
-                    </DataContextProvider>
-                </>
-            )
-        }
-        else{
-            return <View/>
-        }
+                    <PhotosCard params={route.params} navigation={navigation}/>
+                </DataContextProvider>
+            </>
+        )
     }
     const SearchButton = () =>{
 

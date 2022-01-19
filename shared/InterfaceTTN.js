@@ -5,49 +5,44 @@ import { Alert } from 'react-native';
 const registerDevice = async(device) =>{
 
     console.log('in register')
-    const isUnique = await checkUnique(device)
 
-    if (isUnique){
-        console.log('device is unique')
-        const appID = device['end_device']['ids']['application_ids']['application_id']
-        const deviceName = device['end_device']['ids']['device_id']
+    console.log('device is unique')
+    const appID = device['end_device']['ids']['application_ids']['application_id']
+    const deviceName = device['end_device']['ids']['device_id']
 
-        if (device['end_device']['ids']['dev_eui'].length == 0){
-            //If eui was not providered request one from TTN
-            device['end_device']['ids']['dev_eui'] = await getEUI(appID)
+    if (device['end_device']['ids']['dev_eui'].length == 0){
+        //If eui was not providered request one from TTN
+        device['end_device']['ids']['dev_eui'] = await getEUI(appID)
+    }
+    
+    try{
+        console.log('making request')
+
+        const url = `${config.ttnBaseURL}/${appID}/devices`
+        let json = await fetch(url,
+            {
+                method:'POST',
+                headers:global.headers,
+                body:JSON.stringify(device)
+            },
+
+            ).then((response) => response.json())
+
+        if ('code' in json){
+            //If key code exists then an error occured
+            throw new Error(json['code'], json['message'], deviceName)
         }
-        
-        try{
-            console.log('making request')
-
-            const url = `${config.ttnBaseURL}/${appID}/devices`
-            let json = await fetch(url,
-                {
-                    method:'POST',
-                    headers:global.headers,
-                    body:JSON.stringify(device)
-                },
-
-                ).then((response) => response.json())
-
-            if ('code' in json){
-                //If key code exists then an error occured
-                throw new Error(json['code'], json['message'], deviceName)
-            }
-            else{
-                Alert.alert("Success!", "Device was successfully registered.")
-                return true
-            }
-        }
-        catch (error){
-            console.log("An error occured", error)
-            error.alertWithCode()
-            return false
+        else{
+            Alert.alert("Success!", "Device was successfully registered.")
+            return true
         }
     }
-    else{
-        return true
+    catch (error){
+        console.log("An error occured", error)
+        error.alertWithCode()
+        return false
     }
+
 }
 const getEUI = async (appID) =>{
 
@@ -122,60 +117,50 @@ const checkUnique = async(data) =>{
     let euiList = []
     let uidList = []
     let nameList = []
-    for (const object in devices){
-        const device = devices[object]
 
+    devices.map((dev) =>{
         try{
-            euiList.push(device['ids']['dev_eui'])
-            nameList.push(device['ids']['device_id'])
-            uidList.push(device['attributes']['uid'])
+            euiList.push(dev['ids']['dev_eui'])
+            nameList.push(dev['ids']['device_id'])
+            uidList.push(dev['attributes']['uid'])
 
         }catch(error){//Error may occur if device does not have uid
             // console.log(error, "moving on")
         }
-    }
+    })
 
     try{
-
-        for (const item in euiList){
-            let eui = euiList[item]
+        euiList.map((eui)=>{
             if (deviceEUI == eui && eui != undefined){
                 throw new Error(null, 'Device EUI already exists')
-            }
-        }
-        for (const item in uidList){
-            let uid = uidList[item]
+            }})
+       
+        uidList.map((uid) =>{
             if (deviceUID == uid && uid != undefined){
                 // console.log(deviceName, nameList[item], deviceUID, uid)
+                console.log("uid already exists")
                 throw new Error(null, 'Device UID already exists', deviceName)
-            }
-        }
+            }})
         
     }catch(error){
         error.alert()
-        return false
+        return null
     }
-
-    for (const item in nameList){
-        let name = nameList[item]
-        if (deviceName == name && name != undefined){
-            Alert.alert("Device already exists",`Device ${deviceName} already exists in application ${appID}, would you like to add these updated details to the device?`,[
-                {
-                    text:'Yes', 
-                    onPress:() => updateDetails(data)
-                },
-                {
-                    text:'No',
-                    onPress:() => console.log("No")
-                }
-            ])
-            return false
-        }
+    try{
+        nameList.map((name)=>{
+            if (deviceName == name && name != undefined){
+                console.log("name already exists")
+                throw new Error(null, null, name)
+            }
+        })
+    }
+    catch(error){
+        return false
     }
 
     return true
 }
-const updateDetails = async(data) =>{
+const updateDetails = (data) =>{
 
     console.log('updating details')
     data = data['end_device']
@@ -204,8 +189,7 @@ const updateDetails = async(data) =>{
         body['field_mask']['paths'].push('locations')
     }
     console.log(body)
-
-    await updateDevice(body)
+    return body
 }
 const validateToken = async(token) =>{
 
@@ -234,4 +218,4 @@ const validateToken = async(token) =>{
         return true
     }
 }
-export {registerDevice, getEUI, updateDevice, validateToken}
+export {registerDevice, getEUI, updateDevice, validateToken, checkUnique, updateDetails}

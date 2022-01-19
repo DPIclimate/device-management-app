@@ -1,5 +1,8 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { Alert } from 'react-native';
 import config from '../config.json'
+
+//Functions to manage local storage
 
 const getDevice = async(appID, devName, uid) =>{
 
@@ -23,8 +26,61 @@ const getDevice = async(appID, devName, uid) =>{
             }
         }
     }
-
 }
+const saveDevice = async(device) =>{
+
+    let currentDevices = []
+    console.log('reading')
+    try{
+        let fromStore = await AsyncStorage.getItem(global.DEV_STORE)
+        fromStore = JSON.parse(fromStore)
+        fromStore != null? currentDevices = [...currentDevices, ...fromStore] : currentDevices = []
+
+    }catch(error){
+        console.log(error)
+    }
+
+    console.log('creating')
+    currentDevices.push(device)
+    
+    console.log('writing')
+    try{
+        await AsyncStorage.setItem(global.DEV_STORE, JSON.stringify(currentDevices))
+        Alert.alert("Success!", "Device successfully saved")
+        return true
+
+    }catch(error){
+        console.log(error)
+        return false
+    }
+}
+const getSavedDevices = async() =>{
+
+    try{
+        let fromStore = await AsyncStorage.getItem(global.DEV_STORE)
+        fromStore = JSON.parse(fromStore)
+
+        if (fromStore == null) return []
+        return fromStore
+        
+    }catch(error){
+        console.log(error)
+    }
+}
+const getSavedLocations = async() =>{
+    
+    try{
+        let fromStore = await AsyncStorage.getItem(global.LOC_UPDATES)
+        fromStore = JSON.parse(fromStore)
+
+        if (fromStore == null) return []
+        return fromStore
+
+    }catch(error){
+        console.log(error)
+    }
+}
+
 const getApplication = async(appID) =>{
 
     const apps = await getApplicationList()
@@ -161,4 +217,4 @@ const isFirstLogon = async() =>{
     }
 }
 
-export {getDevice, getApplication, cacheTTNdata, updateToken, getTTNToken, isFirstLogon, getApplicationList}
+export {getDevice, getApplication, cacheTTNdata, updateToken, getTTNToken, isFirstLogon, getApplicationList, saveDevice, getSavedDevices, getSavedLocations}

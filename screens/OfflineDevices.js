@@ -4,22 +4,24 @@ import { FlatList } from 'react-native-gesture-handler';
 import globalStyles from '../styles';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import Swipeable from 'react-native-gesture-handler/Swipeable';
-import {registerDevice, updateDevice, Card, LoadingComponent, checkNetworkStatus} from '../shared'
+import {registerDevice, updateDevice, Card, LoadingComponent, checkNetworkStatus, getSavedDevices, getSavedLocations, checkUnique, updateDetails} from '../shared'
+import { AsyncAlert } from '../shared/AsyncAlert';
+import { SwipeListView } from 'react-native-swipe-list-view';
 
 function OfflineDevices({ route, navigation }) {
+
     const [isLoading, setLoading] = useState(true)
+
     const [savedDevices, changeSavedDevices] = useState([]);
     const [savedLocations, changeSavedLocations] = useState([])
+
     const [reload, setReload] = useState(true)
-    const [saved, changeSaved] = useState([])
     const [isConnected, changeConnectionStatus] = useState(false)
 
     useEffect (() =>{
         getSaved()
         async function net(){
-            console.log('here2')
             let connected = await checkNetworkStatus()
-            console.log(connected)
             changeConnectionStatus(connected)
         }
         net()
@@ -27,58 +29,56 @@ function OfflineDevices({ route, navigation }) {
 
     const getSaved = async() =>{
 
-        let locSaved = []
-        try{
-            let fromStore = await AsyncStorage.getItem(global.DEV_STORE)
-            fromStore = JSON.parse(fromStore)
-            fromStore != null? locSaved = [...locSaved, ...fromStore] : locSaved = []
-            changeSavedDevices(fromStore != null? fromStore : [])
+        let savedDev = await getSavedDevices()
+        let savedLoc = await getSavedLocations()
 
-        }catch(error){
-            console.log(error)
-        }
+        changeSavedDevices(savedDev)
+        changeSavedLocations(savedLoc)
 
-        try{
-            let fromStore = await AsyncStorage.getItem(global.LOC_UPDATES)
-            fromStore = JSON.parse(fromStore)
-            fromStore != null? locSaved = [...locSaved, ...fromStore] : locSaved = locSaved
+        const allSaved = [...savedDev, ...savedLoc]
 
-            changeSavedLocations(fromStore != null? fromStore : [])
-
-        }catch(error){
-            console.log(error)
-        }
-
-        changeSaved([...locSaved])
-
-        if (locSaved.length == 0){
+        if (allSaved == 0){
             navigation.goBack()
         }
 
         setLoading(false)
 
     }
-    const handlePress = async(item, index) =>{
+    const handlePress = async(data, rowMap) =>{
+
+        const {item, index} = data
 
         if (isConnected){
-            const locUpdate = item.type == 'locationUpdate'? true: false
+            const isRegister = item.type == 'registerDevice'? true: false
             let success = false
 
-            if (locUpdate){
-                const selected = saved[index - savedDevices.length]
-                console.log("This is an item", item)
-                success = await updateDevice(selected)
-                console.log("This is an item2", item)
-
-            
-            }else{
+            if (isRegister){
                 const selectedDevice = savedDevices[index]
 
-                success = await registerDevice(selectedDevice)
+                const isUnique = await checkUnique(selectedDevice)
+                if (isUnique == null) return
+
+                if (isUnique){
+                    success = await registerDevice(selectedDevice)
+                }
+                else{
+                    let update = await AsyncAlert("Device already exists",`Device with this name already exists in this application, would you like to add these updated details to the device?`)
+
+                    if (update == 'NO')return
+
+                    const updatedDevice = updateDetails(selectedDevice)
+                    success = await updateDevice(updatedDevice)
+                }
+
+            }else{
+
+                const selected = savedLocations[index - savedDevices.length]
+                success = await updateDevice(selected)
+
             }
         
             if (success){
-                handleDelete(item, index)
+                handleDelete(data, rowMap)
             }
         }
         else{
@@ -86,12 +86,27 @@ function OfflineDevices({ route, navigation }) {
         }
     }
     
-    const handleDelete = async (item, index) =>{
-        const locUpdate = item.type == 'locationUpdate'? true: false
+    const handleDelete = async ({item, index}, rowMap) =>{
 
-        if (locUpdate){
+        closeItem(rowMap, index)
+        const isRegister = item.type == 'registerDevice'? true: false
 
-            console.log(index - savedDevices.length)
+        if (isRegister){
+            let devices = savedDevices
+            devices.splice(index, 1)
+            changeSavedDevices(devices)
+
+            try{
+                await AsyncStorage.setItem(global.DEV_STORE, JSON.stringify(devices))
+
+            }catch(error){
+                console.log(error)
+            }
+        }
+        else{
+
+            setReload(!reload)
+
             let devices = savedLocations
             devices.splice(index - savedDevices.length, 1)
             changeSavedLocations(devices)
@@ -104,41 +119,37 @@ function OfflineDevices({ route, navigation }) {
                 console.log(error)
             }
         }
-        else{
-            let devices = savedDevices
-            devices.splice(index, 1)
-            changeSavedDevices(devices)
-
-            try{
-                await AsyncStorage.setItem(global.DEV_STORE, JSON.stringify(devices))
-
-            }catch(error){
-                console.log(error)
-            }
-            setReload(!reload)
-        }
 
         setReload(!reload)
 
     }
+    const closeItem = (rowMap, rowKey) => {
 
-    const renderItem = ({ item, index }) => {
-        const rightSwipe = (progress, dragX) => {
-            const scale = dragX.interpolate({
-              inputRange: [0, 100],
-              outputRange: [0, 1],
-              extrapolate: 'clamp',
-            });
-            return (
-              <TouchableOpacity onPress={() => handleDelete(item, index)} activeOpacity={0.6}>
-                <Card red={true}>
-                    <View style={{height:'100%', width:50, justifyContent:'center', alignItems:'center'}}> 
-                        <Image style={{height:60, width:60}} source={require('../assets/bin.png')}/>
-                    </View>
-                </Card>
-              </TouchableOpacity>
-            );
-          };
+        if (rowMap[rowKey]) {
+          rowMap[rowKey].closeRow();
+        }
+      };    
+
+    const renderHiddenItem = (data, rowMap)=>{
+
+        return (
+            <View style={{flexDirection:'row'}}>
+
+                <View style={{flex:1}}/>
+
+                <TouchableOpacity style={{height:'100%', width:100}} onPress={() => handleDelete(data, rowMap)} activeOpacity={0.6}>
+                    <Card red={true}>
+                        <View style={{height:'100%', width:60, justifyContent:'center', alignItems:'center'}}> 
+                            <Image style={{height:60, width:50}} source={require('../assets/bin.png')}/>
+                        </View>
+                    </Card>
+                </TouchableOpacity>
+        </View>        
+    )
+    }
+    const renderItem = (data, rowMap) => {
+
+        const {index, item} = data
         
         const Content = () =>{
             const locUpdate = item.type == 'locationUpdate'? true: false
@@ -168,18 +179,20 @@ function OfflineDevices({ route, navigation }) {
         }
     
         return(
-            <Swipeable renderRightActions={rightSwipe}>
+            <View>
                 <Card>
                     <View style={{flexDirection:'row'}}>
                         <View style={{flex:1}}>
                             <Content/>
                         </View>
-                        <TouchableOpacity acitveOpacity={0.6} underlayColor="#DDDDDD" onPress={() => handlePress(item, index)}>
-                            <Image style={{width:70, height:70}} source={require('../assets/retry.png')}/>
-                        </TouchableOpacity>
+                        <View style={{flex:0.25, alignItems:'center', justifyContent:'center'}}>
+                            <TouchableOpacity acitveOpacity={0.6} underlayColor="#DDDDDD" onPress={() => handlePress(data, rowMap)}>
+                                <Image style={{width:80, height:80}} source={require('../assets/retry.png')}/>
+                            </TouchableOpacity>
+                        </View>
                     </View>
                 </Card>
-            </Swipeable>
+            </View>
 
             )
     }
@@ -189,11 +202,13 @@ function OfflineDevices({ route, navigation }) {
 
             <LoadingComponent loading={isLoading}/>
 
-            <FlatList
+            <SwipeListView
             style={[globalStyles.list]} 
-            data={saved}
+            data={[...savedDevices, ...savedLocations]}
             renderItem={renderItem}
             keyExtractor={(item, index) => index.toString()}
+            renderHiddenItem={renderHiddenItem}
+            rightOpenValue={-100}
             />
         </View>
     );
