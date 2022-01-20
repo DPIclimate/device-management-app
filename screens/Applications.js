@@ -6,16 +6,17 @@ import globalStyles from '../styles';
 import config from '../config.json'
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useIsFocused } from '@react-navigation/native';
-import {NavButtons, renderItem, checkNetworkStatus, LoadingComponent, cacheTTNdata, getTTNToken, isFirstLogon, getApplicationList, validateToken} from '../shared'
+import {NavButtons, renderItem, checkNetworkStatus, LoadingComponent, cacheTTNdata, getTTNToken, isFirstLogon, getApplicationList, validateToken, Card} from '../shared'
 import { Overlay } from 'react-native-elements';
 import WelcomScreen from './WelcomScreen';
-
+import { SwipeListView } from 'react-native-swipe-list-view';
 
 export  const DataContext = React.createContext()
 
 function Applications({navigation}) {
 
-    const [data, changeData] = useState([]);
+    const [appData, changeData] = useState([]);
+
     const [isLoading, setLoading] = useState(true)
     const [savedDevices, setSavedDevices] = useState(false)
     const isFocused = useIsFocused()
@@ -52,6 +53,7 @@ function Applications({navigation}) {
                 global.valid_token = await validateToken(global.TTN_TOKEN)
 
                 let connected = await checkNetworkStatus()
+
                 if (connected){
                     getApplications()
                     cacheTTNdata()
@@ -77,6 +79,7 @@ function Applications({navigation}) {
     const Icon = () =>{
   
         return (
+            // <TouchableOpacity onPress={() => setWelcVisable(true)}>
           <TouchableOpacity onPress={() => navigation.navigate('SettingsScreen')}>
             <Image source={require('../assets/settingsWhite.png')} style={{width:25, height:25, marginRight:15}}/>
           </TouchableOpacity>
@@ -114,10 +117,11 @@ function Applications({navigation}) {
     const getAppIds = async() =>{ //Read application data from cache
 
         const apps = await getApplicationList()
+        const favs = await getFavourites()
 
         if (apps != null){
 
-            let listOfIds = apps.map((app) => app['application_id'])
+            let listOfIds = apps.map((app) => ({id:app['application_id'], isFav:favs.includes(app['application_id'])}))
             changeData(listOfIds)
 
         }
@@ -126,10 +130,11 @@ function Applications({navigation}) {
         }
         setLoading(false)
     }
-
     const getApplications = async() => {//Request applications from ttn
 
         console.log("in get applications", global.valid_token)
+        const favs = await getFavourites()
+
         if (global.valid_token){
             changeValid(true)
             try{
@@ -140,7 +145,7 @@ function Applications({navigation}) {
                 }).then((response) => response.json())
 
                 response = response['applications']
-                const apps = response.map((app) => app['ids']['application_id'])
+                const apps = response.map((app) => ({id:app['ids']['application_id'], isFav:favs.includes(app['ids']['application_id'])}))
                 changeData(apps)
 
             }catch(error){
@@ -154,10 +159,23 @@ function Applications({navigation}) {
         setLoading(false)
 
     }
+    const getFavourites = async()=>{
+
+        try{
+            let fromStore = JSON.parse(await AsyncStorage.getItem(global.FAV_STORE))
+            if (fromStore == null) fromStore = []
+
+            return fromStore
+        }
+        catch(error){
+            console.log(error)
+            return []
+        }
+    }
 
     const DataError = () =>{
         
-        if (!isConnected && data == null){
+        if (!isConnected && appData == null){
 
             return(
                 <Text style={[globalStyles.text, {justifyContent:'center'}]}>No applications to display</Text>
@@ -169,7 +187,7 @@ function Applications({navigation}) {
     }
     const handlePress = (item) =>{
 
-        navigation.navigate('Devices',{application_id: item})
+        navigation.navigate('Devices',{application_id: item.id})
     }
 
     const Icons = () =>{
@@ -210,6 +228,51 @@ function Applications({navigation}) {
             </View>
         )
     }
+    const toggleFavourite = async(data, rowMap) =>{
+        if (rowMap[data.index]) {
+            rowMap[data.index].closeRow();
+          }
+
+        try{
+            let favs = await getFavourites()
+
+            if (favs.includes(data.item.id)){
+                favs.splice(favs.indexOf(data.item.id),1)
+            }
+            else{
+                favs.push(data.item.id)
+            }
+
+            await AsyncStorage.setItem(global.FAV_STORE, JSON.stringify(favs))
+        }
+        catch(error){
+            console.log(error)
+        }
+
+        changeData(appData.map(item => item.id == data.item.id? {...item, isFav:!item.isFav}:item))
+
+    }
+
+    const renderHiddenItem = (data, rowMap)=>{
+
+        let id = data.item.id
+        const isFavourite = data.item.isFav
+
+        return (
+            <View style={{flexDirection:'row'}}>
+                <TouchableOpacity style={{height:'100%', width:80, justifyContent:'center'}} onPress={() => toggleFavourite(data, rowMap)} activeOpacity={0.6}>
+                    <Card colour={'#1396ED'}>
+                        <View style={{height:'100%', width:'100%', justifyContent:'center', alignItems:'center'}}> 
+                            <Image style={{height:'130%', width:40}} resizeMode='contain' source={isFavourite == true? require('../assets/favourite.png'):require('../assets/notFavourite.png')}/>
+                        </View>
+                    </Card>
+                </TouchableOpacity>
+
+                <View style={{flex:1}}/>
+            </View>        
+        )
+    }
+
     const ValidContent = () =>{
 
         if (validToken){
@@ -219,13 +282,19 @@ function Applications({navigation}) {
                     <Icons/>
                     <LoadingComponent loading={isLoading}/>
                     <DataError/>
-        
-                    <FlatList
-                    style={[{flex:1},globalStyles.list]} 
-                    data={data}
-                    renderItem={(item) => renderItem(item, handlePress, 'Applications')}
-                    keyExtractor={(item, index) => index.toString()}
-                    />
+
+                    <View style={[{flex:1}, globalStyles.list]}>
+                        <SwipeListView
+                        data={appData.sort((a,b)=>{
+                            (a.isFavourite === b.isFavourite) ? a.id > b.id : a.isFavourite ? -1 : 1
+                        })}
+                        renderItem={(item) => renderItem(item, handlePress, 'Applications')}
+                        keyExtractor={(item, index) => index.toString()}
+                        renderHiddenItem={renderHiddenItem}
+                        leftOpenValue={80}
+                        stopRightSwipe={1}
+                        />
+                    </View>
                     
                     <View style={{flex:0.15}}>
                         <NavButtons navigation={navigation}/>

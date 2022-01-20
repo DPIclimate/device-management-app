@@ -255,6 +255,7 @@ const AddDeviceScreen = ({ route, navigation }) => {
 
             if (resolution == "NO"){setLoadingState(false); return}
             success = await saveDevice(device)
+            if(success) Alert.alert("Success!", "Device saved successfully")
         }
 
         if (success){

@@ -1,5 +1,5 @@
 import React, {useEffect, useState} from 'react';
-import { View,Text, ScrollView,StyleSheet ,TextInput, Pressable, Alert, Linking} from 'react-native';
+import { View,Text, ScrollView,StyleSheet ,TextInput, Pressable, Alert, Linking, Image} from 'react-native';
 import globalStyles from '../styles';
 import {Card} from '../shared';
 import helpText from '../HelpText.json'
@@ -50,7 +50,7 @@ function SettingsScreen() {
         Alert.alert("Are you sure?","Are you sure you want to change your TTN bearer token, this cannot be undone?",[
             {
                 text: "Yes",
-                onPress: () => writeToken(token)
+                onPress: () => handleYes(token)
             },
             {
                 text:"No",
@@ -59,7 +59,7 @@ function SettingsScreen() {
         ])
 
     }
-    const writeToken = async(token) =>{
+    const handleYes = async(token) =>{
 
         setValidating(true)
 
@@ -103,6 +103,7 @@ function SettingsScreen() {
                         {invalidToken? <Text style={globalStyles.invalidText}>Invalid TTN Bearer Token</Text>:<View></View>  }
                     </Card>
                     <HelpCard/>
+                    <DPI_TAG/>
                 </View>
                 <View style={{height:50, alignItems:'center'}}>
                     <Text>v{version['expo']['version']}</Text>
@@ -125,6 +126,17 @@ const HelpCard = () =>{
         </Card>
     )
 }
+const DPI_TAG = () =>{
+    return(
+        <Card>
+            <View style={{alignItems:'center'}}>
+                <Text style={{textAlign:'center', paddingBottom:10}}>This app was produced by the NSW Department of Primary Industries Climate Change Reasearch Project, funded by the NSW Climate Change Fund.</Text>
+                <Image style={{width:'70%', height:55}} resizeMode="contain" source={require('../assets/dpiLogo.png')}/>
+            </View>
+        </Card>
+    )
+}
+
 const styles = StyleSheet.create({
 
     subTitle:{
@@ -140,4 +152,4 @@ const styles = StyleSheet.create({
     }
 })
 export default SettingsScreen;
-export {HelpCard}
+export {HelpCard, DPI_TAG}

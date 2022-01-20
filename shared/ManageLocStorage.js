@@ -7,20 +7,26 @@ import config from '../config.json'
 const getDevice = async(appID, devName, uid) =>{
 
     let devices = await getApplication(appID)
+
     for (const i in devices['end_devices']){
         const dev = devices['end_devices'][i]
         let name = dev['ids']['device_id']
 
         if (uid != undefined){
-            console.log('uid comparison')
-            let devUID = dev['attributes']['uid']
 
-            if (uid == devUID){
-                return dev
+            try{
+                let devUID = dev['attributes']['uid']
+
+                if (uid == devUID){
+                    return dev
+                }
+            }catch(error){
             }
+            
         }else{    
 
             if (name == devName){
+                console.log(name, devName)
                 return dev
 
             }
@@ -46,7 +52,6 @@ const saveDevice = async(device) =>{
     console.log('writing')
     try{
         await AsyncStorage.setItem(global.DEV_STORE, JSON.stringify(currentDevices))
-        Alert.alert("Success!", "Device successfully saved")
         return true
 
     }catch(error){

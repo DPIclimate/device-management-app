@@ -1,10 +1,10 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, TextInput, Pressable } from 'react-native';
+import { View, Text, StyleSheet, TextInput } from 'react-native';
 import { ScrollView, TouchableOpacity } from 'react-native-gesture-handler';
 import { validateToken } from '../shared';
 import { updateToken } from '../shared/ManageLocStorage';
 import globalStyles from '../styles';
-import { HelpCard } from './SettingsScreen';
+import { HelpCard, DPI_TAG } from './SettingsScreen';
 import { LoadingComponent } from '../shared';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
@@ -32,6 +32,7 @@ const WelcomScreen = (props) => {
             setValidating(false)
         }
     }
+
     return (
     <ScrollView showsVerticalScrollIndicator={false} >
         <View style={[globalStyles.screen, {padding:5}]}>
@@ -42,7 +43,7 @@ const WelcomScreen = (props) => {
             <TextInput value={token} placeholder='e.g NNSXS.ABCDEF.........' style={[globalStyles.inputWborder, invalidToken?globalStyles.inputInvalid:null]} onChangeText={changeToken} autoCorrect={false} autoCapitalize='none'/>
 
             {!validating?
-                <TouchableOpacity style={[globalStyles.blueButton, styles.buttonLocation]} onPress={handlePress}>
+                <TouchableOpacity style={[globalStyles.blueButton, styles.buttonLocation]} onPress={handlePress} disabled={token.length == 0? true: false}>
                     <Text style={globalStyles.blueButtonText}>Continue</Text>
                 </TouchableOpacity>
                 :
@@ -55,6 +56,7 @@ const WelcomScreen = (props) => {
             <View style={{paddingTop:10}}>
                 <HelpCard/>
             </View>
+            <DPI_TAG/>
         </View>
     </ScrollView>
     );

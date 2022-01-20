@@ -4,9 +4,9 @@ import { Text, StyleSheet, Switch, View, Image, TouchableHighlight, Alert, Activ
 import globalStyles from '../styles';
 import MapView, {Marker, PROVIDER_DEFAULT, Circle} from 'react-native-maps';
 import * as Location from 'expo-location';
-import AsyncStorage from '@react-native-async-storage/async-storage';
-import {updateDevice, checkNetworkStatus, Card, LoadingComponent} from '../shared/index'
+import {updateDevice, checkNetworkStatus, Card, LoadingComponent, saveDevice} from '../shared'
 import { useDataContext } from '../shared/DataContextManager';
+import {AsyncAlert} from '../shared/AsyncAlert'
 
 function LocationCard() {
     const [isEnabled, setIsEnabled] = useState(true);
@@ -63,17 +63,18 @@ function LocationCard() {
                 setLoadingState(false)
                 
             }else{
-                Alert.alert("No internet connection","Would you like to save this updated location for when you are back online?",[
-                    {
-                        text:'Yes',
-                        onPress:async() => await queLocationUpdate(body)
-                    },
-                    {
-                        text:'No',
-                        onPress:() => console.log('no')
-                    }
-            ])
-            setLoadingState(false)
+                const choice = await AsyncAlert("No Internet Connection", "Would you like to save this updated location for when you are back online?")
+                if (choice == "NO") {setLoadingState(false);return}
+
+                const success = await saveDevice(body)
+                if (success){
+                    Alert.alert("Location saved","Location details have been saved successfully")
+                }
+                else{
+                    Alert.alert("Failed","Saving location failed")
+                }
+
+                setLoadingState(false)
             }
         }
         else{
@@ -81,33 +82,7 @@ function LocationCard() {
             setLoadingState(false)
         }
     }
-    const queLocationUpdate = async(body) =>{
 
-        let locationUpdates = []
-        try{
-            let fromStore = await AsyncStorage.getItem(global.LOC_UPDATES)
-            fromStore = JSON.parse(fromStore)
-            fromStore != null? locationUpdates = [...locationUpdates, ...fromStore] : locationUpdates = []
-
-        }catch(error){
-            console.log(error)
-        }
-
-        console.log('creating')
-        locationUpdates.push(body)     
-        console.log('writing')
-
-        try{
-            await AsyncStorage.setItem(global.LOC_UPDATES, JSON.stringify(locationUpdates))
-
-        }catch(error){
-            console.log(error)
-            Alert.alert("An error occured", error)
-        }
-
-        Alert.alert("Location saved","Location details have been saved successfully")
-
-    }
     const UpdateLocationIcon = () =>{
         return (
             <TouchableHighlight disabled={isLoading} acitveOpacity={0.6} underlayColor="#DDDDDD" onPress={() => 

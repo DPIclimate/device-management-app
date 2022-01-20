@@ -4,7 +4,7 @@ import { FlatList } from 'react-native-gesture-handler';
 import globalStyles from '../styles';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import Swipeable from 'react-native-gesture-handler/Swipeable';
-import {registerDevice, updateDevice, Card, LoadingComponent, checkNetworkStatus, getSavedDevices, getSavedLocations, checkUnique, updateDetails} from '../shared'
+import {registerDevice, updateDevice, Card, LoadingComponent, checkNetworkStatus, getSavedDevices, getSavedLocations, checkUnique, updateDetails, saveDevice} from '../shared'
 import { AsyncAlert } from '../shared/AsyncAlert';
 import { SwipeListView } from 'react-native-swipe-list-view';
 
@@ -29,95 +29,78 @@ function OfflineDevices({ route, navigation }) {
 
     const getSaved = async() =>{
 
-        let savedDev = await getSavedDevices()
-        let savedLoc = await getSavedLocations()
+        const savedDev = await getSavedDevices()
 
         changeSavedDevices(savedDev)
-        changeSavedLocations(savedLoc)
 
-        const allSaved = [...savedDev, ...savedLoc]
-
-        if (allSaved == 0){
+        if (savedDev == 0){
             navigation.goBack()
         }
 
         setLoading(false)
 
     }
-    const handlePress = async(data, rowMap) =>{
+    const handleRegister = async(index) =>{
 
-        const {item, index} = data
+        let success = false
 
-        if (isConnected){
-            const isRegister = item.type == 'registerDevice'? true: false
-            let success = false
+        const selectedDevice = savedDevices[index]
 
-            if (isRegister){
-                const selectedDevice = savedDevices[index]
+        const isUnique = await checkUnique(selectedDevice)
+        if (isUnique == null) return
 
-                const isUnique = await checkUnique(selectedDevice)
-                if (isUnique == null) return
-
-                if (isUnique){
-                    success = await registerDevice(selectedDevice)
-                }
-                else{
-                    let update = await AsyncAlert("Device already exists",`Device with this name already exists in this application, would you like to add these updated details to the device?`)
-
-                    if (update == 'NO')return
-
-                    const updatedDevice = updateDetails(selectedDevice)
-                    success = await updateDevice(updatedDevice)
-                }
-
-            }else{
-
-                const selected = savedLocations[index - savedDevices.length]
-                success = await updateDevice(selected)
-
-            }
-        
-            if (success){
-                handleDelete(data, rowMap)
-            }
+        if (isUnique){
+            success = await registerDevice(selectedDevice)
         }
         else{
-            Alert.alert("No Connection","Please connect to the internet to deploy/update this device")
+            let update = await AsyncAlert("Device already exists",`Device with this name already exists in this application, would you like to add these updated details to the device?`)
+
+            if (update == 'NO')return
+
+            const updatedDevice = updateDetails(selectedDevice)
+            success = await updateDevice(updatedDevice)
+        }
+
+        return success
+    }
+
+    const handlePress = async(data, rowMap) =>{
+
+        if (!isConnected) {Alert.alert("No Connection","Please connect to the internet to deploy/update this device");return}
+        
+        const {item, index} = data
+
+        let success = false
+
+        if (item.type == 'registerDevice'){
+            success = await handleRegister(index)
+        }
+        else{
+            const selected = savedDevices[index]
+            success = await updateDevice(selected)
+        }
+        
+        console.log("success status", success)
+        if (success){
+            handleDelete(data, rowMap)
         }
     }
     
-    const handleDelete = async ({item, index}, rowMap) =>{
+    const handleDelete = async (data, rowMap) =>{
+
+        const {item, index} = data
 
         closeItem(rowMap, index)
-        const isRegister = item.type == 'registerDevice'? true: false
 
-        if (isRegister){
-            let devices = savedDevices
-            devices.splice(index, 1)
-            changeSavedDevices(devices)
+        let devices = savedDevices
+        devices.splice(index, 1)
+        changeSavedDevices(devices)
 
-            try{
-                await AsyncStorage.setItem(global.DEV_STORE, JSON.stringify(devices))
+        try{
+            await AsyncStorage.setItem(global.DEV_STORE, JSON.stringify(devices))
 
-            }catch(error){
-                console.log(error)
-            }
-        }
-        else{
-
-            setReload(!reload)
-
-            let devices = savedLocations
-            devices.splice(index - savedDevices.length, 1)
-            changeSavedLocations(devices)
-
-            try{
-                await AsyncStorage.setItem(global.LOC_UPDATES, JSON.stringify(devices))
-                console.log('here')
-
-            }catch(error){
-                console.log(error)
-            }
+        }catch(error){
+            console.log(error)
         }
 
         setReload(!reload)
@@ -131,14 +114,15 @@ function OfflineDevices({ route, navigation }) {
       };    
 
     const renderHiddenItem = (data, rowMap)=>{
-
+        //Renders the bin icon when user swipes left
+        
         return (
             <View style={{flexDirection:'row'}}>
 
                 <View style={{flex:1}}/>
 
                 <TouchableOpacity style={{height:'100%', width:100}} onPress={() => handleDelete(data, rowMap)} activeOpacity={0.6}>
-                    <Card red={true}>
+                    <Card colour={'red'}>
                         <View style={{height:'100%', width:60, justifyContent:'center', alignItems:'center'}}> 
                             <Image style={{height:60, width:50}} source={require('../assets/bin.png')}/>
                         </View>
@@ -149,35 +133,42 @@ function OfflineDevices({ route, navigation }) {
     }
     const renderItem = (data, rowMap) => {
 
-        const {index, item} = data
+        const {item, index} = data
         
-        const Content = () =>{
-            const locUpdate = item.type == 'locationUpdate'? true: false
+        const Content = () =>{ //Returns the content of a card to display
 
-            if (locUpdate == false){
-                return(
-                    <> 
-                        <Text style={styles.cardTitle}>Register New Device</Text>
-                        <Text style={[globalStyles.text, styles.cardText]}>Device Name: {item.end_device.ids.device_id}</Text>
-                        <Text style={[globalStyles.text, styles.cardText]}>App ID: {item.end_device.ids.application_ids.application_id}</Text>
-                        <Text style={[globalStyles.text, styles.cardText]}>UID: {item.end_device.attributes.uid}</Text>
-                    </>
-                )
+            switch (item.type){
+                case 'registerDevice':
+                    return(
+                        <> 
+                            <Text style={styles.cardTitle}>Register New Device</Text>
+                            <Text style={[globalStyles.text, styles.cardText]}>Device Name: {item.end_device.ids.device_id}</Text>
+                            <Text style={[globalStyles.text, styles.cardText]}>App ID: {item.end_device.ids.application_ids.application_id}</Text>
+                            <Text style={[globalStyles.text, styles.cardText]}>UID: {item.end_device.attributes.uid}</Text>
+                        </>
+                        )
+                case 'locationUpdate':
+                    return(
+                            <>
+                                <Text style={styles.cardTitle}>Update Location</Text>
+                                <Text style={[globalStyles.text, styles.cardText]}>Device Name: {item.end_device.ids.device_id}</Text>
+                                <Text style={[globalStyles.text, styles.cardText]}>Longitude: {item.end_device.locations.user.latitude}</Text>
+                                <Text style={[globalStyles.text, styles.cardText]}>Latitude: {item.end_device.locations.user.longitude}</Text>
+                                <Text style={[globalStyles.text, styles.cardText]}>Altitude: {item.end_device.locations.user.altitude}</Text>
+                            </>
+                    )
+                case 'descriptionUpdate':
+                    return (
+                        <> 
+                            <Text style={styles.cardTitle}>Update Notes</Text>
+                            <Text style={[globalStyles.text, styles.cardText]}>Device Name: {item.end_device.ids.device_id}</Text>
+                            <Text style={[globalStyles.text, styles.cardText]}>App ID: {item.end_device.ids.application_ids.application_id}</Text>
+                            <Text style={[globalStyles.text, styles.cardText]}>Note: {item.end_device.description}</Text>
+                        </>
+                    )
+                }
             }
-            else if (locUpdate == true){
-                return(
-                    <>
-                        <Text style={styles.cardTitle}>Update Location</Text>
-                        <Text style={[globalStyles.text, styles.cardText]}>Device Name: {item.end_device.ids.device_id}</Text>
-                        <Text style={[globalStyles.text, styles.cardText]}>Longitude: {item.end_device.locations.user.latitude}</Text>
-                        <Text style={[globalStyles.text, styles.cardText]}>Latitude: {item.end_device.locations.user.longitude}</Text>
-                        <Text style={[globalStyles.text, styles.cardText]}>Altitude: {item.end_device.locations.user.altitude}</Text>
-    
-                    </>
-                )
-            }
-        }
-    
+
         return(
             <View>
                 <Card>
@@ -204,7 +195,7 @@ function OfflineDevices({ route, navigation }) {
 
             <SwipeListView
             style={[globalStyles.list]} 
-            data={[...savedDevices, ...savedLocations]}
+            data={savedDevices}
             renderItem={renderItem}
             keyExtractor={(item, index) => index.toString()}
             renderHiddenItem={renderHiddenItem}

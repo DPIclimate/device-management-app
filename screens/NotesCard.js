@@ -1,10 +1,11 @@
 import React, { useState,useEffect } from 'react';
-import {Card} from '../shared';
+import {Card, saveDevice} from '../shared';
 import { Grid } from "react-native-easy-grid";
 import { Text, View, TouchableHighlight, Image,Button, ActivityIndicator, Pressable, TextInput, StyleSheet, KeyboardAvoidingView, Alert } from 'react-native';
 import globalStyles from '../styles';
 import {updateDevice, checkNetworkStatus} from '../shared/index'
 import { useDataContext } from '../shared/DataContextManager';
+import { AsyncAlert } from '../shared/AsyncAlert';
 
 function NotesCard() {
 
@@ -45,7 +46,17 @@ function NotesCard() {
             
         }
         else{
-            Alert.alert("Unable to update","Unable to update the device because you are offline")
+            const choice = await AsyncAlert("No Internet Connection", "Would you like to save this note for when you are back online?")
+
+            if (choice == "NO") {setLoadingState(false);return}
+
+            const success = await saveDevice(body)
+            if (success){
+                Alert.alert("Note saved", "This note has been successfully saved")
+            }
+            else{
+                Alert.alert("Failed", "Saving note failed")
+            }
         }
         setLoadingState(false)
 
