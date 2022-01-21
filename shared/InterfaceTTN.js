@@ -1,6 +1,7 @@
 import config from '../config';
 import Error from './ErrorClass'
 import { Alert } from 'react-native';
+import { useState } from 'react';
 
 const registerDevice = async(device) =>{
 
@@ -218,4 +219,23 @@ const validateToken = async(token) =>{
         return true
     }
 }
-export {registerDevice, getEUI, updateDevice, validateToken, checkUnique, updateDetails}
+const getApplications = async() => {//Request applications from ttn
+
+    if (global.valid_token != true) return null
+
+    try{
+        const url = `${config.ttnBaseURL}?field_mask=description`
+        let response = await fetch(url, {
+            method:"GET",
+            headers:global.headers
+        }).then((response) => response.json())
+
+        response = response['applications']
+        return response
+
+    }catch(error){
+        console.log(error)
+    }
+
+}
+export {registerDevice, getEUI, updateDevice, validateToken, checkUnique, updateDetails, getApplications}

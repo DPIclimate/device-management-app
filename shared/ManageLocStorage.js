@@ -1,6 +1,7 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Alert } from 'react-native';
 import config from '../config.json'
+import { getApplications } from './InterfaceTTN';
 
 //Functions to manage local storage
 
@@ -121,27 +122,28 @@ const getApplicationList = async() =>{
 
     return apps
 }
-const cacheTTNdata = async() =>{ // Cache TTN data for offline use
+const cacheTTNdata = async(app_response) =>{ // Cache TTN data for offline use
     
     if (global.valid_token){
 
         let applications = []
 
         try{
-            console.log('Caching ttn data')
-            const url = `${config.ttnBaseURL}`
-            let response = await fetch(url, {
-                method:"GET",
-                headers:global.headers
-            }).then((response) => response.json())
+            // console.log('Caching ttn data')
+            // const url = `${config.ttnBaseURL}?field_mask=description`
+            // let app_response = await fetch(url, {
+            //     method:"GET",
+            //     headers:global.headers
+            // }).then((response) => response.json())
 
-            response = response['applications']
-            const apps = response.map((app) => app['ids']['application_id'])
+            // app_response = app_response['applications']
+            // const app_response = await getApplications()
+            const apps = app_response.map((app) => ({id:app['ids']['application_id'], description:app['description']}))
 
             for (let app in apps){
-                app = apps[app]
-
-                const url = `${config.ttnBaseURL}/${app}/devices?field_mask=attributes,locations,description`
+                const id = apps[app].id
+                
+                const url = `${config.ttnBaseURL}/${id}/devices?field_mask=attributes,locations,description`
                 let response = await fetch(url, {
                     method:"GET",
                     headers:global.headers
@@ -149,7 +151,8 @@ const cacheTTNdata = async() =>{ // Cache TTN data for offline use
 
                 applications.push(
                     {
-                        'application_id':app,
+                        'application_id':id,
+                        'description':apps[app].description,
                         'end_devices': response['end_devices']
                     }
                 )
@@ -158,10 +161,9 @@ const cacheTTNdata = async() =>{ // Cache TTN data for offline use
             console.log(error)
             console.log("Caching TTN data failed")
         }
-
         try{
             await AsyncStorage.setItem(global.APP_CACHE, JSON.stringify(applications))
-            // console.log('TTN data saved successfully')
+            console.log('TTN data saved successfully')
 
         }catch(error){
             console.log(error)
@@ -179,7 +181,6 @@ const updateToken = async(token) =>{
     try{
         await AsyncStorage.setItem(global.AUTH_TOKEN_STOR, bToken)
         global.headers = {"Authorization":bToken}
-        console.log('written token', bToken)
 
     }
     catch(error){
@@ -193,7 +194,7 @@ const getTTNToken = async() =>{
     try{
         let authToken = await AsyncStorage.getItem(global.AUTH_TOKEN_STOR)
         global.headers = {"Authorization":authToken}
-        console.log('read token', authToken)
+
         return authToken
 
     }
@@ -221,5 +222,17 @@ const isFirstLogon = async() =>{
         console.log(error)
     }
 }
+const getFavourites = async(key)=>{
+    console.log(key)
+    try{
+        let fromStore = JSON.parse(await AsyncStorage.getItem(key))
+        if (fromStore == null) fromStore = []
 
-export {getDevice, getApplication, cacheTTNdata, updateToken, getTTNToken, isFirstLogon, getApplicationList, saveDevice, getSavedDevices, getSavedLocations}
+        return fromStore
+    }
+    catch(error){
+        console.log(error)
+        return []
+    }
+}
+export {getFavourites, getDevice, getApplication, cacheTTNdata, updateToken, getTTNToken, isFirstLogon, getApplicationList, saveDevice, getSavedDevices, getSavedLocations}

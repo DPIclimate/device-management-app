@@ -1,19 +1,21 @@
 import React, { useEffect, useState } from 'react';
-import {View, Text, Alert, TouchableHighlight, Image, InteractionManager, StyleSheet} from 'react-native'
-import { FlatList } from 'react-native-gesture-handler';
+import {View, Text, Alert, TouchableHighlight, Image, InteractionManager, TouchableOpacity, StyleSheet} from 'react-native'
 import globalStyles from '../styles';
 import config from '../config.json'
-import {NavButtons, renderItem, checkNetworkStatus, LoadingComponent} from '../shared/index.js'
+import {NavButtons, renderItem,renderHiddenItem, checkNetworkStatus, LoadingComponent, getFavourites} from '../shared/index.js'
 import {getDevice, getApplication} from '../shared/ManageLocStorage'
+import { SwipeListView } from 'react-native-swipe-list-view';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 function Devices({route, navigation}) {
 
-    const [data, changeData] = useState({});
+    const [devData, changeData] = useState([]);
     const [isLoading, setLoading] = useState(true)
     const [isConnected, changeIsConnected] = useState(false)
     const [isRendered, changeRenderState] = useState(false)
 
     useEffect(() =>{
+        console.log(route.params)
         async function retrieveData(){
             let connected = await checkNetworkStatus()
             if (connected){
@@ -33,6 +35,9 @@ function Devices({route, navigation}) {
     },[])
 
     const getDevices = async () =>{
+        
+        const favs = await getFavourites(global.DEV_FAV)
+
         const url = `${config.ttnBaseURL}/${route.params.application_id}/devices`
         let response = await fetch(url, {
             method:"GET",
@@ -40,24 +45,26 @@ function Devices({route, navigation}) {
         }).then((response) => response.json())
 
         response = response['end_devices']
-        const devices = response.map((device) => device['ids']['device_id'])
+        const devices = response.map((dev) => ({id:dev['ids']['device_id'], isFav:favs.includes(dev['ids']['device_id'])}))
         changeData(devices)
         setLoading(false)
     }
 
     const getDevIds = async() =>{
-
+        
+        const favs = await getFavourites(global.DEV_FAV)
         const app = await getApplication(route.params.application_id)
         const devices = app['end_devices']
 
-        let listOfIds = devices.map((dev) => dev['ids']['device_id'])
+        let listOfIds = devices.map((dev) => ({id:dev['ids']['device_id'], isFav:favs.includes(dev['ids']['device_id'])}))
         changeData(listOfIds)
         setLoading(false)
 
     }
 
-    const handlePress = async(devName) =>{
+    const handlePress = async(item) =>{
 
+        const devName = item.id
         let response = null
 
         if (isConnected){
@@ -130,19 +137,69 @@ function Devices({route, navigation}) {
         navigation.navigate(screen,{autofill:devData})
     }
 
+    const toggleFavourite = async(data, rowMap) =>{
+        if (rowMap[data.index]) {
+            rowMap[data.index].closeRow();
+          }
+
+        try{
+            let favs = await getFavourites(global.DEV_FAV)
+
+            if (favs.includes(data.item.id)){
+                favs.splice(favs.indexOf(data.item.id),1)
+            }
+            else{
+                favs.push(data.item.id)
+            }
+
+            await AsyncStorage.setItem(global.DEV_FAV, JSON.stringify(favs))
+        }
+        catch(error){
+            console.log(error)
+        }
+
+        changeData(devData.map(item => item.id == data.item.id? {...item, isFav:!item.isFav}:item))
+
+    }
+    // const renderHiddenItem = (data, rowMap)=>{
+    
+    //     let id = data.item.id
+    //     const isFavourite = data.item.isFav
+
+    //     return (
+    //         <View style={{flexDirection:'row'}}>
+    //             <TouchableOpacity style={{height:'100%', width:80, justifyContent:'center'}} onPress={() => toggleFavourite(data, rowMap)} activeOpacity={0.6}>
+    //                 <Card colour={'#1396ED'}>
+    //                     <View style={{height:'100%', width:'100%', justifyContent:'center', alignItems:'center'}}> 
+    //                         <Image style={{height:'130%', width:40}} resizeMode='contain' source={isFavourite == true? require('../assets/favourite.png'):require('../assets/notFavourite.png')}/>
+    //                     </View>
+    //                 </Card>
+    //             </TouchableOpacity>
+
+    //             <View style={{flex:1}}/>
+    //         </View>        
+    //     )
+    // }
     return (
         <View style={globalStyles.screen}>
             <Text style={[globalStyles.title,styles.title]}>{route.params.application_id}</Text>
+            <Text style={[globalStyles.text, styles.text]}>{route.params.app_description}</Text>
 
             {isRendered?<Offline/>:<View/>}
 
             <LoadingComponent loading={isLoading}/>
 
-                {isRendered? <FlatList
+                {isRendered? <SwipeListView
                 style={[{flex:1},globalStyles.list]} 
-                data={data}
+                data={devData.sort((a,b)=>{
+                    return (a.isFav === b.isFav) ? a.id > b.id : a.isFav ? -1 : 1
+
+                })}
                 renderItem={(item) => renderItem(item, handlePress, 'Devices')}
                 keyExtractor={(item, index) => index.toString()}
+                renderHiddenItem={(data, rowMap) => renderHiddenItem(data, rowMap, toggleFavourite)}
+                leftOpenValue={80}
+                stopRightSwipe={1}
                 />: <View style={{flex:1}}/>}
 
             <View style={{flex:0.15}}>
@@ -153,8 +210,12 @@ function Devices({route, navigation}) {
 }
 const styles = StyleSheet.create({
     title:{
-        padding:10, 
         paddingTop:25
+    },
+    text:{
+        textAlign:'center',
+        padding:5,
+        paddingBottom:10
     }
 })
 export default Devices;

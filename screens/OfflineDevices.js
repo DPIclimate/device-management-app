@@ -141,7 +141,6 @@ function OfflineDevices({ route, navigation }) {
                 case 'registerDevice':
                     return(
                         <> 
-                            <Text style={styles.cardTitle}>Register New Device</Text>
                             <Text style={[globalStyles.text, styles.cardText]}>Device Name: {item.end_device.ids.device_id}</Text>
                             <Text style={[globalStyles.text, styles.cardText]}>App ID: {item.end_device.ids.application_ids.application_id}</Text>
                             <Text style={[globalStyles.text, styles.cardText]}>UID: {item.end_device.attributes.uid}</Text>
@@ -150,7 +149,7 @@ function OfflineDevices({ route, navigation }) {
                 case 'locationUpdate':
                     return(
                             <>
-                                <Text style={styles.cardTitle}>Update Location</Text>
+                                <Text style={[globalStyles.text, styles.cardText]}>Type: Update Location</Text>
                                 <Text style={[globalStyles.text, styles.cardText]}>Device Name: {item.end_device.ids.device_id}</Text>
                                 <Text style={[globalStyles.text, styles.cardText]}>Longitude: {item.end_device.locations.user.latitude}</Text>
                                 <Text style={[globalStyles.text, styles.cardText]}>Latitude: {item.end_device.locations.user.longitude}</Text>
@@ -160,7 +159,7 @@ function OfflineDevices({ route, navigation }) {
                 case 'descriptionUpdate':
                     return (
                         <> 
-                            <Text style={styles.cardTitle}>Update Notes</Text>
+                            <Text style={[globalStyles.text, styles.cardText]}>Type: Update Notes</Text>
                             <Text style={[globalStyles.text, styles.cardText]}>Device Name: {item.end_device.ids.device_id}</Text>
                             <Text style={[globalStyles.text, styles.cardText]}>App ID: {item.end_device.ids.application_ids.application_id}</Text>
                             <Text style={[globalStyles.text, styles.cardText]}>Note: {item.end_device.description}</Text>
@@ -172,16 +171,14 @@ function OfflineDevices({ route, navigation }) {
         return(
             <View>
                 <Card>
-                    <View style={{flexDirection:'row'}}>
+                <Text style={[styles.cardTitle, {textAlign:'center', paddingBottom:5}]}>{data.item.type =='registerDevice'?<Text>Deploy</Text>:<Text>Update</Text>}</Text>
+
                         <View style={{flex:1}}>
                             <Content/>
                         </View>
-                        <View style={{flex:0.25, alignItems:'center', justifyContent:'center'}}>
-                            <TouchableOpacity acitveOpacity={0.6} underlayColor="#DDDDDD" onPress={() => handlePress(data, rowMap)}>
-                                <Image style={{width:80, height:80}} source={require('../assets/retry.png')}/>
-                            </TouchableOpacity>
-                        </View>
-                    </View>
+                        <TouchableOpacity style ={{position: 'absolute', top: 0, right: 0, bottom: 0, justifyContent: 'center', alignItems: 'center'}} acitveOpacity={0.6} underlayColor="#DDDDDD" onPress={() => handlePress(data, rowMap)}>
+                            <Image style={{width:50, height:50}} resizeMode='contain' source={require('../assets/retry.png')}/>
+                        </TouchableOpacity>
                 </Card>
             </View>
 
@@ -189,7 +186,6 @@ function OfflineDevices({ route, navigation }) {
     }
     return (
         <View style={globalStyles.screen}>
-            <Text style={[globalStyles.title,{padding:10, paddingTop:25}]}>Deploy / Update</Text>
 
             <LoadingComponent loading={isLoading}/>
 
@@ -199,7 +195,7 @@ function OfflineDevices({ route, navigation }) {
             renderItem={renderItem}
             keyExtractor={(item, index) => index.toString()}
             renderHiddenItem={renderHiddenItem}
-            rightOpenValue={-100}
+            rightOpenValue= {-100}
             />
         </View>
     );

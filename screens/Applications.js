@@ -1,15 +1,15 @@
 import React, { useEffect, useState, useLayoutEffect } from 'react';
 import '../global.js'
 import {View, Text, Image, TouchableHighlight,TouchableOpacity, Alert, Pressable, InteractionManager, StyleSheet} from 'react-native'
-import { FlatList } from 'react-native-gesture-handler';
 import globalStyles from '../styles';
 import config from '../config.json'
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useIsFocused } from '@react-navigation/native';
-import {NavButtons, renderItem, checkNetworkStatus, LoadingComponent, cacheTTNdata, getTTNToken, isFirstLogon, getApplicationList, validateToken, Card} from '../shared'
+import {NavButtons, renderItem, checkNetworkStatus,renderHiddenItem, LoadingComponent, cacheTTNdata, getTTNToken, isFirstLogon, getApplicationList, validateToken, getSavedDevices, getFavourites} from '../shared'
 import { Overlay } from 'react-native-elements';
 import WelcomScreen from './WelcomScreen';
 import { SwipeListView } from 'react-native-swipe-list-view';
+import { getApplications } from '../shared/InterfaceTTN';
 
 export  const DataContext = React.createContext()
 
@@ -25,7 +25,6 @@ function Applications({navigation}) {
     const [validToken, changeValid] = useState(true)
     const [firstLoad, changeFirstLoad] = useState(true)
     const [welcomeVisable, setWelcVisable] = useState(false);
-    const [isRendered, changeRenderState] = useState(false)
     const [reload, setReload] = useState(false)
 
     useLayoutEffect(() => {
@@ -55,19 +54,17 @@ function Applications({navigation}) {
                 let connected = await checkNetworkStatus()
 
                 if (connected){
-                    getApplications()
-                    cacheTTNdata()
+
+                    let apps = await getApplications()
+                    setListData(apps)
+                    cacheTTNdata(apps)
                 }else{
-                    getAppIds()
+                    setListFromStore()
                 }
                 changeIsConnected(connected)
             }
         }
-        InteractionManager.runAfterInteractions(() =>{
-            //Testing if this improves performance
-            changeRenderState(true)
-            retrieveData()
-        })
+        retrieveData()
 
     },[,welcomeVisable, reload])
 
@@ -89,23 +86,7 @@ function Applications({navigation}) {
     const checkSavedReg = async() =>{ //Check for saved devices or updates
         let saved = []
 
-        try{
-            let fromStore = await AsyncStorage.getItem(global.DEV_STORE)
-            fromStore = JSON.parse(fromStore)
-            fromStore != null? saved = [...saved, ...fromStore] : saved = []
-
-        }catch(error){
-            console.log(error)
-        }
-
-        try{
-            let fromStore = await AsyncStorage.getItem(global.LOC_UPDATES)
-            fromStore = JSON.parse(fromStore)
-            fromStore != null? saved = [...saved, ...fromStore] : saved = saved
-
-        }catch(error){
-            console.log(error)
-        }
+        saved = await getSavedDevices()
 
         if (saved.length != 0){
             setSavedDevices(true)
@@ -114,14 +95,14 @@ function Applications({navigation}) {
             setSavedDevices(false)
         }
     }
-    const getAppIds = async() =>{ //Read application data from cache
+    const setListFromStore = async() =>{ //Read application data from cache
 
         const apps = await getApplicationList()
-        const favs = await getFavourites()
+        const favs = await getFavourites(global.APP_FAV)
 
         if (apps != null){
 
-            let listOfIds = apps.map((app) => ({id:app['application_id'], isFav:favs.includes(app['application_id'])}))
+            let listOfIds = apps.map((app) => ({id:app['application_id'], isFav:favs.includes(app['application_id']), description:app['description']}))
             changeData(listOfIds)
 
         }
@@ -130,47 +111,20 @@ function Applications({navigation}) {
         }
         setLoading(false)
     }
-    const getApplications = async() => {//Request applications from ttn
+    const setListData = async(apps) => {//Request applications from ttn
 
-        console.log("in get applications", global.valid_token)
-        const favs = await getFavourites()
+        if (apps != null){
 
-        if (global.valid_token){
+            const favs = await getFavourites(global.APP_FAV)
+            const appList = apps.map((app) => ({id:app['ids']['application_id'], isFav:favs.includes(app['ids']['application_id']), description:app['description']}))
+
+            changeData(appList)
             changeValid(true)
-            try{
-                const url = `${config.ttnBaseURL}`
-                let response = await fetch(url, {
-                    method:"GET",
-                    headers:global.headers
-                }).then((response) => response.json())
-
-                response = response['applications']
-                const apps = response.map((app) => ({id:app['ids']['application_id'], isFav:favs.includes(app['ids']['application_id'])}))
-                changeData(apps)
-
-            }catch(error){
-                console.log(error)
-            }
         }
         else{
             changeValid(false)
-
         }
         setLoading(false)
-
-    }
-    const getFavourites = async()=>{
-
-        try{
-            let fromStore = JSON.parse(await AsyncStorage.getItem(global.FAV_STORE))
-            if (fromStore == null) fromStore = []
-
-            return fromStore
-        }
-        catch(error){
-            console.log(error)
-            return []
-        }
     }
 
     const DataError = () =>{
@@ -187,7 +141,7 @@ function Applications({navigation}) {
     }
     const handlePress = (item) =>{
 
-        navigation.navigate('Devices',{application_id: item.id})
+        navigation.navigate('Devices',{application_id: item.id, app_description: item.description})
     }
 
     const Icons = () =>{
@@ -234,7 +188,7 @@ function Applications({navigation}) {
           }
 
         try{
-            let favs = await getFavourites()
+            let favs = await getFavourites(global.APP_FAV)
 
             if (favs.includes(data.item.id)){
                 favs.splice(favs.indexOf(data.item.id),1)
@@ -243,7 +197,7 @@ function Applications({navigation}) {
                 favs.push(data.item.id)
             }
 
-            await AsyncStorage.setItem(global.FAV_STORE, JSON.stringify(favs))
+            await AsyncStorage.setItem(global.APP_FAV, JSON.stringify(favs))
         }
         catch(error){
             console.log(error)
@@ -253,76 +207,50 @@ function Applications({navigation}) {
 
     }
 
-    const renderHiddenItem = (data, rowMap)=>{
-
-        let id = data.item.id
-        const isFavourite = data.item.isFav
-
-        return (
-            <View style={{flexDirection:'row'}}>
-                <TouchableOpacity style={{height:'100%', width:80, justifyContent:'center'}} onPress={() => toggleFavourite(data, rowMap)} activeOpacity={0.6}>
-                    <Card colour={'#1396ED'}>
-                        <View style={{height:'100%', width:'100%', justifyContent:'center', alignItems:'center'}}> 
-                            <Image style={{height:'130%', width:40}} resizeMode='contain' source={isFavourite == true? require('../assets/favourite.png'):require('../assets/notFavourite.png')}/>
-                        </View>
-                    </Card>
-                </TouchableOpacity>
-
-                <View style={{flex:1}}/>
-            </View>        
-        )
-    }
-
-    const ValidContent = () =>{
-
-        if (validToken){
-            return(
-                <>
-                    <Text style={[globalStyles.title,styles.title]}>Applications</Text>
-                    <Icons/>
-                    <LoadingComponent loading={isLoading}/>
-                    <DataError/>
-
-                    <View style={[{flex:1}, globalStyles.list]}>
-                        <SwipeListView
-                        data={appData.sort((a,b)=>{
-                            (a.isFavourite === b.isFavourite) ? a.id > b.id : a.isFavourite ? -1 : 1
-                        })}
-                        renderItem={(item) => renderItem(item, handlePress, 'Applications')}
-                        keyExtractor={(item, index) => index.toString()}
-                        renderHiddenItem={renderHiddenItem}
-                        leftOpenValue={80}
-                        stopRightSwipe={1}
-                        />
-                    </View>
-                    
-                    <View style={{flex:0.15}}>
-                        <NavButtons navigation={navigation}/>
-                    </View>
-                </>
-            )
-        }
-        else{
-            console.log("in validContent, not valid")
-            return(
-                <>
-                    <View style={{position:'absolute'}}>
-
-                        <Pressable style={[globalStyles.redButton, styles.redButtonLoc]} onPress={()=> navigation.navigate('SettingsScreen')}>
-                            <Text style={globalStyles.redText}>Fix Token</Text>
-                        </Pressable>
-
-                        <TouchableOpacity style={{width:300, height:50, paddingTop:10}} onPress={()=> toggleReload()}>
-                            <Text style={globalStyles.redText}>Refresh</Text>
-                        </TouchableOpacity>
-                    </View>
-                </>
-            )
-        }
-    }
     return (
         <View style={globalStyles.screen}>
-            {isRendered? <ValidContent/>:<View/>}
+            
+            {validToken?
+            <>
+                <Text style={[globalStyles.title,styles.title]}>Applications</Text>
+                <Icons/>
+                <LoadingComponent loading={isLoading}/>
+                <DataError/>
+
+                <View style={[{flex:1}, globalStyles.list]}>
+
+                    <SwipeListView
+                    data={appData.sort((a,b)=>{
+                        return (a.isFav === b.isFav) ? a.id > b.id : a.isFav ? -1 : 1
+
+                    })}
+                    renderItem={(item) => renderItem(item, handlePress, 'Applications')}
+                    keyExtractor={(item, index) => index.toString()}
+                    renderHiddenItem={(data, rowMap) => renderHiddenItem(data, rowMap, toggleFavourite)}
+                    leftOpenValue={80}
+                    stopRightSwipe={1}
+                    />
+                </View>
+                
+                <View style={{flex:0.15}}>
+                    <NavButtons navigation={navigation}/>
+                </View>    
+            </>
+            :
+            <>
+                <View style={{position:'absolute'}}>
+
+                    <Pressable style={[globalStyles.redButton, styles.redButtonLoc]} onPress={()=> navigation.navigate('SettingsScreen')}>
+                        <Text style={globalStyles.redText}>Fix Token</Text>
+                    </Pressable>
+
+                    <TouchableOpacity style={{width:300, height:50, paddingTop:10}} onPress={()=> toggleReload()}>
+                        <Text style={globalStyles.redText}>Refresh</Text>
+                    </TouchableOpacity>
+                </View>
+            </>
+            }
+
             <Overlay isVisible={welcomeVisable} overlayStyle={{borderRadius:10, width:350, height:650, backgroundColor:'#f3f2f3'}}>
                 <WelcomScreen visible={setWelcVisable} firstLoad={changeFirstLoad} validT/>
             </Overlay >
