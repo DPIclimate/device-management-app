@@ -124,51 +124,41 @@ const getApplicationList = async() =>{
 }
 const cacheTTNdata = async(app_response) =>{ // Cache TTN data for offline use
     
-    if (global.valid_token){
+    if (global.valid_token != true) return
 
-        let applications = []
+    let applications = []
 
-        try{
-            // console.log('Caching ttn data')
-            // const url = `${config.ttnBaseURL}?field_mask=description`
-            // let app_response = await fetch(url, {
-            //     method:"GET",
-            //     headers:global.headers
-            // }).then((response) => response.json())
+    try{
+        const apps = app_response.map((app) => ({id:app['ids']['application_id'], description:app['description']}))
 
-            // app_response = app_response['applications']
-            // const app_response = await getApplications()
-            const apps = app_response.map((app) => ({id:app['ids']['application_id'], description:app['description']}))
+        for (let app in apps){
+            const id = apps[app].id
+            
+            const url = `${config.ttnBaseURL}/${id}/devices?field_mask=attributes,locations,description`
+            let response = await fetch(url, {
+                method:"GET",
+                headers:global.headers
+            }).then((response) => response.json())
 
-            for (let app in apps){
-                const id = apps[app].id
-                
-                const url = `${config.ttnBaseURL}/${id}/devices?field_mask=attributes,locations,description`
-                let response = await fetch(url, {
-                    method:"GET",
-                    headers:global.headers
-                }).then((response) => response.json())
-
-                applications.push(
-                    {
-                        'application_id':id,
-                        'description':apps[app].description,
-                        'end_devices': response['end_devices']
-                    }
-                )
-            }
-        }catch(error){
-            console.log(error)
-            console.log("Caching TTN data failed")
+            applications.push(
+                {
+                    'application_id':id,
+                    'description':apps[app].description,
+                    'end_devices': response['end_devices']
+                }
+            )
         }
-        try{
-            await AsyncStorage.setItem(global.APP_CACHE, JSON.stringify(applications))
-            console.log('TTN data saved successfully')
+    }catch(error){
+        console.log(error)
+        console.log("Caching TTN data failed")
+    }
+    try{
+        await AsyncStorage.setItem(global.APP_CACHE, JSON.stringify(applications))
+        console.log('TTN data saved successfully')
 
-        }catch(error){
-            console.log(error)
-            console.log("Caching TTN data failed")
-        }
+    }catch(error){
+        console.log(error)
+        console.log("Caching TTN data failed")
     }
 }
 const updateToken = async(token) =>{
@@ -190,7 +180,8 @@ const updateToken = async(token) =>{
 }
 
 const getTTNToken = async() =>{
-// Gets bearer token from memory and updates the global req header and returns the auth token
+    
+// Gets bearer token from memory
     try{
         let authToken = await AsyncStorage.getItem(global.AUTH_TOKEN_STOR)
         global.headers = {"Authorization":authToken}

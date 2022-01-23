@@ -166,7 +166,7 @@ function OfflineDevices({ route, navigation }) {
                         </>
                     )
                 }
-            }
+            } 
 
         return(
             <View>
