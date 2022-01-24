@@ -1,8 +1,7 @@
 import React from 'react';
 import { Col, Row, Grid } from "react-native-easy-grid";
-import { Text, View } from 'react-native';
+import { Text, View, ScrollView } from 'react-native';
 import globalStyles from '../styles';
-import { ScrollView } from 'react-native-gesture-handler';
 import {Card} from '../shared/index'
 
 const RowContent = ({data}) =>{

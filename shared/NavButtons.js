@@ -30,14 +30,16 @@ const styles = StyleSheet.create({
         left:20, 
         bottom:20,
         height:45,
-        width:'40%'
+        width:'40%',
+        height:50
     },
     manDeviceLoc:{
         position:'absolute',
         right:20, 
         bottom:20,
         height:45,
-        width:'40%'
+        width:'40%',
+        height:50
 
     }
 });

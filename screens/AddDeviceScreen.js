@@ -9,10 +9,9 @@ import {
     Alert,
     TextInput,
     Pressable,
-    KeyboardAvoidingView} from 'react-native';
+    KeyboardAvoidingView, Switch, TouchableOpacity} from 'react-native';
 import newDeviceData from '../repositories/newDeviceData';
 import * as Location from 'expo-location';
-import { Switch, TouchableOpacity } from 'react-native-gesture-handler';
 import {checkNetworkStatus, registerDevice, LoadingComponent, updateDevice, checkUnique, updateDetails, saveDevice} from '../shared'
 import { AsyncAlert } from '../shared/AsyncAlert';
 

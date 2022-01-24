@@ -229,12 +229,13 @@ function Applications({navigation}) {
                     renderHiddenItem={(data, rowMap) => renderHiddenItem(data, rowMap, toggleFavourite)}
                     leftOpenValue={80}
                     stopRightSwipe={1}
+                    contentContainerStyle={{ paddingBottom: 60 }}
                     />
                 </View>
                 
-                <View style={{flex:0.15}}>
+                {/* <View style={{height:'10%'}}> */}
                     <NavButtons navigation={navigation}/>
-                </View>    
+                {/* </View>     */}
             </>
             :
             <>

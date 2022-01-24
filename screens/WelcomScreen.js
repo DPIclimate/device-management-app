@@ -1,6 +1,5 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, TextInput } from 'react-native';
-import { ScrollView, TouchableOpacity } from 'react-native-gesture-handler';
+import { View, Text, StyleSheet, TextInput, ScrollView, TouchableHighlight, TouchableOpacity } from 'react-native';
 import { validateToken } from '../shared';
 import { updateToken } from '../shared/ManageLocStorage';
 import globalStyles from '../styles';
@@ -14,8 +13,9 @@ const WelcomScreen = (props) => {
     const [invalidToken, setInvalid] = useState(false)
     const [validating, setValidating] = useState(false)
 
+    console.log('here')
     const handlePress = async() =>{
-
+        console.log('pressed')
         setValidating(true)
 
         const validToken = await validateToken(token)
@@ -43,7 +43,7 @@ const WelcomScreen = (props) => {
             <TextInput value={token} placeholder='e.g NNSXS.ABCDEF.........' style={[globalStyles.inputWborder, invalidToken?globalStyles.inputInvalid:null]} onChangeText={changeToken} autoCorrect={false} autoCapitalize='none'/>
 
             {!validating?
-                <TouchableOpacity style={[globalStyles.blueButton, styles.buttonLocation]} onPress={handlePress} disabled={token.length == 0? true: false}>
+                <TouchableOpacity style={[globalStyles.blueButton, styles.buttonLocation]} onPress={() => handlePress()} disabled={token.length == 0? true: false}>
                     <Text style={globalStyles.blueButtonText}>Continue</Text>
                 </TouchableOpacity>
                 :

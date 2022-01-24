@@ -23,7 +23,7 @@
     "asyncStorage": "^0.1.0",
     "crypto-js": "^4.1.1",
     "expo": "~41.0.1",
-    "expo-barcode-scanner": "^11.1.2",
+    "expo-barcode-scanner": "~10.1.2",
     "expo-camera": "~11.0.2",
     "expo-image-picker": "~10.1.4",
     "expo-localization": "~10.1.0",

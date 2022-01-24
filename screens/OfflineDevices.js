@@ -1,9 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { View, Text, StyleSheet, Image, TouchableHighlight, TouchableOpacity, Alert} from 'react-native'
-import { FlatList } from 'react-native-gesture-handler';
 import globalStyles from '../styles';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import Swipeable from 'react-native-gesture-handler/Swipeable';
 import {registerDevice, updateDevice, Card, LoadingComponent, checkNetworkStatus, getSavedDevices, getSavedLocations, checkUnique, updateDetails, saveDevice} from '../shared'
 import { AsyncAlert } from '../shared/AsyncAlert';
 import { SwipeListView } from 'react-native-swipe-list-view';

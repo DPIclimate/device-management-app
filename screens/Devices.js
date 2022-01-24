@@ -181,11 +181,10 @@ function Devices({route, navigation}) {
                 renderHiddenItem={(data, rowMap) => renderHiddenItem(data, rowMap, toggleFavourite)}
                 leftOpenValue={80}
                 stopRightSwipe={1}
+                contentContainerStyle={{ paddingBottom: 80 }}
                 />: <View style={{flex:1}}/>}
 
-            <View style={{flex:0.15}}>
-                <NavButtons navigation={navigation}/>
-            </View>
+            <NavButtons navigation={navigation}/>
         </View>
     );
 }

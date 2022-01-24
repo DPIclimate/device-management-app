@@ -1,6 +1,5 @@
-import React, {useEffect, useState, useReducer} from 'react';
-import{View, StyleSheet, Text, TextInput, Image, Pressable, TouchableHighlight, Alert, KeyboardAvoidingView, TouchableOpacity} from 'react-native'
-import { ScrollView } from 'react-native-gesture-handler';
+import React, {useEffect, useState} from 'react';
+import{View, StyleSheet,ScrollView, Text, TextInput, Image, TouchableHighlight, Alert, KeyboardAvoidingView, TouchableOpacity} from 'react-native'
 import globalStyles from '../styles';
 import config from '../config';
 import moment from 'moment';
@@ -25,7 +24,7 @@ const ManageDevices = ({route, navigation}) => {
     const [dataCollected, collectedChange] = useState(false)
 
     const greenCircle = require('../assets/greenCircle.png')
-    const redCirle = require('../assets/redCircle.png')
+    const redCirle  = require('../assets/redCircle.png')
     const orangeCirle = require('../assets/orangeCircle.png')
     const [circleImg, changeCirlce] = useState(greenCircle)
 
