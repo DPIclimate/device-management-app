@@ -314,7 +314,8 @@ const AddDeviceScreen = ({ route, navigation }) => {
     return (
             <ScrollView style={[globalStyles.scrollView,styles.contentView]}>
                     {/* Enter details */}
-
+                <KeyboardAvoidingView style={{ flex: 1 }}
+        behavior={Platform.OS === "ios" ? "position" : "height"}>
                     <View style={{paddingTop:15, flexDirection:'row', justifyContent:'space-between'}}>
                         <Text style={[globalStyles.title, styles.title]}>{isRegister? <Text>Register Device</Text>:<Text>Update Device</Text>}</Text>
 
@@ -356,6 +357,7 @@ const AddDeviceScreen = ({ route, navigation }) => {
                     <Pressable style={[globalStyles.blueButton, styles.buttonLocation]} onPress={handleButtonPress} disabled={isLoading}>
                         <Text style={globalStyles.blueButtonText}>{isRegister?<Text>Deploy</Text>:<Text>Update</Text>}</Text>
                     </Pressable>
+                </KeyboardAvoidingView>
                 <LoadingComponent loading={isLoading}/>
             </ScrollView>
     );
