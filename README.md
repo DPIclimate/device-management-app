@@ -26,6 +26,7 @@ Either:
 ## Running iPhone simulator
 - Requires a mac to run
 - To run an iPhone simulator download [Xcode](https://apps.apple.com/au/app/xcode/id497799835?mt=12) from the app store
+- Go to Xcode > Preferences > Locations > Command Line Tools and select a command line tool
 - Open simulator application by going to Xcode > Open Devloper Tool > Simulator
 - **Note:** No new GUI will pop up but you will notice the application name in top left hand side of the screen changes from Xcode to Simulator
 - Next select a new simulator by navigating to File > Open Simulator > iOS > iPhone 13 (or any simulator of your choice)
@@ -95,3 +96,6 @@ More information can be found [here](https://developer.apple.com/documentation/x
 
 ## Publishing build to Google Play Store
 - TODO
+
+## Useful links
+- Continuous Deployment using expo https://techblog.geekyants.com/github-actions-for-automating-builds-for-your-app
