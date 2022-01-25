@@ -60,9 +60,18 @@ Either:
 - [Transporter](https://apps.apple.com/au/app/transporter/id1450874784?mt=12) - Used to push the build to the app store, other tools can be used. For more information look [here](https://help.apple.com/app-store-connect/#/devb1c185036)
 - [Expo account](https://expo.dev/) - Used to build the project and download .ipa file 
 
-
 ### Building
 - In the app.josn file of the project, ensure the version number has been updated. (Publish to app store will fail if version numbers already taken)
+
+#### Build using eas
+- To build the app using eas - `eas build -p ios --non-interactive`
+- When app has finished building run `eas submit -p ios --latest --non-interactive` to push the latest build to the app store
+- If build fails check out these links:
+	- [https://github.com/expo/expo/issues/15248](https://github.com/expo/expo/issues/15248)
+	- [https://github.com/expo/expo-cli/issues/3884](https://github.com/expo/expo/issues/15248)
+
+#### Build using expo
+- **Note** This way of building app is now deprecated in favour of `eas build`
 - In main directory of project run `expo build:ios`
 - Sign in with your expo account when prompted
 - When asked for build type, select `archive`
@@ -74,10 +83,10 @@ Either:
 - Launch Transporter and sign in with your apple developer account
 - In the top left hand corner click the plus icon and select the .ipa file you just downloaded from expo
 - Click deploy and go get a coffee, this can take a while
-- Once deployment is complete, go to [App Store Connect](https://appstoreconnect.apple.com/) and sign in with your developer account
-- Go to My Apps > Device Management App
 
 ### Publishing to Testflight
+- Once deployment is complete, go to [App Store Connect](https://appstoreconnect.apple.com/) and sign in with your developer account
+- Go to My Apps > Device Management App
 - Select the TestFlight Tab and then select iOS under the Builds section on the left column
 - Your build pushed to the app store using transporter will appear here, if it doesn't wait as it often takes a while for it to appear
 - Once the build appears it will be greyed out and say `(Processing)`, this can take an hour or two.
