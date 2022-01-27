@@ -138,7 +138,7 @@ def getDevice(appID):
 
 def create(appID, dev_uid = None, dev_name = None, dev_eui = None, moveDir = None):
 
-    dev_uid = generateUID() if dev_uid == None or dev_uid == "" else generateUID()
+    dev_uid = generateUID() if dev_uid == None or dev_uid == "" else dev_uid
 
     data = {
             "application_id":appID,
@@ -180,6 +180,7 @@ def main():
     parser.add_argument("-p", help="Specify a path to save the files to")
     parser.add_argument("-t", help="Specify a number of QR codes to generate")
     parser.add_argument("-g", help="Go through every application on TTN", action="store_true")
+    parser.add_argument("-s", help="Specify a specific UID")
     parser.add_argument("--all", help="Create a QR code for every device in application (requires -a or -g)", action="store_true")
 
     args = vars(parser.parse_args())
@@ -199,6 +200,7 @@ def main():
     path = "."
     num = 0
     applications = []
+    uid = None
 
     if args['p'] != None:
         if os.path.isdir(args['p']):
@@ -214,6 +216,9 @@ def main():
         else:
             print("Application ID is invalid, please try again")
             exit()
+
+    if args['s'] != None:
+        uid = args['s'] if len(args['s']) == 6 else parser.error("UID is not of correct length")
 
     if args['g'] == True:
         applications = getApplications()
@@ -247,7 +252,8 @@ def main():
             for i in range(num):
                 dash = '-' if i%2 ==0 else '|'
                 sys.stdout.write(f'Creating QR codes for application {app}...{dash}\r')
-                create(app,moveDir=f"{path}/{app}")
+                create(app, dev_uid=uid, moveDir=f"{path}/{app}")
+
             print('')
 
 
