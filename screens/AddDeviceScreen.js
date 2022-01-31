@@ -31,6 +31,7 @@ const ACTIONS = {
     UPDATE_UID:'upUID',
     UPDATE_NAME:'upName',
     UPDATE_EUI:'upEUI',
+    CLEAR_ALL:'clearAll'
 }
 const allowedChars = new RegExp('^[a-z0-9](?:[-]?[a-z0-9]){2,}$')
 
@@ -62,6 +63,7 @@ function reducer(state, action){
         case ACTIONS.UPDATE_NAME:
             isVal = state.valName
             const name = action.payload.toLowerCase()
+
             if (!allowedChars.test(name) && name.length >=3 || name.length <3 && name.length!=0){
                 isVal=false
             }
@@ -73,7 +75,11 @@ function reducer(state, action){
         case ACTIONS.UPDATE_EUI:
             isVal = state.valEUI
             const eui = action.payload.toLowerCase()
-            if(!allowedChars.test(eui) && eui.length >=3 || eui.length != 23 && eui.length != 0){
+
+            if (!eui.includes('-') && eui.length==16){
+                isVal = true
+            }
+            else if(!allowedChars.test(eui) && eui.length >=3 || eui.length != 23 && eui.length != 0){
                 isVal = false
             } 
             else{
@@ -89,6 +95,10 @@ function reducer(state, action){
             }
             let modifiedEUI= chars.join('')
             return {...state, devEUI:modifiedEUI, valEUI:isVal}
+
+        case ACTIONS.CLEAR_ALL:
+            return initialState
+
         default:
             console.log("in default")
             return state
@@ -302,10 +312,7 @@ const AddDeviceScreen = ({ route, navigation }) => {
         return data
     }
     const clearFields = () =>{
-        dispatch({type:ACTIONS.UPDATE_APP_ID, payload:''})
-        dispatch({type:ACTIONS.UPDATE_UID, payload:''})
-        dispatch({type:ACTIONS.UPDATE_NAME, payload:''})
-        dispatch({type:ACTIONS.UPDATE_EUI, payload:''})
+        dispatch({type:ACTIONS.CLEAR_ALL})
         setLoadingState(false)
         route.params = undefined
     }

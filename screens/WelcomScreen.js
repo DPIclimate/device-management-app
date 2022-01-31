@@ -21,8 +21,7 @@ const WelcomScreen = (props) => {
         const validToken = await validateToken(token)
 
         if (validToken){
-            /// TODO sokfns
-
+            
             global.valid_token = true
             await updateToken(token)
             await AsyncStorage.setItem('isFirstLogon', 'false')

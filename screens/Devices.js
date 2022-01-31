@@ -59,8 +59,6 @@ function Devices({route, navigation}) {
                 headers:global.headers
             }).then((response) => response.json())
 
-            // if (!response.hasOwnProperty('end_devices')) setNoResults(true)
-
             response = response['end_devices']
             const devices = response.map((dev) => ({id:dev['ids']['device_id'], isFav:favs.includes(dev['ids']['device_id'])}))
             changeData(devices)
@@ -132,12 +130,12 @@ function Devices({route, navigation}) {
                     onPress:() => navigate(response, "AddDeviceScreen")
                 },
                 {
-                    text:"No",
-                    onPress:() => console.log("No")
+                    text: "Continue Without",
+                    onPress:() => isConnected ? navigate(response, 'ManageDevices'): Alert.alert('Cannot show details', 'Cannot show device with no UID while you are offline')
                 },
                 {
-                    text: "View details",
-                    onPress:() => isConnected ? navigate(response, 'ManageDevices'): Alert.alert('Cannot show details', 'Cannot show device with no UID while you are offline')
+                    text:"Cancel",
+                    onPress:() => console.log("No")
                 }
             ])
         }
@@ -190,19 +188,22 @@ function Devices({route, navigation}) {
 
             {!noResults ?<LoadingComponent loading={isLoading}/> :<Text style={{textAlign:'center', fontWeight:'bold', paddingTop:20}}>No devices in application</Text>}
 
-                {isRendered? <SwipeListView
-                style={[{flex:1},globalStyles.list]} 
-                data={devData.sort((a,b)=>{
-                    return (a.isFav === b.isFav) ? a.id > b.id : a.isFav ? -1 : 1
+                {isRendered? 
+                    <SwipeListView
+                        style={[{flex:1},globalStyles.list]} 
+                        data={devData.sort((a,b)=>{
+                            return (a.isFav === b.isFav) ? a.id > b.id : a.isFav ? -1 : 1
 
-                })}
-                renderItem={(item) => renderItem(item, handlePress, 'Devices')}
-                keyExtractor={(item, index) => index.toString()}
-                renderHiddenItem={(data, rowMap) => renderHiddenItem(data, rowMap, toggleFavourite)}
-                leftOpenValue={80}
-                stopRightSwipe={1}
-                contentContainerStyle={{ paddingBottom: 90 }}
-                />: <View style={{flex:1}}/>}
+                        })}
+                        renderItem={(item) => renderItem(item, handlePress, 'Devices')}
+                        keyExtractor={(item, index) => index.toString()}
+                        renderHiddenItem={(data, rowMap) => renderHiddenItem(data, rowMap, toggleFavourite)}
+                        leftOpenValue={80}
+                        stopRightSwipe={1}
+                        contentContainerStyle={{ paddingBottom: 90 }}
+                    />
+                : 
+                <View style={{flex:1}}/>}
 
             <NavButtons navigation={navigation}/>
         </View>

@@ -27,16 +27,16 @@ function PhotosCard({params, navigation}) {
 
     useEffect(() => {
 
-        if (params != undefined){
-        if (params.photoData != undefined){
-
-            let img = [...IMAGES]
-            for(let i in params.photoData){
-                img.push(params.photoData[i])
+        if (params == undefined) return
+        let img = [...IMAGES]
+        for (let i in params?.photoData){
+            if (!img.includes(params?.photoData[i])){
+                console.log("just pushed", params?.photoData[i])
+                img.push(params?.photoData[i])
             }
-            setImages(img);
         }
-    }
+        setImages(img)
+
     }, [params])
     const uploadPic = async() =>{
         
@@ -47,12 +47,12 @@ function PhotosCard({params, navigation}) {
             quality: 1,
         });
 
-        if (!result.cancelled) {
-            console.log('updating images')
-            let img = [...IMAGES] 
-            img.push(result.uri)
-            setImages(img);
-            }
+        if (result.cancelled) return
+
+        console.log('updating images')
+        let img = [...IMAGES] 
+        img.push(result)
+        setImages(img);
     }
     return (
         <Card>
@@ -69,7 +69,7 @@ function PhotosCard({params, navigation}) {
                     {IMAGES.map((image, i) => {
                         return (
                         <View key={i}>
-                            <Image source={{ uri: image }} style={{width: 400, height: 400}} resizeMode="contain" />
+                            <Image source={{ uri: image.uri }} style={{width: image.width<image.height?500:300, height:image.width<image.height?500:200}} resizeMode="contain" />
                         </View>
                         );
                     })}

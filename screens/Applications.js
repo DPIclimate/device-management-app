@@ -11,6 +11,7 @@ import WelcomScreen from './WelcomScreen';
 import { SwipeListView } from 'react-native-swipe-list-view';
 import { getApplications } from '../shared/InterfaceTTN';
 import { Offline } from '../shared/OfflineIcon.js';
+import useFetch from '../shared/useFetch.js';
 
 export  const DataContext = React.createContext()
 

@@ -28,8 +28,7 @@ export default function CameraScreen({route, navigation}) {
   const takePic = async () =>{
     const photo = await camera.takePictureAsync()
     let img = [...route.params.currentImages]
-    img.push(photo.uri )
-    console.log('in camera', route.params.currentImages)
+    img.push(photo)
     navigation.navigate('ManageDevices', {photoData:img})
    
   }

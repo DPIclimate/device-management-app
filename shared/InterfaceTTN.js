@@ -2,6 +2,7 @@ import config from '../config';
 import Error from './ErrorClass'
 import { Alert } from 'react-native';
 import { useState } from 'react';
+import useFetch from './useFetch';
 
 const registerDevice = async(device) =>{
 
@@ -71,7 +72,7 @@ const updateDevice = async(data) =>{
             headers:global.headers,
             body:JSON.stringify(device)
         }).then((response) => response.json())
-        console.log(response)
+
         if ('code' in response){
             //If key code exists then an error occured
             throw new Error(json['code'], json['message'], deviceName)
@@ -189,7 +190,6 @@ const updateDetails = (data) =>{
         body['end_device']['locations'] = data['locations']
         body['field_mask']['paths'].push('locations')
     }
-    console.log(body)
     return body
 }
 const validateToken = async(token) =>{
