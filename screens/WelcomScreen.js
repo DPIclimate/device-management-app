@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, TextInput, ScrollView, TouchableHighlight, TouchableOpacity } from 'react-native';
+import { View, Text, StyleSheet, TextInput, ScrollView, TouchableOpacity } from 'react-native';
 import { validateToken } from '../shared';
 import { updateToken } from '../shared/ManageLocStorage';
 import globalStyles from '../styles';
@@ -21,6 +21,7 @@ const WelcomScreen = (props) => {
         const validToken = await validateToken(token)
 
         if (validToken){
+            /// TODO sokfns
 
             global.valid_token = true
             await updateToken(token)
@@ -34,6 +35,7 @@ const WelcomScreen = (props) => {
     }
 
     return (
+
     <ScrollView showsVerticalScrollIndicator={false} >
         <View style={[globalStyles.screen, {padding:5}]}>
             <Text style={[globalStyles.title, styles.title]}>Welcome! </Text>

@@ -1,9 +1,22 @@
 import React, { useEffect, useState } from 'react';
-import {View, Text, Alert, TouchableHighlight, Image, InteractionManager, TouchableOpacity, StyleSheet} from 'react-native'
+import {View,
+	Text,
+	Alert,
+	InteractionManager,
+	StyleSheet
+} from 'react-native'
 import globalStyles from '../styles';
 import config from '../config.json'
-import {NavButtons, renderItem,renderHiddenItem, checkNetworkStatus, LoadingComponent, getFavourites} from '../shared/index.js'
-import {getDevice, getApplication} from '../shared/ManageLocStorage'
+import {NavButtons,
+	renderItem,
+    renderHiddenItem,
+	checkNetworkStatus,
+	LoadingComponent,
+	getFavourites,
+    Offline,
+    getDevice,
+	getApplication
+} from '../shared/index.js'
 import { SwipeListView } from 'react-native-swipe-list-view';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
@@ -13,6 +26,7 @@ function Devices({route, navigation}) {
     const [isLoading, setLoading] = useState(true)
     const [isConnected, changeIsConnected] = useState(false)
     const [isRendered, changeRenderState] = useState(false)
+    const [noResults, setNoResults] = useState(false)
 
     useEffect(() =>{
         console.log(route.params)
@@ -38,26 +52,42 @@ function Devices({route, navigation}) {
         
         const favs = await getFavourites(global.DEV_FAV)
 
-        const url = `${config.ttnBaseURL}/${route.params.application_id}/devices`
-        let response = await fetch(url, {
-            method:"GET",
-            headers:global.headers
-        }).then((response) => response.json())
+        try{
+            const url = `${config.ttnBaseURL}/${route.params.application_id}/devices`
+            let response = await fetch(url, {
+                method:"GET",
+                headers:global.headers
+            }).then((response) => response.json())
 
-        response = response['end_devices']
-        const devices = response.map((dev) => ({id:dev['ids']['device_id'], isFav:favs.includes(dev['ids']['device_id'])}))
-        changeData(devices)
+            // if (!response.hasOwnProperty('end_devices')) setNoResults(true)
+
+            response = response['end_devices']
+            const devices = response.map((dev) => ({id:dev['ids']['device_id'], isFav:favs.includes(dev['ids']['device_id'])}))
+            changeData(devices)
+        }
+        catch(error){
+            setNoResults(true)
+        }
+        
         setLoading(false)
     }
 
     const getDevIds = async() =>{
         
-        const favs = await getFavourites(global.DEV_FAV)
-        const app = await getApplication(route.params.application_id)
-        const devices = app['end_devices']
+        try{
+            const favs = await getFavourites(global.DEV_FAV)
+            const app = await getApplication(route.params.application_id)
+            const devices = app['end_devices']
 
-        let listOfIds = devices.map((dev) => ({id:dev['ids']['device_id'], isFav:favs.includes(dev['ids']['device_id'])}))
-        changeData(listOfIds)
+            let listOfIds = devices.map((dev) => ({id:dev['ids']['device_id'], isFav:favs.includes(dev['ids']['device_id'])}))
+            changeData(listOfIds)
+
+        }catch(error){
+            //May trigger if no devices in application
+
+            setNoResults(true)
+            console.log(error)
+        }
         setLoading(false)
 
     }
@@ -112,19 +142,6 @@ function Devices({route, navigation}) {
             ])
         }
     }
-    const Offline = () =>{
-
-        if (!isConnected){
-            return(
-                <TouchableHighlight style={{width:45, height:45, borderRadius:50, position:'absolute', right:0, top:0, margin:10}} acitveOpacity={0.6} underlayColor="#DDDDDD" onPress={() => Alert.alert("No Connection Detected", "The data you see below is a local copy of TTN data and is not a live data from TTN")}>
-                    <Image style={{width:'100%', height:'100%', borderRadius:50}} source={require('../assets/noConnection.png')}/>
-                </TouchableHighlight>
-            );
-        }
-        else{
-            return null
-        }
-    }
 
     const navigate = (response, screen) =>{
         //Navigate to withough a UID
@@ -166,9 +183,12 @@ function Devices({route, navigation}) {
             <Text style={[globalStyles.title,styles.title]}>{route.params.application_id}</Text>
             <Text style={[globalStyles.text, styles.text]}>{route.params.app_description}</Text>
 
-            {isRendered?<Offline/>:<View/>}
+            {isRendered?
+                <View style={{position:'absolute', right:0, top:5, margin:10}}>
+                    <Offline isConnected={isConnected}/>
+                </View>:<View/>}
 
-            <LoadingComponent loading={isLoading}/>
+            {!noResults ?<LoadingComponent loading={isLoading}/> :<Text style={{textAlign:'center', fontWeight:'bold', paddingTop:20}}>No devices in application</Text>}
 
                 {isRendered? <SwipeListView
                 style={[{flex:1},globalStyles.list]} 
@@ -181,7 +201,7 @@ function Devices({route, navigation}) {
                 renderHiddenItem={(data, rowMap) => renderHiddenItem(data, rowMap, toggleFavourite)}
                 leftOpenValue={80}
                 stopRightSwipe={1}
-                contentContainerStyle={{ paddingBottom: 80 }}
+                contentContainerStyle={{ paddingBottom: 90 }}
                 />: <View style={{flex:1}}/>}
 
             <NavButtons navigation={navigation}/>
@@ -190,7 +210,11 @@ function Devices({route, navigation}) {
 }
 const styles = StyleSheet.create({
     title:{
-        paddingTop:25
+        paddingTop:25,
+        paddingLeft:5,
+        paddingRight:5,
+        textAlign:'center',
+        width:'75%'
     },
     text:{
         textAlign:'center',

@@ -75,6 +75,10 @@ export default function Scanner({ route, navigation }) {
   return (
     <View style={styles.container}>
       <BarCodeScanner onBarCodeScanned={scanned ? undefined : handleBarCodeScanned} style={StyleSheet.absoluteFillObject}/>
+
+      <View style={styles.overlay}>
+        <Image source={require('../assets/corners.png')} style={{width:300, height:300}}/>
+      </View>
     </View>
   );
 }
@@ -85,4 +89,9 @@ const styles = StyleSheet.create({
     flexDirection: 'column',
     justifyContent: 'center',
   },
+  overlay: {
+    justifyContent:'center', 
+    alignItems:'center',
+    paddingBottom:50
+  }
 });

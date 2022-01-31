@@ -130,7 +130,6 @@ function LocationCard() {
                 <Grid style={{paddingTop:10, paddingBottom:10}}>
                     {rows}
                 </Grid>
-                {console.log("rendering")}
                 <MapView style={styles.map}
                         mapType={mapType}
                         provider={PROVIDER_DEFAULT}

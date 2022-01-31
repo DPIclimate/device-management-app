@@ -1,7 +1,7 @@
 import React, { useContext } from 'react';
 import Card from '../shared/Card';
 import { Col, Row, Grid } from "react-native-easy-grid";
-import { Text } from 'react-native';
+import { Text, Linking } from 'react-native';
 import globalStyles from '../styles';
 import {useDataContext} from '../shared/DataContextManager'
 

@@ -27,3 +27,5 @@ export {
     getSavedDevices,
     getFavourites,
 } from './ManageLocStorage'
+
+export {Offline} from './OfflineIcon'

@@ -11,7 +11,6 @@ function OfflineDevices({ route, navigation }) {
     const [isLoading, setLoading] = useState(true)
 
     const [savedDevices, changeSavedDevices] = useState([]);
-    const [savedLocations, changeSavedLocations] = useState([])
 
     const [reload, setReload] = useState(true)
     const [isConnected, changeConnectionStatus] = useState(false)
@@ -44,7 +43,7 @@ function OfflineDevices({ route, navigation }) {
 
         const selectedDevice = savedDevices[index]
 
-        const isUnique = await checkUnique(selectedDevice)
+        const isUnique = await checkUnique(selectedDevice) //Must check that device is a unique device
         if (isUnique == null) return
 
         if (isUnique){
@@ -106,14 +105,15 @@ function OfflineDevices({ route, navigation }) {
     }
     const closeItem = (rowMap, rowKey) => {
 
+        //Does row close animation
         if (rowMap[rowKey]) {
           rowMap[rowKey].closeRow();
         }
       };    
 
     const renderHiddenItem = (data, rowMap)=>{
+
         //Renders the bin icon when user swipes left
-        
         return (
             <View style={{flexDirection:'row'}}>
 
@@ -147,17 +147,14 @@ function OfflineDevices({ route, navigation }) {
                 case 'locationUpdate':
                     return(
                             <>
-                                <Text style={[globalStyles.text, styles.cardText]}>Type: Update Location</Text>
                                 <Text style={[globalStyles.text, styles.cardText]}>Device Name: {item.end_device.ids.device_id}</Text>
                                 <Text style={[globalStyles.text, styles.cardText]}>Longitude: {item.end_device.locations.user.latitude}</Text>
                                 <Text style={[globalStyles.text, styles.cardText]}>Latitude: {item.end_device.locations.user.longitude}</Text>
-                                <Text style={[globalStyles.text, styles.cardText]}>Altitude: {item.end_device.locations.user.altitude}</Text>
                             </>
                     )
                 case 'descriptionUpdate':
                     return (
                         <> 
-                            <Text style={[globalStyles.text, styles.cardText]}>Type: Update Notes</Text>
                             <Text style={[globalStyles.text, styles.cardText]}>Device Name: {item.end_device.ids.device_id}</Text>
                             <Text style={[globalStyles.text, styles.cardText]}>App ID: {item.end_device.ids.application_ids.application_id}</Text>
                             <Text style={[globalStyles.text, styles.cardText]}>Note: {item.end_device.description}</Text>
@@ -165,18 +162,24 @@ function OfflineDevices({ route, navigation }) {
                     )
                 }
             } 
+        const Title = () =>{
 
+            if (item.type == 'registerDevice') return 'Deploy'
+            if(item.type == 'locationUpdate') return 'Location Update'
+            if(item.type == 'descriptionUpdate') return 'Notes Update'
+        }
         return(
             <View>
                 <Card>
-                <Text style={[styles.cardTitle, {textAlign:'center', paddingBottom:5}]}>{data.item.type =='registerDevice'?<Text>Deploy</Text>:<Text>Update</Text>}</Text>
+                    <View style={{height:100}}>
+                        <Text style={[styles.cardTitle, {textAlign:'center', paddingBottom:5}]}><Title/></Text>
 
-                        <View style={{flex:1}}>
                             <Content/>
-                        </View>
-                        <TouchableOpacity style ={{position: 'absolute', top: 0, right: 0, bottom: 0, justifyContent: 'center', alignItems: 'center'}} acitveOpacity={0.6} underlayColor="#DDDDDD" onPress={() => handlePress(data, rowMap)}>
-                            <Image style={{width:50, height:50}} resizeMode='contain' source={require('../assets/retry.png')}/>
-                        </TouchableOpacity>
+
+                            <TouchableOpacity style ={{position: 'absolute', top: 0, right: 0, bottom: 0, justifyContent: 'center', alignItems: 'center'}} acitveOpacity={0.6} underlayColor="#DDDDDD" onPress={() => handlePress(data, rowMap)}>
+                                <Image style={{width:50, height:50}} resizeMode='contain' source={require('../assets/retry.png')}/>
+                            </TouchableOpacity>
+                    </View>
                 </Card>
             </View>
 

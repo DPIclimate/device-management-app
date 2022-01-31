@@ -10,6 +10,7 @@ import { Overlay } from 'react-native-elements';
 import WelcomScreen from './WelcomScreen';
 import { SwipeListView } from 'react-native-swipe-list-view';
 import { getApplications } from '../shared/InterfaceTTN';
+import { Offline } from '../shared/OfflineIcon.js';
 
 export  const DataContext = React.createContext()
 
@@ -69,7 +70,13 @@ function Applications({navigation}) {
     },[,welcomeVisable, reload])
 
     useEffect(() =>{
-        checkSavedReg()
+        //When screen is visible check for saved devices and network status 
+        async function onFocus(){
+            checkSavedReg()
+            const connected = await checkNetworkStatus()
+            changeIsConnected(connected)
+        }
+        onFocus()
         
     }, [isFocused])
 
@@ -147,42 +154,24 @@ function Applications({navigation}) {
     const Icons = () =>{
         
         const SavedDevices = () =>{
-            if (savedDevices == true){
-                return (
-                    <View style={{paddingLeft:10}}>
-                        <TouchableHighlight style={{width:45, height:45, borderRadius:50}} acitveOpacity={0.6} underlayColor="#DDDDDD" onPress={() => navigation.navigate('OfflineDevices')}>
-                            <Image style={{width:'100%', height:'100%', borderRadius:50}} source={require('../assets/uploadFailed.png')}/>
-                        </TouchableHighlight>
-                    </View>
-                )
-            }
-            else{
-                return <View/>
-            }
-        }
-
-        const Offline = () =>{
-
-            if (!isConnected){
-                return(
-                    <TouchableHighlight style={{width:45, height:45, borderRadius:50}} acitveOpacity={0.6} underlayColor="#DDDDDD" onPress={() => Alert.alert("No Connection Detected", "The data you see below is a local copy of TTN data and is not a live data from TTN")}>
-                        <Image style={{width:'100%', height:'100%', borderRadius:50}} source={require('../assets/noConnection.png')}/>
+            if (!savedDevices) return <View/>
+            return (
+                <View style={{paddingLeft:10}}>
+                    <TouchableHighlight style={{width:45, height:45, borderRadius:50}} acitveOpacity={0.6} underlayColor="#DDDDDD" onPress={() => navigation.navigate('OfflineDevices')}>
+                        <Image style={{width:'100%', height:'100%', borderRadius:50}} source={require('../assets/uploadFailed.png')}/>
                     </TouchableHighlight>
-                );
-            }
-            else{
-                return null
-            }
+                </View>
+            )
         }
-
         return(
-            <View style={{width:200, height:45, position:'absolute', justifyContent:'flex-end', flexDirection:'row', right:0, top:0, margin:10}} >
-                <Offline/>
+            <View style={{width:200, height:45, position:'absolute', justifyContent:'flex-end', flexDirection:'row', right:0, top:5, margin:10}} >
+                <Offline isConnected={isConnected}/>
                 <SavedDevices/>
             </View>
         )
     }
     const toggleFavourite = async(data, rowMap) =>{
+
         if (rowMap[data.index]) {
             rowMap[data.index].closeRow();
           }
@@ -229,13 +218,11 @@ function Applications({navigation}) {
                     renderHiddenItem={(data, rowMap) => renderHiddenItem(data, rowMap, toggleFavourite)}
                     leftOpenValue={80}
                     stopRightSwipe={1}
-                    contentContainerStyle={{ paddingBottom: 60 }}
+                    contentContainerStyle={{ paddingBottom: 70 }}
                     />
                 </View>
                 
-                {/* <View style={{height:'10%'}}> */}
-                    <NavButtons navigation={navigation}/>
-                {/* </View>     */}
+                <NavButtons navigation={navigation}/>
             </>
             :
             <>
