@@ -20,12 +20,13 @@ export {
     getApplication, 
     cacheTTNdata, 
     updateToken, 
-    getTTNToken, 
+    setTTNToken, 
     isFirstLogon, 
     getApplicationList, 
     getSavedLocations, 
     getSavedDevices,
     getFavourites,
+    getFromStore
 } from './ManageLocStorage'
 
 export {Offline} from './OfflineIcon'

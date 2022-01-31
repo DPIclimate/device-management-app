@@ -1,8 +1,6 @@
 import config from '../config';
 import Error from './ErrorClass'
 import { Alert } from 'react-native';
-import { useState } from 'react';
-import useFetch from './useFetch';
 
 const registerDevice = async(device) =>{
 

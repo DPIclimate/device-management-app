@@ -5,7 +5,9 @@ import { getApplications } from './InterfaceTTN';
 
 //Functions to manage local storage
 
-const getDevice = async(appID, devName, uid) =>{
+const getDevice = async(appID,
+	devName,
+	uid) =>{
 
     let devices = await getApplication(appID)
 
@@ -27,7 +29,8 @@ const getDevice = async(appID, devName, uid) =>{
         }else{    
 
             if (name == devName){
-                console.log(name, devName)
+                console.log(name,
+	devName)
                 return dev
 
             }
@@ -41,7 +44,8 @@ const saveDevice = async(device) =>{
     try{
         let fromStore = await AsyncStorage.getItem(global.DEV_STORE)
         fromStore = JSON.parse(fromStore)
-        fromStore != null? currentDevices = [...currentDevices, ...fromStore] : currentDevices = []
+        fromStore != null? currentDevices = [...currentDevices,
+	...fromStore] : currentDevices = []
 
     }catch(error){
         console.log(error)
@@ -52,7 +56,8 @@ const saveDevice = async(device) =>{
     
     console.log('writing')
     try{
-        await AsyncStorage.setItem(global.DEV_STORE, JSON.stringify(currentDevices))
+        await AsyncStorage.setItem(global.DEV_STORE,
+	JSON.stringify(currentDevices))
         return true
 
     }catch(error){
@@ -87,55 +92,70 @@ const getSavedLocations = async() =>{
     }
 }
 
-const getApplication = async(appID) =>{
+// const getApplication = async(appID) =>{
 
-    const apps = await getApplicationList()
+//     const apps = await getApplicationList()
 
-    if (apps != null){
+//     if (apps != null){
 
-        for (let app in apps){
-            let app_obj = apps[app]
-            const id = app_obj['application_id']
+//         for (let app in apps){
+//             let app_obj = apps[app]
+//             const id = app_obj['application_id']
 
-            if (appID == id){
-                console.log('finished reading cache')
-                return app_obj
-            }
-        }
-    }
-    console.log('finished reading cache')
-    return null
-}
-const getApplicationList = async() =>{
+//             if (appID == id){
+//                 console.log('finished reading cache')
+//                 return app_obj
+//             }
+//         }
+//     }
+//     console.log('finished reading cache')
+//     return null
+// }
+const getFromStore = async(key)=>{
 
-    console.log('reading cache')
-    let apps = []
+    let fromStore = undefined
+    let error = undefined
 
     try{
-        let fromStore = await AsyncStorage.getItem(global.APP_CACHE)
+        fromStore = await AsyncStorage.getItem(key)
         fromStore = JSON.parse(fromStore)
-        apps = fromStore
-
-    }catch(error){
-        console.log(error)
     }
-
-    return apps
+    catch(error){
+        error = error
+    }
+    return {fromStore, error}
 }
+// const getApplicationList = async() =>{
+
+//     console.log('reading cache')
+
+//     try{
+//         let fromStore = await AsyncStorage.getItem(global.APP_CACHE)
+//         fromStore = JSON.parse(fromStore)
+//         apps = fromStore
+
+//         return apps
+//     }catch(error){
+//         console.log(error)
+//     }
+
+// }
 const cacheTTNdata = async(app_response) =>{ // Cache TTN data for offline use
-    
-    if (global.valid_token != true) return
+
+    console.log('chaching data')
 
     let applications = []
 
     try{
-        const apps = app_response.map((app) => ({id:app['ids']['application_id'], description:app['description']}))
+        const apps = app_response.map((app) => ({id:app['ids']['application_id'],
+	    description:app['description']}))
 
         for (let app in apps){
             const id = apps[app].id
             
             const url = `${config.ttnBaseURL}/${id}/devices?field_mask=attributes,locations,description`
-            let response = await fetch(url, {
+            let response = await fetch(url,
+            {
                 method:"GET",
                 headers:global.headers
             }).then((response) => response.json())
@@ -153,7 +173,8 @@ const cacheTTNdata = async(app_response) =>{ // Cache TTN data for offline use
         console.log("Caching TTN data failed")
     }
     try{
-        await AsyncStorage.setItem(global.APP_CACHE, JSON.stringify(applications))
+        await AsyncStorage.setItem(global.APP_CACHE,
+	JSON.stringify(applications))
         console.log('TTN data saved successfully')
 
     }catch(error){
@@ -169,7 +190,8 @@ const updateToken = async(token) =>{
     let bToken = `Bearer ${tmpToken}`
 
     try{
-        await AsyncStorage.setItem(global.AUTH_TOKEN_STOR, bToken)
+        await AsyncStorage.setItem(global.AUTH_TOKEN_STOR,
+	bToken)
         global.headers = {"Authorization":bToken}
 
     }
@@ -179,12 +201,13 @@ const updateToken = async(token) =>{
     
 }
 
-const getTTNToken = async() =>{
+const setTTNToken = async() =>{
     
-// Gets bearer token from memory
+// Gets bearer token from memory and sets it globaly
     try{
         let authToken = await AsyncStorage.getItem(global.AUTH_TOKEN_STOR)
         global.headers = {"Authorization":authToken}
+        global.TTN_TOKEN = authToken
 
         return authToken
 
@@ -226,4 +249,15 @@ const getFavourites = async(key)=>{
         return []
     }
 }
-export {getFavourites, getDevice, getApplication, cacheTTNdata, updateToken, getTTNToken, isFirstLogon, getApplicationList, saveDevice, getSavedDevices, getSavedLocations}
+export {getFavourites,
+	getFromStore,
+	getDevice,
+	// getApplication,
+	cacheTTNdata,
+	updateToken,
+	setTTNToken,
+	isFirstLogon,
+	// getApplicationList,
+	saveDevice,
+	getSavedDevices,
+	getSavedLocations}

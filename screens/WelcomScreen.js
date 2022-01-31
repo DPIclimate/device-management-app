@@ -7,6 +7,13 @@ import { HelpCard, DPI_TAG } from './SettingsScreen';
 import { LoadingComponent } from '../shared';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
+export const WelcomeAnswered = (answered) => new Promise((resolve)=>{
+
+    if (answered){
+        console.log('resolved')
+        resolve(true)
+    }
+})
 const WelcomScreen = (props) => {
     
     const [token, changeToken] = useState('')
@@ -21,11 +28,12 @@ const WelcomScreen = (props) => {
         const validToken = await validateToken(token)
 
         if (validToken){
-            
+
             global.valid_token = true
             await updateToken(token)
-            await AsyncStorage.setItem('isFirstLogon', 'false')
-            props.visible(false)
+            // await AsyncStorage.setItem('isFirstLogon', 'false')
+            // props.visible(false)
+            WelcomeAnswered(true)
         }
         else{
             setInvalid(true)
