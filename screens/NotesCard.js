@@ -13,7 +13,7 @@ function NotesCard() {
     const [isLoading, setLoadingState] = useState(false)
     
     const data = useDataContext()
-    
+    if (data==undefined) return <View/>
     useEffect(()=>{
         
         let history = data.notes

@@ -1,33 +1,38 @@
 import React, { useEffect, useState, useLayoutEffect } from 'react';
 import '../global.js'
-import {View, Text, Image, TouchableHighlight,TouchableOpacity, Alert, Pressable, InteractionManager, StyleSheet} from 'react-native'
+import {View,
+	Text,
+	Image,
+	TouchableHighlight,TouchableOpacity,
+	Pressable,
+	StyleSheet} from 'react-native'
 import globalStyles from '../styles';
 import config from '../config.json'
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useIsFocused } from '@react-navigation/native';
-import {NavButtons, renderItem, checkNetworkStatus,renderHiddenItem, LoadingComponent, cacheTTNdata, setTTNToken, isFirstLogon, getApplicationList, validateToken, getSavedDevices, getFavourites} from '../shared'
+import {NavButtons,
+	renderItem,
+	checkNetworkStatus,renderHiddenItem,
+	LoadingComponent,
+	getSavedDevices,
+	getFavourites,
+    Offline} from '../shared'
 import { Overlay } from 'react-native-elements';
 import WelcomScreen from './WelcomScreen';
 import { SwipeListView } from 'react-native-swipe-list-view';
-import { getApplications } from '../shared/InterfaceTTN';
-import { Offline } from '../shared/OfflineIcon.js';
 import useFetch from '../shared/useFetch.js';
-import { WelcomeAnswered } from './WelcomScreen';
 
 function Applications({navigation}) {
 
     const [listData, changeData] = useState([]);
-    const {data, isLoading, error} = useFetch(`${config.ttnBaseURL}?field_mask=description`,{method:'GET', key:global.APP_CACHE})
+    const {data, isLoading, error, retry, netStatus} = useFetch(`${config.ttnBaseURL}?field_mask=description`,{method:'GET', type:{type:"ApplicationList"}})
     const [noData, setNoData] = useState(false)
 
     const [savedDevices, setSavedDevices] = useState(false)
     const isFocused = useIsFocused()
-    const [isConnected, changeIsConnected] = useState(false)
 
     const [validToken, changeValid] = useState(true)
-    const [firstLoad, changeFirstLoad] = useState(true)
     const [welcomeVisable, setWelcVisable] = useState(false);
-    const [reload, setReload] = useState(false)
 
     useLayoutEffect(() => {
         //Settings icon
@@ -36,84 +41,41 @@ function Applications({navigation}) {
         });
       }, [navigation]);
 
-    const toggleReload = () =>{
-        setReload(!reload)
-    }
-
     useEffect(()=>{
-        
+
         async function loaded(){
+
+            if (isLoading) return
+
             if (error == 'User not logged in'){
+                console.log('use not logged in')
                 setWelcVisable(true)
-                await WelcomeAnswered()
-                setWelcVisable(false)
             }
             else{
                 setListData(data)
             }
         }
-        // onload()
-        // async function fetchData(){
-        //     console.log('these are headers', global.headers)
-        //     let resp = await fetch('https://eu1.cloud.thethings.network/api/v3/applications?field_mask=description',{
-        //         headers:config.headers,
-        //         method:'GET'
-        //     }).then((res)=>res.json())
-        //     console.log('in effect',resp)
-        // }
-        // fetchData()
         loaded()
-    },[isLoading, welcomeVisable])
-    // useEffect(()=>{
-    //     async function retrieveData(){
-
-    //         let fLogon = await isFirstLogon()
-        
-    //         if (fLogon && firstLoad && welcomeVisable == false){
-    //             setWelcVisable(true)
-    //             changeFirstLoad(false)
-    //         }
-    //         else if(welcomeVisable == false){
-                // global.TTN_TOKEN = await setTTNToken()
-    //             global.valid_token = await validateToken(global.TTN_TOKEN)
-
-    //             let connected = await checkNetworkStatus()
-
-    //             if (connected){
-
-    //                 // let apps = await getApplications()
-    //                 let apps = data.applications
-    //                 setListData(apps)
-    //                 cacheTTNdata(apps)
-    //             }else{
-    //                 setListFromStore()
-    //             }
-    //             changeIsConnected(connected)
-    //         }
-    //     }
-    //     retrieveData()
-
-    // },[,welcomeVisable, reload])
+    },[isLoading])
 
     useEffect(() =>{
-        //When screen is visible check for saved devices and network status 
+
         async function onFocus(){
             checkSavedReg()
-            const connected = await checkNetworkStatus()
-            changeIsConnected(connected)
         }
         onFocus()
         
     }, [isFocused])
 
     const handleTmp = async() =>{
+        //Temporty button to clear app storage
         AsyncStorage.clear()
     }
     const Icon = () =>{
   
         return (
-            <TouchableOpacity onPress={() => handleTmp()}>
-          {/* <TouchableOpacity onPress={() => navigation.navigate('SettingsScreen')}> */}
+            // <TouchableOpacity onPress={() => handleTmp()}>
+          <TouchableOpacity onPress={() => navigation.navigate('SettingsScreen')}>
             <Image source={require('../assets/settingsWhite.png')} style={{width:25, height:25, marginRight:15}}/>
           </TouchableOpacity>
         )
@@ -131,30 +93,13 @@ function Applications({navigation}) {
             setSavedDevices(false)
         }
     }
-    // const setListFromStore = async() =>{ //Read application data from cache
-
-    //     const apps = await getApplicationList()
-    //     const favs = await getFavourites(global.APP_FAV)
-
-    //     if (apps != null){
-
-    //         let listOfIds = apps.map((app) => ({id:app['application_id'], isFav:favs.includes(app['application_id']), description:app['description']}))
-    //         changeData(listOfIds)
-
-    //     }
-    //     else{
-    //         changeData(null)
-    //     }
-        
-    // }
     const setListData = async(data) => {//Request applications from ttn
         if (isLoading) return
-        if (error) {changeValid(false);return}
+        if (error != null && error != undefined) {changeValid(false);return}
 
         const favs = await getFavourites(global.APP_FAV)
-        let connected = await checkNetworkStatus()
 
-        if (connected){
+        if (netStatus){
             if (data?.applications == undefined){setNoData(true); return}
             const apps = data?.applications
 
@@ -172,7 +117,7 @@ function Applications({navigation}) {
 
     const DataError = () =>{
         
-        if (!isConnected && listData == null){
+        if (!netStatus && listData == null){
 
             return(
                 <Text style={[globalStyles.text, {justifyContent:'center'}]}>No applications to display</Text>
@@ -201,7 +146,7 @@ function Applications({navigation}) {
         }
         return(
             <View style={{width:200, height:45, position:'absolute', justifyContent:'flex-end', flexDirection:'row', right:0, top:5, margin:10}} >
-                <Offline isConnected={isConnected}/>
+                <Offline isConnected={netStatus}/>
                 <SavedDevices/>
             </View>
         )
@@ -265,7 +210,7 @@ function Applications({navigation}) {
                 <View style={{position:'absolute'}}>
 
                     <Pressable style={[globalStyles.redButton, styles.redButtonLoc]} onPress={()=> navigation.navigate('SettingsScreen')}>
-                        <Text style={globalStyles.redText}>Fix Token</Text>
+                        <Text style={{color:'white'}}>Fix Token</Text>
                     </Pressable>
 
                     <TouchableOpacity style={{width:300, height:50, paddingTop:10}} onPress={()=> toggleReload()}>
@@ -276,7 +221,7 @@ function Applications({navigation}) {
             }
 
             <Overlay isVisible={welcomeVisable} overlayStyle={{borderRadius:10, width:350, height:650, backgroundColor:'#f3f2f3'}}>
-                <WelcomScreen visible={setWelcVisable} firstLoad={changeFirstLoad} validT/>
+                <WelcomScreen retry={retry} visible={setWelcVisable} validT/>
             </Overlay >
         </View>
     );

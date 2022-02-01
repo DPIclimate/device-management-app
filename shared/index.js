@@ -15,14 +15,12 @@ export {default as InterfaceTTN,
 } from './InterfaceTTN'
 
 export {
-    getDevice, 
+    // getDevice, 
     saveDevice, 
-    getApplication, 
     cacheTTNdata, 
     updateToken, 
     setTTNToken, 
     isFirstLogon, 
-    getApplicationList, 
     getSavedLocations, 
     getSavedDevices,
     getFavourites,

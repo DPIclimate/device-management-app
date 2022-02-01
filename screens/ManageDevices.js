@@ -8,19 +8,20 @@ import CommCard from './CommCard';
 import LocationCard from './LocationCard';
 import NotesCard from './NotesCard';
 import PhotosCard from './PhotosCard'
-import { checkNetworkStatus, LoadingComponent, getDevice} from '../shared';
+import { checkNetworkStatus, LoadingComponent} from '../shared';
 import { DataContextProvider } from '../shared/DataContextManager';
+import useFetch from '../shared/useFetch';
 
 const ManageDevices = ({route, navigation}) => {
 
-    const [appID, appIDChange] = useState("")
-    const [deviceUID, uidChange] = useState("")
-    const [lastSeen, changeLastSeen] = useState("")
+    const [appID, appIDChange] = useState()
+    const [deviceUID, uidChange] = useState()
+    const [lastSeen, changeLastSeen] = useState()
     const [uidPresent, setUIDpresent] = useState(true)
 
-    const [devData, changeDevData] = useState({})
-    const [commData, changeCommData] = useState({})
-    const [requestData, changeRequestData] = useState({})
+    const [devData, changeDevData] = useState()
+    const [commData, changeCommData] = useState()
+    const [requestData, changeRequestData] = useState()
     const [dataCollected, collectedChange] = useState(false)
 
     const greenCircle = require('../assets/greenCircle.png')
@@ -28,68 +29,115 @@ const ManageDevices = ({route, navigation}) => {
     const orangeCirle = require('../assets/orangeCircle.png')
     const [circleImg, changeCirlce] = useState(greenCircle)
 
-    const [isLoading, setLoadingState] = useState(false)
+    // const [isLoading, setLoadingState] = useState(false)
     const [autoSearch, setAutoSearch] = useState(false)
-    const [isConnected, changeIsConnected] = useState(true)
+    // const [isConnected, changeIsConnected] = useState(true)
+
+    // console.log("State of app id",appID, appID? 'yes': 'no')
+    const appReq = appID?appID:route.params?.autofill?.appID
+    const {data, isLoading, error, retry, netStatus} = useFetch(`${config.ttnBaseURL}/${appReq}/devices?field_mask=attributes,locations,description`, {
+            method:'GET', 
+            type:{type:"DeviceList", key:appReq}
+        })
+
+    const {data: commRawData, isLoading: commLoading, error: commError, retry: commRetry} = useFetch(`https://au1.cloud.thethings.network/api/v3/ns/applications/${appReq}/devices/${devData?.name}?field_mask=mac_state.recent_uplinks,pending_mac_state.recent_uplinks,session.started_at,pending_session`, {method:'GET'})
+
+    // useEffect(() =>{
+    //     collectedChange(false)
+    // },[appID, deviceUID])
+
+    // useEffect(() =>{
+    //     handlePress()
+    // },[autoSearch])
 
     useEffect(() =>{
-        collectedChange(false)
-    },[appID, deviceUID])
+        function autoLookup(){
 
-    useEffect(() =>{
-        handlePress()
-    },[autoSearch])
-
-    useEffect(() =>{
-        async function autoLookup(){
-
-            if (route.params == undefined) return
-            if (route.params.autofill == undefined) return
-
-            let connected = await checkNetworkStatus()
-            changeIsConnected(connected)
+            if (isLoading) return
+            if (route.params?.autofill == undefined) return
             
-            let data = route.params.autofill
-            if (data != null){
-                appIDChange(data['appID'])
-
-                if (data['uidPresent'] == true){
-                    uidChange(data['uid'])
-                    changeRequestData(data)
-                    setUIDpresent(true)
-                }
-                else{
-                    setUIDpresent(false)
-                    changeRequestData(data)
-                }
-                setAutoSearch(prev => !prev)
+            let autoFillData = route.params.autofill
+            if (autoFillData != null){
+                appIDChange(autoFillData.appID)
+                uidChange(autoFillData.uid)
+                getData(data)
             }
         }
         autoLookup()
-    },[route])
+    },[isLoading, route])
 
-    const getDeviceData = async() => {
+    useEffect(()=>{//When comm data is returned
+        async function loaded(){
+            
+            if (commLoading) return
+            if (commError) {return}
 
-            let requestedDevice = null
+            const recent_uplinks = commRawData?.mac_state?.recent_uplinks
 
-            if (uidPresent == true){
-                requestedDevice = await getDeviceWithUID()
+            const m_types = recent_uplinks?.map((data) => data.payload?.m_hdr?.m_type).reverse()
+            const r_uplinks = recent_uplinks?.map((data) => data.rx_metadata[0]?.rssi).reverse()
+            const snrs = recent_uplinks?.map((data) => data.rx_metadata[0]?.snr).reverse()
+
+            const utcTimes = recent_uplinks?.map((data) => data?.received_at).reverse()
+            const times = utcTimes?.map((time) => formatTime(time))
+
+            const cData = {
+                'm_types':m_types,
+                'rssis':r_uplinks,
+                'snrs':snrs,
+                'times':times
             }
-            else{
-                requestedDevice = await getDeviceNoUID()
-            }
-            if (requestedDevice != null){
+            // return cData
+            changeCommData(cData)
+            calcLastSeen(cData)
+        }
+        loaded()
 
-                return createDeviceObj(requestedDevice)
+    },[commLoading, commError, route])
 
+    const getData = (data) =>{
+        if (isLoading) return
+        if (error == "Invalid URL")return
+
+        let device = undefined
+        data.end_devices.forEach((dev)=>{
+            
+            if (dev.attributes?.uid == route.params?.autofill?.uid && route.params?.uidPresent == true){
+                device = dev
+                return
+            }else if (dev.ids.device_id == route.params.autofill.name){
+                device = dev
+                return
             }
-        
+        })
+        device = createDeviceObj(device)
+        console.log("device chosen", device.name)
+        changeDevData(device)
     }
+    // const getDeviceData = async() => {
+
+    //         let requestedDevice = null
+
+    //         if (uidPresent == true){
+    //             requestedDevice = await getDeviceWithUID()
+    //         }
+    //         else{
+    //             requestedDevice = await getDeviceNoUID()
+    //         }
+    //         if (requestedDevice != null){
+
+    //             return createDeviceObj(requestedDevice)
+
+    //         }
+        
+    // }
     const createDeviceObj = (device) =>{
 
         const applicationID = device['ids']['application_ids']['application_id']
         let devUID = null
-        if(requestData['uidPresent'] ==true) devUID = device['attributes']['uid'] 
+
+        devUID = device.attributes?.uid
+
         const devName = device['ids']['device_id']
         const devEui = device['ids']['dev_eui']
         const dates = formatTime(device['created_at'])
@@ -115,101 +163,101 @@ const ManageDevices = ({route, navigation}) => {
         console.log('finished')
         return data
     }
-    const getDeviceWithUID = async() =>{
-        console.log('requesting device with a uid')
-        try{
-            let url =  `${config.ttnBaseURL}/${appID}/devices?field_mask=attributes,locations,description`
-            let response = await fetch(url,{
-                method:"GET",
-                headers:global.headers
-            })
-            response = await response.json()
+    // const getDeviceWithUID = async() =>{
+    //     console.log('requesting device with a uid')
+    //     try{
+    //         let url =  `${config.ttnBaseURL}/${appID}/devices?field_mask=attributes,locations,description`
+    //         let response = await fetch(url,{
+    //             method:"GET",
+    //             headers:global.headers
+    //         })
+    //         response = await response.json()
 
-            if ('code' in response){
-                throw new Error()
-            }
-            const devices = response['end_devices']
-            let requestedDevice = undefined
+    //         if ('code' in response){
+    //             throw new Error()
+    //         }
+    //         const devices = response['end_devices']
+    //         let requestedDevice = undefined
 
-            for (const object in devices){
-                const device = devices[object]
-                try{
-                    let uid = device['attributes']['uid']
-                    if (uid == deviceUID){
-                        requestedDevice = devices[object]
-                    }
+    //         for (const object in devices){
+    //             const device = devices[object]
+    //             try{
+    //                 let uid = device['attributes']['uid']
+    //                 if (uid == deviceUID){
+    //                     requestedDevice = devices[object]
+    //                 }
 
-                }catch(error){//Error may occur if device does not have uid
-                }
-            }
-            if (requestedDevice == undefined){
-                throw new Error()
-            }
-            return requestedDevice
+    //             }catch(error){//Error may occur if device does not have uid
+    //             }
+    //         }
+    //         if (requestedDevice == undefined){
+    //             throw new Error()
+    //         }
+    //         return requestedDevice
 
-        }catch(error){
-            console.log(error)
-            Alert.alert(`Device UID or Applicaiton ID is incorrect`)
-            return null
-        }
-    }
-    const getDeviceNoUID = async() =>{
+    //     }catch(error){
+    //         console.log(error)
+    //         Alert.alert(`Device UID or Applicaiton ID is incorrect`)
+    //         return null
+    //     }
+    // }
+    // const getDeviceNoUID = async() =>{
 
-        try{
-            console.log('requesting device without uid')
+    //     try{
+    //         console.log('requesting device without uid')
 
-            let url =  `${config.ttnBaseURL}/${appID}/devices/${requestData.name}?field_mask=attributes,locations,description`
-            console.log(url)
-            let response = await fetch(url,{
-                method:"GET",
-                headers:global.headers
-            })
-            response = await response.json()
+    //         let url =  `${config.ttnBaseURL}/${appID}/devices/${requestData.name}?field_mask=attributes,locations,description`
+    //         console.log(url)
+    //         let response = await fetch(url,{
+    //             method:"GET",
+    //             headers:global.headers
+    //         })
+    //         response = await response.json()
 
-            if ('code' in response){
-                throw new Error()
-            }
-            return response
-        }
-        catch(error){
-            console.log(error)
-            Alert.alert("Invalid Device")
-            return null
-        }
-    }
-    const getCommData = async(devData) =>{
+    //         if ('code' in response){
+    //             throw new Error()
+    //         }
+    //         return response
+    //     }
+    //     catch(error){
+    //         console.log(error)
+    //         Alert.alert("Invalid Device")
+    //         return null
+    //     }
+    // }
+    const getCommData = async() =>{
 
-        console.log('requesting communication info')
-        let url =  `https://au1.cloud.thethings.network/api/v3/ns/applications/${appID}/devices/${devData['name']}?field_mask=mac_state.recent_uplinks,pending_mac_state.recent_uplinks,session.started_at,pending_session`
+        // console.log('requesting communication info')
+        // let url =  `https://au1.cloud.thethings.network/api/v3/ns/applications/${appID}/devices/${devData['name']}?field_mask=mac_state.recent_uplinks,pending_mac_state.recent_uplinks,session.started_at,pending_session`
 
-        const response = await fetch(url,{
-            method:"GET",
-            headers:global.headers
-        }).then((response) => response.json())
+        // const cData = await fetch(url,{
+        //     method:"GET",
+        //     headers:global.headers
+        // }).then((cData) => cData.json())
 
-        let recent_uplinks = ""
+        // let recent_uplinks = ""
 
-        try{
-            recent_uplinks = response['mac_state']['recent_uplinks']
+        // try{
+        //     recent_uplinks = commData['mac_state']['recent_uplinks']
 
-            const m_types = recent_uplinks.map((data) => data['payload']['m_hdr']['m_type']).reverse()
-            const r_uplinks = recent_uplinks.map((data) => data['rx_metadata'][0]['rssi']).reverse()
-            const snrs = recent_uplinks.map((data) => data['rx_metadata'][0]['snr']).reverse()
+        //     const m_types = recent_uplinks.map((data) => data['payload']['m_hdr']['m_type']).reverse()
+        //     const r_uplinks = recent_uplinks.map((data) => data['rx_metadata'][0]['rssi']).reverse()
+        //     const snrs = recent_uplinks.map((data) => data['rx_metadata'][0]['snr']).reverse()
 
-            const utcTimes = recent_uplinks.map((data) => data['received_at']).reverse()
-            const times = utcTimes.map((time) => formatTime(time))
+        //     const utcTimes = recent_uplinks.map((data) => data['received_at']).reverse()
+        //     const times = utcTimes.map((time) => formatTime(time))
 
-            const data = {
-                'm_types':m_types,
-                'rssis':r_uplinks,
-                'snrs':snrs,
-                'times':times
-            }
-            return data
+        //     const data = {
+        //         'm_types':m_types,
+        //         'rssis':r_uplinks,
+        //         'snrs':snrs,
+        //         'times':times
+        //     }
+        //     return data
 
-        }catch(error){
-            return undefined
-        }
+        // }catch(error){
+        //     return undefined
+        // }
         
     }
     const calcLastSeen = (cData) =>{
@@ -268,38 +316,35 @@ const ManageDevices = ({route, navigation}) => {
         return createDeviceObj(device)
     }
     const handlePress = async(autoSearch) =>{
+        
+        // retry()
+        // if (appID.length != 0 && deviceUID.length != 0 || uidPresent == false){
 
-        setLoadingState(true)
+        //     if (isConnected){
 
-        if (appID.length != 0 && deviceUID.length != 0 || uidPresent == false){
+                // const dData = await getDeviceData()
+        //         if (dData != null){
+        //             const cData = await getCommData(dData)
+        //             changeDevData(dData)
+        //             changeCommData(cData)
 
-            if (isConnected){
+        //             collectedChange(true)
+        //             calcLastSeen(cData)
+        //         }
+        //     }
+        //     else if (route.params.autofill != undefined){
 
-                const dData = await getDeviceData()
-                if (dData != null){
-                    const cData = await getCommData(dData)
-                    changeDevData(dData)
-                    changeCommData(cData)
-
-                    collectedChange(true)
-                    calcLastSeen(cData)
-                }
-            }
-            else if (route.params.autofill != undefined){
-
-                const data = await getOffline()
-                changeDevData(data)
-                changeCommData(undefined)
-                collectedChange(true)
-                calcLastSeen(undefined)
-            }
-        }
-        setLoadingState(false)
+        //         const data = await getOffline()
+        //         changeDevData(data)
+        //         changeCommData(undefined)
+        //         collectedChange(true)
+        //         calcLastSeen(undefined)
+        //     }
+        // }
+        
     }
     const LastSeen = () =>{
         
-        if (dataCollected == true){
-
             return (
                 <View style={{paddingTop:20}}>
                     <Text>
@@ -308,14 +353,8 @@ const ManageDevices = ({route, navigation}) => {
                     </Text>
                 </View>
             )
-        }
-        else{
-            return <View/>
-        }
     }
-    const ShowData = () =>{
-        if (!dataCollected) return <View/>
-        
+    const ShowData = () =>{        
         return (
             <>
                 <DataContextProvider value={devData}>

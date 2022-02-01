@@ -91,55 +91,48 @@ const getSavedLocations = async() =>{
         console.log(error)
     }
 }
-
-// const getApplication = async(appID) =>{
-
-//     const apps = await getApplicationList()
-
-//     if (apps != null){
-
-//         for (let app in apps){
-//             let app_obj = apps[app]
-//             const id = app_obj['application_id']
-
-//             if (appID == id){
-//                 console.log('finished reading cache')
-//                 return app_obj
-//             }
-//         }
-//     }
-//     console.log('finished reading cache')
-//     return null
-// }
-const getFromStore = async(key)=>{
+const getFromStore = async(type)=>{
 
     let fromStore = undefined
     let error = undefined
 
     try{
-        fromStore = await AsyncStorage.getItem(key)
+        fromStore = await AsyncStorage.getItem(global.APP_CACHE)
         fromStore = JSON.parse(fromStore)
     }
     catch(error){
         error = error
     }
-    return {fromStore, error}
+    console.log(type)
+    switch (type?.type) {
+
+        case 'ApplicationList':
+            //Returns list of applications
+            console.log('getting application list')
+            return {fromStore, error}
+
+        case 'DeviceList':
+            //Returns list of devices in a specific application
+            console.log('Getting dev list')
+            let DevList = []
+            fromStore.forEach((app)=>{
+
+                if (app.application_id == type.key){
+                    fromStore = {...app}
+                    return
+                }
+            })
+            return {fromStore, error}
+
+        case 'Device':
+            //Returns specific device in specific application
+            //TODO
+            break;
+        default:
+            console.log('in default')
+            return {fromStore, error}
+    }
 }
-// const getApplicationList = async() =>{
-
-//     console.log('reading cache')
-
-//     try{
-//         let fromStore = await AsyncStorage.getItem(global.APP_CACHE)
-//         fromStore = JSON.parse(fromStore)
-//         apps = fromStore
-
-//         return apps
-//     }catch(error){
-//         console.log(error)
-//     }
-
-// }
 const cacheTTNdata = async(app_response) =>{ // Cache TTN data for offline use
 
     console.log('chaching data')
@@ -184,15 +177,13 @@ const cacheTTNdata = async(app_response) =>{ // Cache TTN data for offline use
 }
 const updateToken = async(token) =>{
     
-    console.log('here')
-
     let tmpToken = token.replace('Bearer ','') //Does not matter whether user includes the word Bearer or not
     let bToken = `Bearer ${tmpToken}`
 
     try{
-        await AsyncStorage.setItem(global.AUTH_TOKEN_STOR,
-	bToken)
+        await AsyncStorage.setItem(global.AUTH_TOKEN_STOR, bToken)
         global.headers = {"Authorization":bToken}
+        global.TTN_TOKEN = bToken
 
     }
     catch(error){
@@ -251,7 +242,7 @@ const getFavourites = async(key)=>{
 }
 export {getFavourites,
 	getFromStore,
-	getDevice,
+	// getDevice,
 	// getApplication,
 	cacheTTNdata,
 	updateToken,
