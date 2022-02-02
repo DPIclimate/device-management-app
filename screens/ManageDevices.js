@@ -2,26 +2,25 @@ import React, {useEffect, useState} from 'react';
 import{View, StyleSheet,ScrollView, Text, TextInput, Image, TouchableHighlight, Alert, KeyboardAvoidingView, TouchableOpacity} from 'react-native'
 import globalStyles from '../styles';
 import config from '../config';
-import moment from 'moment';
 import DeviceCard from './DeviceCard';
 import CommCard from './CommCard';
 import LocationCard from './LocationCard';
 import NotesCard from './NotesCard';
 import PhotosCard from './PhotosCard'
-import { checkNetworkStatus, LoadingComponent} from '../shared';
+import { LoadingComponent} from '../shared';
 import { DataContextProvider } from '../shared/DataContextManager';
 import useFetch from '../shared/useFetch';
+import { formatTime } from './CommCard';
 
 const ManageDevices = ({route, navigation}) => {
 
+    console.log("in manage devices")
     const [appID, appIDChange] = useState()
     const [deviceUID, uidChange] = useState()
     const [lastSeen, changeLastSeen] = useState()
     const [uidPresent, setUIDpresent] = useState(true)
 
     const [devData, changeDevData] = useState()
-    const [commData, changeCommData] = useState()
-    const [requestData, changeRequestData] = useState()
     const [dataCollected, collectedChange] = useState(false)
 
     const greenCircle = require('../assets/greenCircle.png')
@@ -29,26 +28,12 @@ const ManageDevices = ({route, navigation}) => {
     const orangeCirle = require('../assets/orangeCircle.png')
     const [circleImg, changeCirlce] = useState(greenCircle)
 
-    // const [isLoading, setLoadingState] = useState(false)
-    const [autoSearch, setAutoSearch] = useState(false)
-    // const [isConnected, changeIsConnected] = useState(true)
-
     // console.log("State of app id",appID, appID? 'yes': 'no')
     const appReq = appID?appID:route.params?.autofill?.appID
     const {data, isLoading, error, retry, netStatus} = useFetch(`${config.ttnBaseURL}/${appReq}/devices?field_mask=attributes,locations,description`, {
             method:'GET', 
             type:{type:"DeviceList", key:appReq}
         })
-
-    const {data: commRawData, isLoading: commLoading, error: commError, retry: commRetry} = useFetch(`https://au1.cloud.thethings.network/api/v3/ns/applications/${appReq}/devices/${devData?.name}?field_mask=mac_state.recent_uplinks,pending_mac_state.recent_uplinks,session.started_at,pending_session`, {method:'GET'})
-
-    // useEffect(() =>{
-    //     collectedChange(false)
-    // },[appID, deviceUID])
-
-    // useEffect(() =>{
-    //     handlePress()
-    // },[autoSearch])
 
     useEffect(() =>{
         function autoLookup(){
@@ -66,34 +51,34 @@ const ManageDevices = ({route, navigation}) => {
         autoLookup()
     },[isLoading, route])
 
-    useEffect(()=>{//When comm data is returned
-        async function loaded(){
+    // useEffect(()=>{//When comm data is returned
+    //     async function loaded(){
             
-            if (commLoading) return
-            if (commError) {return}
+    //         if (commLoading) return
+    //         if (commError) {return}
 
-            const recent_uplinks = commRawData?.mac_state?.recent_uplinks
+    //         const recent_uplinks = commRawData?.mac_state?.recent_uplinks
 
-            const m_types = recent_uplinks?.map((data) => data.payload?.m_hdr?.m_type).reverse()
-            const r_uplinks = recent_uplinks?.map((data) => data.rx_metadata[0]?.rssi).reverse()
-            const snrs = recent_uplinks?.map((data) => data.rx_metadata[0]?.snr).reverse()
+    //         const m_types = recent_uplinks?.map((data) => data.payload?.m_hdr?.m_type).reverse()
+    //         const r_uplinks = recent_uplinks?.map((data) => data.rx_metadata[0]?.rssi).reverse()
+    //         const snrs = recent_uplinks?.map((data) => data.rx_metadata[0]?.snr).reverse()
 
-            const utcTimes = recent_uplinks?.map((data) => data?.received_at).reverse()
-            const times = utcTimes?.map((time) => formatTime(time))
+    //         const utcTimes = recent_uplinks?.map((data) => data?.received_at).reverse()
+    //         const times = utcTimes?.map((time) => formatTime(time))
 
-            const cData = {
-                'm_types':m_types,
-                'rssis':r_uplinks,
-                'snrs':snrs,
-                'times':times
-            }
-            // return cData
-            changeCommData(cData)
-            calcLastSeen(cData)
-        }
-        loaded()
+    //         const cData = {
+    //             'm_types':m_types,
+    //             'rssis':r_uplinks,
+    //             'snrs':snrs,
+    //             'times':times
+    //         }
+    //         // return cData
+    //         changeCommData(cData)
+    //         calcLastSeen(cData)
+    //     }
+    //     loaded()
 
-    },[commLoading, commError, route])
+    // },[commLoading, commError, route])
 
     const getData = (data) =>{
         if (isLoading) return
@@ -111,26 +96,8 @@ const ManageDevices = ({route, navigation}) => {
             }
         })
         device = createDeviceObj(device)
-        console.log("device chosen", device.name)
         changeDevData(device)
     }
-    // const getDeviceData = async() => {
-
-    //         let requestedDevice = null
-
-    //         if (uidPresent == true){
-    //             requestedDevice = await getDeviceWithUID()
-    //         }
-    //         else{
-    //             requestedDevice = await getDeviceNoUID()
-    //         }
-    //         if (requestedDevice != null){
-
-    //             return createDeviceObj(requestedDevice)
-
-    //         }
-        
-    // }
     const createDeviceObj = (device) =>{
 
         const applicationID = device['ids']['application_ids']['application_id']
@@ -163,161 +130,26 @@ const ManageDevices = ({route, navigation}) => {
         console.log('finished')
         return data
     }
-    // const getDeviceWithUID = async() =>{
-    //     console.log('requesting device with a uid')
-    //     try{
-    //         let url =  `${config.ttnBaseURL}/${appID}/devices?field_mask=attributes,locations,description`
-    //         let response = await fetch(url,{
-    //             method:"GET",
-    //             headers:global.headers
-    //         })
-    //         response = await response.json()
-
-    //         if ('code' in response){
-    //             throw new Error()
-    //         }
-    //         const devices = response['end_devices']
-    //         let requestedDevice = undefined
-
-    //         for (const object in devices){
-    //             const device = devices[object]
-    //             try{
-    //                 let uid = device['attributes']['uid']
-    //                 if (uid == deviceUID){
-    //                     requestedDevice = devices[object]
-    //                 }
-
-    //             }catch(error){//Error may occur if device does not have uid
-    //             }
-    //         }
-    //         if (requestedDevice == undefined){
-    //             throw new Error()
-    //         }
-    //         return requestedDevice
-
-    //     }catch(error){
-    //         console.log(error)
-    //         Alert.alert(`Device UID or Applicaiton ID is incorrect`)
-    //         return null
-    //     }
-    // }
-    // const getDeviceNoUID = async() =>{
-
-    //     try{
-    //         console.log('requesting device without uid')
-
-    //         let url =  `${config.ttnBaseURL}/${appID}/devices/${requestData.name}?field_mask=attributes,locations,description`
-    //         console.log(url)
-    //         let response = await fetch(url,{
-    //             method:"GET",
-    //             headers:global.headers
-    //         })
-    //         response = await response.json()
-
-    //         if ('code' in response){
-    //             throw new Error()
-    //         }
-    //         return response
-    //     }
-    //     catch(error){
-    //         console.log(error)
-    //         Alert.alert("Invalid Device")
-    //         return null
-    //     }
-    // }
-    const getCommData = async() =>{
-
-        // console.log('requesting communication info')
-        // let url =  `https://au1.cloud.thethings.network/api/v3/ns/applications/${appID}/devices/${devData['name']}?field_mask=mac_state.recent_uplinks,pending_mac_state.recent_uplinks,session.started_at,pending_session`
-
-        // const cData = await fetch(url,{
-        //     method:"GET",
-        //     headers:global.headers
-        // }).then((cData) => cData.json())
-
-        // let recent_uplinks = ""
-
-        // try{
-        //     recent_uplinks = commData['mac_state']['recent_uplinks']
-
-        //     const m_types = recent_uplinks.map((data) => data['payload']['m_hdr']['m_type']).reverse()
-        //     const r_uplinks = recent_uplinks.map((data) => data['rx_metadata'][0]['rssi']).reverse()
-        //     const snrs = recent_uplinks.map((data) => data['rx_metadata'][0]['snr']).reverse()
-
-        //     const utcTimes = recent_uplinks.map((data) => data['received_at']).reverse()
-        //     const times = utcTimes.map((time) => formatTime(time))
-
-        //     const data = {
-        //         'm_types':m_types,
-        //         'rssis':r_uplinks,
-        //         'snrs':snrs,
-        //         'times':times
-        //     }
-        //     return data
-
-        // }catch(error){
-        //     return undefined
-        // }
-        
-    }
-    const calcLastSeen = (cData) =>{
-
-        if (cData != undefined){
-            const recent = new Date(cData['times'][0][3])
-            const now = new Date()
-            const diff = (now - recent)/1000/60
-
-            if (diff < 1){
-                changeLastSeen(`<1 min ago`)
-            }else if (diff < 2){
-                changeLastSeen(`${Math.floor(diff)} min ago`)
-            }else if (diff < 60){
-                changeLastSeen(`${Math.floor(diff)} mins ago`)
-            }else if (diff < 1440){
-                changeLastSeen(`${Math.floor(diff/60)} hour(s) ago`)
-            }else{
-                changeLastSeen(`${Math.floor(diff/60/24)} day(s) ago`)
-            }
-
-            if (diff/60 > 12){
+    const setCircle = (val) =>{
+        console.log('in set cirlce', val)
+        switch (val) {
+            case 'red':
                 changeCirlce(redCirle)
-            }
-            else if (diff/60 > 2){
+                break;
+            case 'organge':
                 changeCirlce(orangeCirle)
-            }
-            else{
+                break;
+            case 'green':
                 changeCirlce(greenCircle)
-            }
-        }
-        else {
-            
-            if (isConnected){
-                changeLastSeen(`Never`)
-            }
-            else{
-                changeLastSeen('Unknown')
-            }
-            changeCirlce(redCirle)
+                break;
+            default:
+                break;
         }
     }
-    const formatTime = (toFormat) =>{
-        const dateUnix = new Date(toFormat);
 
-        const dayMonth = moment(dateUnix).format('DD/MM')
-        const time = moment(dateUnix).format('hh:mm')
-        const dayMonthYear = moment(dateUnix).format('DD/MM/YYYY')
-
-        return [dayMonth, time, dayMonthYear, dateUnix]
-        
-    }
-    const getOffline = async() =>{
-
-        let device = await getDevice(route.params.autofill['appID'], route.params.autofill['name'], route.params.autofill['uid'])
-        return createDeviceObj(device)
-    }
     const handlePress = async(autoSearch) =>{
         
-        // retry()
+        retry()
         // if (appID.length != 0 && deviceUID.length != 0 || uidPresent == false){
 
         //     if (isConnected){
@@ -361,7 +193,7 @@ const ManageDevices = ({route, navigation}) => {
                     {/* Card View of device details */}
                     <DeviceCard/>
                     {/* Card view of Communication details */}
-                    <CommCard commData={commData}/>
+                    <CommCard changeLastSeen={changeLastSeen} setCircle={setCircle}/>
                     {/* Card view of device location if available */}
                     <LocationCard/>  
 

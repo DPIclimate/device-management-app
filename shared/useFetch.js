@@ -7,7 +7,8 @@ const useFetch = (url, options) =>{
 	const [isLoading, setIsLoading] = useState(true);
 	const [error, setError] = useState(null);
 	const [refetch, setRefetch] = useState(false)
-	const [netStatus, setNetStatus] = useState(false)
+	// const [netStatus, setNetStatus] = useState(false)
+	const {isConnected: netStatus, isLoading:netLoading} = checkNetworkStatus()
 
 	const retry = () =>{
 		console.log('retry hit')
@@ -22,15 +23,16 @@ const useFetch = (url, options) =>{
 
 		const fetchData = async() =>{
 
-			let isConnected = await checkNetworkStatus()
-			setNetStatus(isConnected)
-
-			if (isConnected){
+			// let isConnected = await checkNetworkStatus()
+			// console.log(isConnected)
+			// setNetStatus(isConnected)
+			console.log("this is netstatus", netStatus, netLoading)
+			if (netStatus){
 				
 				if (global.TTN_TOKEN == undefined) await setTTNToken()
 
 				try{
-					console.log(url)
+
 					if (global.TTN_TOKEN == null) throw Error("User not logged in")
 					if (url.includes(undefined)) throw Error("Invalid URL")
 
@@ -57,7 +59,7 @@ const useFetch = (url, options) =>{
 					}
 				}
 
-			}else{
+			}else if (!netLoading){
 				//Get offline version of request
 				const {fromStore, error} = await getFromStore(options.type)
 				// console.log(fromStore, 'fromStore')
@@ -68,7 +70,7 @@ const useFetch = (url, options) =>{
 		}
 		fetchData()
 		return () => abortCont.abort();
-	}, [url, refetch]);
+	}, [url, refetch, netLoading]);
 
 	return { data, isLoading, error, retry, netStatus };
 };

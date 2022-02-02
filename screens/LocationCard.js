@@ -58,7 +58,6 @@ function LocationCard() {
             const isConnected = await checkNetworkStatus()
 
             if (isConnected){
-                console.log("connected")
                 await updateDevice(body)
                 changeData(body)
                 setLoadingState(false)
