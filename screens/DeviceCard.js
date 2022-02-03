@@ -4,9 +4,11 @@ import { Col, Row, Grid } from "react-native-easy-grid";
 import { Text, Linking, View } from 'react-native';
 import globalStyles from '../styles';
 import {useDataContext} from '../shared/DataContextManager'
+import LoadingComponent from '../shared/LoadingComponent'
 
 function DeviceCard() {
     const data = useDataContext()
+
     if (data == undefined) return <View/>
 
     const RowTemplate = ({title, item}) =>{

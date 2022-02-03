@@ -20,12 +20,12 @@ import {NavButtons,
 import { Overlay } from 'react-native-elements';
 import WelcomScreen from './WelcomScreen';
 import { SwipeListView } from 'react-native-swipe-list-view';
-import useFetch from '../shared/useFetch.js';
+import useFetchState from '../shared/useFetch.js';
 
 function Applications({navigation}) {
 
     const [listData, changeData] = useState([]);
-    const {data, isLoading, error, retry, netStatus} = useFetch(`${config.ttnBaseURL}?field_mask=description`,{method:'GET', type:{type:"ApplicationList"}})
+    const {data, isLoading, error, retry, netStatus} = useFetchState(`${config.ttnBaseURL}?field_mask=description`,{method:'GET', type:{type:"ApplicationList"}})
     const [noData, setNoData] = useState(false)
 
     const [savedDevices, setSavedDevices] = useState(false)

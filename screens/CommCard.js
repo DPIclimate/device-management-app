@@ -4,8 +4,9 @@ import { Text, View, ScrollView } from 'react-native';
 import globalStyles from '../styles';
 import {Card} from '../shared/index'
 import {useDataContext} from '../shared/DataContextManager'
-import useFetch from '../shared/useFetch';
+import useFetchState from '../shared/useFetch';
 import moment from 'moment';
+import LoadingComponent from '../shared/LoadingComponent';
 
 const RowContent = ({data}) =>{
     return(
@@ -41,8 +42,9 @@ function CommCard({changeLastSeen, setCircle}) {
 
     const devData = useDataContext()
     
-    const {data: commRawData, isLoading: commLoading, error: commError, retry: commRetry, netStatus} = useFetch(`https://au1.cloud.thethings.network/api/v3/ns/applications/${devData?.appID}/devices/${devData?.name}?field_mask=mac_state.recent_uplinks,pending_mac_state.recent_uplinks,session.started_at,pending_session`, {method:'GET'})
+    const {data: commRawData, isLoading: commLoading, error: commError, retry: commRetry, netStatus} = useFetchState(`https://au1.cloud.thethings.network/api/v3/ns/applications/${devData?.appID}/devices/${devData?.name}?field_mask=mac_state.recent_uplinks,pending_mac_state.recent_uplinks,session.started_at,pending_session`, {method:'GET'})
     const [commData, changeCommData] = useState()
+
 
     useEffect(()=>{//When comm data is returned
         async function loaded(){
@@ -110,13 +112,15 @@ function CommCard({changeLastSeen, setCircle}) {
             else{
                 changeLastSeen('Unknown')
             }
-            console.log('setting circle red')
             setCircle('red')
         }
     }
-    let rows = []
-    
-    if (commData?.times != undefined){
+    const Content = () =>{
+
+        
+        let rows = []
+        if (commData?.times == undefined) return <Row style={{justifyContent:'center'}}><Text style={{fontWeight:'bold', fontSize:15, paddingTop:20}}>No data to display</Text></Row>
+        
         for (let i=0;i<commData?.times?.length;i++){
             const dateTime = commData['times'][i]
             const data = {
@@ -128,42 +132,37 @@ function CommCard({changeLastSeen, setCircle}) {
             }
             rows.push(<Row key={i}><RowContent data={data}/></Row>)
         }
-    }else{
         return (
-            <Card>
-                <Text style={globalStyles.cardTitle}>Last Communications</Text>
-                <Row style={{justifyContent:'center'}}><Text style={{fontWeight:'bold', fontSize:15, paddingTop:20}}>No data to display</Text></Row>
-            </Card>
+            <ScrollView showsVerticalScrollIndicator={false}>
+                <Grid>
+                    <Row style={globalStyles.cardRow}>
+                        <Col size={1}>
+                            <Text>Time</Text>
+                        </Col>
+                        <Col size={1}>
+                            <Text>RSSI</Text>
+                        </Col>
+                        <Col size={1}>
+                            <Text>SNR</Text>
+                        </Col>
+                        <Col size={2}>
+                            <Text>M_Type</Text>
+                        </Col>
+                    </Row>
+                    {rows}
+                </Grid>
+            </ScrollView>
         )
-    }       
+    }
+    if (devData == undefined) return <View/>
     return(
         // Headers
         <Card>
-        <View style={{height:250}}>
+        <View style={{maxHeight:250, minHeight:60}}>
                 <Text style={globalStyles.cardTitle}>Last Communications</Text>
-                {console.log(commLoading)}
+                
                 {!commLoading? 
-                    <ScrollView showsVerticalScrollIndicator={false}>
-                        <Grid>
-                            <Row style={globalStyles.cardRow}>
-                                <Col size={1}>
-                                    <Text>Time</Text>
-                                </Col>
-                                <Col size={1}>
-                                    <Text>RSSI</Text>
-                                </Col>
-                                <Col size={1}>
-                                    <Text>SNR</Text>
-                                </Col>
-                                <Col size={2}>
-                                    <Text>M_Type</Text>
-                                </Col>
-                            </Row>
-                            {rows}
-                        </Grid>
-                    </ScrollView>
-                :
-                <LoadingComponent loadinng={commLoading}/>}
+                    <Content/>: <LoadingComponent loadinng={commLoading}/>}
         </View>
     </Card>
     )

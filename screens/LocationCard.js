@@ -13,7 +13,9 @@ function LocationCard() {
     const [mapType, setMapType] = useState('satellite')
     const [isLoading, setLoadingState] = useState(false)
 
-    const [data, changeData] = useState(useDataContext())
+    // const [data, changeData] = useState(useDataContext())
+    const data = useDataContext()
+
     if (data == undefined) return <View/>
     
     const toggleSwitch = () => {

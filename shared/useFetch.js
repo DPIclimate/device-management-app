@@ -2,13 +2,14 @@ import { useEffect, useState } from 'react';
 import { cacheTTNdata, checkNetworkStatus, getFromStore, setTTNToken } from '.';
 import config from '../config.json'
 
-const useFetch = (url, options) =>{
+export const useFetchState = (url, options) =>{
+	// Custom use Fetch hook that returns states
+
 	const [data, setData] = useState(null);
 	const [isLoading, setIsLoading] = useState(true);
 	const [error, setError] = useState(null);
 	const [refetch, setRefetch] = useState(false)
-	// const [netStatus, setNetStatus] = useState(false)
-	const {isConnected: netStatus, isLoading:netLoading} = checkNetworkStatus()
+	const netStatus = checkNetworkStatus()
 
 	const retry = () =>{
 		console.log('retry hit')
@@ -23,16 +24,16 @@ const useFetch = (url, options) =>{
 
 		const fetchData = async() =>{
 
-			// let isConnected = await checkNetworkStatus()
-			// console.log(isConnected)
-			// setNetStatus(isConnected)
-			console.log("this is netstatus", netStatus, netLoading)
+			// let netStatus = await checkNetworkStatus()
+
+			// setNetStatus(netStatus)
+
 			if (netStatus){
 				
 				if (global.TTN_TOKEN == undefined) await setTTNToken()
 
 				try{
-
+					console.log(url)
 					if (global.TTN_TOKEN == null) throw Error("User not logged in")
 					if (url.includes(undefined)) throw Error("Invalid URL")
 
@@ -40,7 +41,7 @@ const useFetch = (url, options) =>{
 					const resp = await fetch(url, { 
 						signal: abortCont.signal,
 						headers:global.headers,
-						method:options.method
+						method:'GET'
 					}).then((res)=>res.json())
 
 					setData(resp);
@@ -59,10 +60,10 @@ const useFetch = (url, options) =>{
 					}
 				}
 
-			}else if (!netLoading){
+			}else{
 				//Get offline version of request
 				const {fromStore, error} = await getFromStore(options.type)
-				// console.log(fromStore, 'fromStore')
+
 				setData(fromStore)
 				setIsLoading(false)
 				setError(error)
@@ -70,9 +71,41 @@ const useFetch = (url, options) =>{
 		}
 		fetchData()
 		return () => abortCont.abort();
-	}, [url, refetch, netLoading]);
+	}, [url, refetch]);
 
 	return { data, isLoading, error, retry, netStatus };
 };
+export const useFetch = async(url, options) =>{
+	//Use fetch method that returns values
 
-export default useFetch
+	const netStatus = checkNetworkStatus()
+
+	if (netStatus){
+				
+		if (global.TTN_TOKEN == undefined) await setTTNToken()
+
+		try{
+			console.log(url)
+			if (global.TTN_TOKEN == null) throw Error("User not logged in")
+			if (url.includes(undefined)) throw Error("Invalid URL")
+
+			console.log('fetching')
+			const resp = await fetch(url, { 
+				headers:global.headers,
+				method:'GET'
+			}).then((res)=>res.json())
+
+			return resp
+		}catch(err){
+			console.log(err)
+		}
+
+	}else{
+		//Get offline version of request
+		const {fromStore, error} = await getFromStore(options.type)
+		if (error){console.log(error); return}
+
+		return fromStore
+	}
+}
+export default useFetchState;

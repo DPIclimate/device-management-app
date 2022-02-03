@@ -1,42 +1,7 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { Alert } from 'react-native';
 import config from '../config.json'
-import { getApplications } from './InterfaceTTN';
 
 //Functions to manage local storage
-
-const getDevice = async(appID,
-	devName,
-	uid) =>{
-
-    let devices = await getApplication(appID)
-
-    for (const i in devices['end_devices']){
-        const dev = devices['end_devices'][i]
-        let name = dev['ids']['device_id']
-
-        if (uid != undefined){
-
-            try{
-                let devUID = dev['attributes']['uid']
-
-                if (uid == devUID){
-                    return dev
-                }
-            }catch(error){
-            }
-            
-        }else{    
-
-            if (name == devName){
-                console.log(name,
-	devName)
-                return dev
-
-            }
-        }
-    }
-}
 const saveDevice = async(device) =>{
 
     let currentDevices = []
@@ -78,19 +43,19 @@ const getSavedDevices = async() =>{
         console.log(error)
     }
 }
-const getSavedLocations = async() =>{
+// const getSavedLocations = async() =>{
     
-    try{
-        let fromStore = await AsyncStorage.getItem(global.LOC_UPDATES)
-        fromStore = JSON.parse(fromStore)
+//     try{
+//         let fromStore = await AsyncStorage.getItem(global.LOC_UPDATES)
+//         fromStore = JSON.parse(fromStore)
 
-        if (fromStore == null) return []
-        return fromStore
+//         if (fromStore == null) return []
+//         return fromStore
 
-    }catch(error){
-        console.log(error)
-    }
-}
+//     }catch(error){
+//         console.log(error)
+//     }
+// }
 const getFromStore = async(type)=>{
 
     let fromStore = undefined
@@ -103,7 +68,7 @@ const getFromStore = async(type)=>{
     catch(error){
         error = error
     }
-    console.log(type)
+
     switch (type?.type) {
 
         case 'ApplicationList':
@@ -251,4 +216,5 @@ export {getFavourites,
 	// getApplicationList,
 	saveDevice,
 	getSavedDevices,
-	getSavedLocations}
+	//getSavedLocations
+}

@@ -5,7 +5,7 @@ import globalStyles from '../styles';
 
 
 const renderItem = ({ item }, handlePress, screen) => {
-    // console.log('in render item', item)
+
     const id = item.id
     return(
         <View>

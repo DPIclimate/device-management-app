@@ -15,14 +15,14 @@ import {NavButtons,
 } from '../shared/index.js'
 import { SwipeListView } from 'react-native-swipe-list-view';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import useFetch from '../shared/useFetch';
+import useFetchState from '../shared/useFetch';
 
 function Devices({route, navigation}) {
 
     const [listData, changeData] = useState([])
     const [noData, setNoData] = useState(false)
     
-    const {data, isLoading, error, retry, netStatus} = useFetch(`${config.ttnBaseURL}/${route.params.application_id}/devices?field_mask=attributes,locations,description`, {method:'GET', type:{type:'DeviceList', key:route.params?.application_id}})
+    const {data, isLoading, error, retry, netStatus} = useFetchState(`${config.ttnBaseURL}/${route.params.application_id}/devices?field_mask=attributes,locations,description`, {method:'GET', type:{type:'DeviceList', key:route.params?.application_id}})
 
     useEffect(()=>{
 
@@ -43,7 +43,6 @@ function Devices({route, navigation}) {
             changeData(devices)
 
         }catch(error){
-            console.log('in list data error', error)
             setNoData(true)
         }
     }
