@@ -12,11 +12,13 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useIsFocused } from '@react-navigation/native';
 import {NavButtons,
 	renderItem,
-	checkNetworkStatus,renderHiddenItem,
+	checkNetworkStatus,
+    renderHiddenItem,
 	LoadingComponent,
 	getSavedDevices,
 	getFavourites,
-    Offline} from '../shared'
+    Offline,
+    getFromStore} from '../shared'
 import { Overlay } from 'react-native-elements';
 import WelcomScreen from './WelcomScreen';
 import { SwipeListView } from 'react-native-swipe-list-view';
@@ -25,7 +27,8 @@ import useFetchState from '../shared/useFetch.js';
 function Applications({navigation}) {
 
     const [listData, changeData] = useState([]);
-    const {data, isLoading, error, retry, netStatus} = useFetchState(`${config.ttnBaseURL}?field_mask=description`,{method:'GET', type:{type:"ApplicationList"}})
+    const {data, isLoading, error, retry} = useFetchState(`${config.ttnBaseURL}?field_mask=description`,{type:"ApplicationList", storKey:global.APP_CACHE})
+    const [netStatus, setNetStaus] = useState(false)
     const [noData, setNoData] = useState(false)
 
     const [savedDevices, setSavedDevices] = useState(false)
@@ -34,6 +37,7 @@ function Applications({navigation}) {
     const [validToken, changeValid] = useState(true)
     const [welcomeVisable, setWelcVisable] = useState(false);
 
+    
     useLayoutEffect(() => {
         //Settings icon
         navigation.setOptions({
@@ -61,6 +65,8 @@ function Applications({navigation}) {
     useEffect(() =>{
 
         async function onFocus(){
+            const status = await checkNetworkStatus()
+            setNetStaus(status)
             checkSavedReg()
         }
         onFocus()
@@ -82,9 +88,8 @@ function Applications({navigation}) {
       }
 
     const checkSavedReg = async() =>{ //Check for saved devices or updates
-        let saved = []
 
-        saved = await getSavedDevices()
+        const {fromStore: saved, error} = await getFromStore({storKey:global.DEV_STORE, type:'QueDeviceList'})
 
         if (saved.length != 0){
             setSavedDevices(true)
@@ -97,7 +102,7 @@ function Applications({navigation}) {
         if (isLoading) return
         if (error != null && error != undefined) {changeValid(false);return}
 
-        const favs = await getFavourites(global.APP_FAV)
+        const {fromStore: favs, error} = await getFromStore({type:'FavList', storKey:global.APP_FAV})
 
         if (netStatus){
             if (data?.applications == undefined){setNoData(true); return}
@@ -158,7 +163,7 @@ function Applications({navigation}) {
           }
 
         try{
-            let favs = await getFavourites(global.APP_FAV)
+            let {fromStore: favs, error} = await getFromStore({type:'FavList', storKey:global.APP_FAV})
 
             if (favs.includes(data.item.id)){
                 favs.splice(favs.indexOf(data.item.id),1)

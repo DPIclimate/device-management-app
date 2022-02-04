@@ -15,13 +15,15 @@ import { formatTime } from './CommCard';
 
 const ManageDevices = ({route, navigation}) => {
 
+    console.log('this is route',route)
     const [appID, appIDChange] = useState()
     const [deviceUID, uidChange] = useState()
-    const [lastSeen, changeLastSeen] = useState('Loading...')
     const [uidPresent, setUIDPresent] = useState()
-    const [isLoading, setLoadingState] = useState(false)
 
-    console.log(appID, deviceUID, uidPresent)
+    const [lastSeen, changeLastSeen] = useState('Loading...')
+    const [isLoading, setLoadingState] = useState(false)
+    const [autoSearch, setAutoSearch] = useState(false)
+
     const [devData, changeDevData] = useState()
 
     const greenCircle = require('../assets/greenCircle.png')
@@ -30,10 +32,29 @@ const ManageDevices = ({route, navigation}) => {
     const [circleImg, changeCirlce] = useState(greenCircle)
 
     const netStatus = checkNetworkStatus()
+
+    useEffect(()=>{
+        if (route.params?.autofill){
+           appIDChange(route.params?.autofill?.appID)
+           uidChange(route.params?.autofill?.uid)
+           setUIDPresent(route.params?.autofill?.uidPresent)
+           setAutoSearch(true)
+        }
+    },[route])
+    
+    useEffect(() =>{
+        if (autoSearch) {
+            handlePress()
+            setAutoSearch(false)
+        }
+    },[autoSearch])
+
     const handlePress = async() =>{
 
         setLoadingState(true)
+        console.log(appID)
         let data = await useFetch(`${config.ttnBaseURL}/${appID}/devices?field_mask=attributes,locations,description`,{type:{type:"ApplicationList"}}, netStatus)
+
         getData(data)
         setLoadingState(false)
     }
@@ -147,9 +168,9 @@ const ManageDevices = ({route, navigation}) => {
     }
     
     return (
-        // <KeyboardAvoidingView style={{ flex: 1 }}
-        // keyboardVerticalOffset={50}
-        // behavior={Platform.OS === "ios" ? "position" : "height"}>
+        <KeyboardAvoidingView style={{ flex: 1 }}
+        keyboardVerticalOffset={50}
+        behavior={Platform.OS === "ios" ? "position" : "height"}>
             <ScrollView style={globalStyles.scrollView}>
                 <View style={styles.contentView}>
                     <View style={{paddingTop:15, flexDirection:'row', justifyContent:'space-between'}}>
@@ -170,8 +191,6 @@ const ManageDevices = ({route, navigation}) => {
                         <SearchButton/>        
                     </View>
                     
-                    {devData&&
-                    //Display Cards
                     <DataContextProvider value={devData}>
 
                         <DeviceCard/>
@@ -180,12 +199,12 @@ const ManageDevices = ({route, navigation}) => {
                         <NotesCard/>
                         <PhotosCard params={route.params} navigation={navigation}/>
                         
-                    </DataContextProvider>}
+                    </DataContextProvider>
 
                     <LoadingComponent loading={isLoading}/>
                 </View>
             </ScrollView>
-        // </KeyboardAvoidingView>
+        </KeyboardAvoidingView>
     );
 };
 const styles = StyleSheet.create({

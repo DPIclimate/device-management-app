@@ -15,15 +15,10 @@ export {default as InterfaceTTN,
 } from './InterfaceTTN'
 
 export {
-    // getDevice, 
     saveDevice, 
     cacheTTNdata, 
     updateToken, 
     setTTNToken, 
-    isFirstLogon, 
-    getSavedLocations, 
-    getSavedDevices,
-    getFavourites,
     getFromStore
 } from './ManageLocStorage'
 

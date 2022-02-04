@@ -10,23 +10,29 @@ import {NavButtons,
 	renderItem,
     renderHiddenItem,
 	LoadingComponent,
-	getFavourites,
     Offline,
+    checkNetworkStatus,
+    getFromStore
 } from '../shared/index.js'
 import { SwipeListView } from 'react-native-swipe-list-view';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import useFetchState from '../shared/useFetch';
 
+
 function Devices({route, navigation}) {
 
     const [listData, changeData] = useState([])
     const [noData, setNoData] = useState(false)
-    
-    const {data, isLoading, error, retry, netStatus} = useFetchState(`${config.ttnBaseURL}/${route.params.application_id}/devices?field_mask=attributes,locations,description`, {method:'GET', type:{type:'DeviceList', key:route.params?.application_id}})
+    const [netStatus, setNetStatus] = useState(false)
+
+    const {data, isLoading, error, retry} = useFetchState(`${config.ttnBaseURL}/${route.params.application_id}/devices?field_mask=attributes,locations,description`, {type:'DeviceList', key:route.params?.application_id, storKey:global.APP_CACHE})
 
     useEffect(()=>{
 
-        function loaded(){
+        async function loaded(){
+            const status = await checkNetworkStatus()
+            setNetStatus(status)
+
             if (isLoading) return
             setListData(data)
         }
@@ -37,7 +43,7 @@ function Devices({route, navigation}) {
         if (isLoading) return
         if (error) return
 
-        const favs = await getFavourites(global.DEV_FAV)
+        const {fromStore: favs, error} = await getFromStore({type:'FavList', storKey:global.DEV_FAV})
         try{
             const devices = data.end_devices.map((dev) =>({id:dev['ids']['device_id'], isFav:favs.includes(dev['ids']['device_id'])}))
             changeData(devices)
@@ -107,7 +113,7 @@ function Devices({route, navigation}) {
           }
 
         try{
-            let favs = await getFavourites(global.DEV_FAV)
+            let {fromStore: favs, error} = await getFromStore({type:'FavList', storKey:global.DEV_FAV})
 
             if (favs.includes(data.item.id)){
                 favs.splice(favs.indexOf(data.item.id),1)

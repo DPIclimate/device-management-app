@@ -30,46 +30,23 @@ const saveDevice = async(device) =>{
         return false
     }
 }
-const getSavedDevices = async() =>{
+const getFromStore = async(options)=>{
+    //Method from retrieving from phones local storage
 
-    try{
-        let fromStore = await AsyncStorage.getItem(global.DEV_STORE)
-        fromStore = JSON.parse(fromStore)
-
-        if (fromStore == null) return []
-        return fromStore
-        
-    }catch(error){
-        console.log(error)
-    }
-}
-// const getSavedLocations = async() =>{
-    
-//     try{
-//         let fromStore = await AsyncStorage.getItem(global.LOC_UPDATES)
-//         fromStore = JSON.parse(fromStore)
-
-//         if (fromStore == null) return []
-//         return fromStore
-
-//     }catch(error){
-//         console.log(error)
-//     }
-// }
-const getFromStore = async(type)=>{
-
+    console.log("retrieving from storage")
     let fromStore = undefined
     let error = undefined
 
     try{
-        fromStore = await AsyncStorage.getItem(global.APP_CACHE)
+        fromStore = await AsyncStorage.getItem(options.storKey)
         fromStore = JSON.parse(fromStore)
     }
     catch(error){
         error = error
     }
 
-    switch (type?.type) {
+    //Makes sure data is in an expected format
+    switch (options.type) {
 
         case 'ApplicationList':
             //Returns list of applications
@@ -79,20 +56,27 @@ const getFromStore = async(type)=>{
         case 'DeviceList':
             //Returns list of devices in a specific application
             console.log('Getting dev list')
-            let DevList = []
             fromStore.forEach((app)=>{
 
-                if (app.application_id == type.key){
+                if (app.application_id == options.key){
                     fromStore = {...app}
                     return
                 }
             })
             return {fromStore, error}
-
-        case 'Device':
-            //Returns specific device in specific application
-            //TODO
-            break;
+        case 'FavList':
+            console.log('getting favs')
+            if (error || fromStore == null){
+                fromStore = []
+            }
+            return {fromStore,error}
+        case 'QueDeviceList':
+            if (error || fromStore == null){
+                fromStore = []
+            }
+            return {fromStore, error}
+        case 'CommsList':
+            return {fromStore, error}
         default:
             console.log('in default')
             return {fromStore, error}
@@ -172,49 +156,10 @@ const setTTNToken = async() =>{
         console.log(error)
     }
 }
-
-const isFirstLogon = async() =>{
-
-    try{
-        let first = await AsyncStorage.getItem('isFirstLogon')
-
-        if (first == null){
-
-            console.log("Users first logon")
-            return true
-        }
-        else{
-            console.log("Is not first logon")
-            return false
-        }
-    }
-    catch(error){
-        console.log(error)
-    }
-}
-const getFavourites = async(key)=>{
-    console.log(key)
-    try{
-        let fromStore = JSON.parse(await AsyncStorage.getItem(key))
-        if (fromStore == null) fromStore = []
-
-        return fromStore
-    }
-    catch(error){
-        console.log(error)
-        return []
-    }
-}
-export {getFavourites,
+export {
 	getFromStore,
-	// getDevice,
-	// getApplication,
 	cacheTTNdata,
 	updateToken,
 	setTTNToken,
-	isFirstLogon,
-	// getApplicationList,
 	saveDevice,
-	getSavedDevices,
-	//getSavedLocations
 }

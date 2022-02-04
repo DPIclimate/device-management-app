@@ -9,7 +9,6 @@ export const useFetchState = (url, options) =>{
 	const [isLoading, setIsLoading] = useState(true);
 	const [error, setError] = useState(null);
 	const [refetch, setRefetch] = useState(false)
-	const netStatus = checkNetworkStatus()
 
 	const retry = () =>{
 		console.log('retry hit')
@@ -24,10 +23,7 @@ export const useFetchState = (url, options) =>{
 
 		const fetchData = async() =>{
 
-			// let netStatus = await checkNetworkStatus()
-
-			// setNetStatus(netStatus)
-
+			const netStatus = await checkNetworkStatus()
 			if (netStatus){
 				
 				if (global.TTN_TOKEN == undefined) await setTTNToken()
@@ -62,7 +58,7 @@ export const useFetchState = (url, options) =>{
 
 			}else{
 				//Get offline version of request
-				const {fromStore, error} = await getFromStore(options.type)
+				const {fromStore, error} = await getFromStore(options)
 
 				setData(fromStore)
 				setIsLoading(false)
@@ -73,12 +69,10 @@ export const useFetchState = (url, options) =>{
 		return () => abortCont.abort();
 	}, [url, refetch]);
 
-	return { data, isLoading, error, retry, netStatus };
+	return { data, isLoading, error, retry };
 };
-export const useFetch = async(url, options) =>{
+export const useFetch = async(url, options, netStatus) =>{
 	//Use fetch method that returns values
-
-	const netStatus = checkNetworkStatus()
 
 	if (netStatus){
 				

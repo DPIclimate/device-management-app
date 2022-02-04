@@ -87,7 +87,7 @@ const updateDevice = async(data) =>{
     }
 }
 
-const checkUnique = async(data) =>{
+const checkUnique = async(data) =>{ //Checks that a particular device is unique
 
     console.log('checking unique')
     const deviceEUI = data['end_device']['ids']['dev_eui']
