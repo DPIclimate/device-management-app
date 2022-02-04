@@ -1,39 +1,7 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { Alert } from 'react-native';
 import config from '../config.json'
-import { getApplications } from './InterfaceTTN';
 
 //Functions to manage local storage
-
-const getDevice = async(appID, devName, uid) =>{
-
-    let devices = await getApplication(appID)
-
-    for (const i in devices['end_devices']){
-        const dev = devices['end_devices'][i]
-        let name = dev['ids']['device_id']
-
-        if (uid != undefined){
-
-            try{
-                let devUID = dev['attributes']['uid']
-
-                if (uid == devUID){
-                    return dev
-                }
-            }catch(error){
-            }
-            
-        }else{    
-
-            if (name == devName){
-                console.log(name, devName)
-                return dev
-
-            }
-        }
-    }
-}
 const saveDevice = async(device) =>{
 
     let currentDevices = []
@@ -41,7 +9,8 @@ const saveDevice = async(device) =>{
     try{
         let fromStore = await AsyncStorage.getItem(global.DEV_STORE)
         fromStore = JSON.parse(fromStore)
-        fromStore != null? currentDevices = [...currentDevices, ...fromStore] : currentDevices = []
+        fromStore != null? currentDevices = [...currentDevices,
+	...fromStore] : currentDevices = []
 
     }catch(error){
         console.log(error)
@@ -52,7 +21,8 @@ const saveDevice = async(device) =>{
     
     console.log('writing')
     try{
-        await AsyncStorage.setItem(global.DEV_STORE, JSON.stringify(currentDevices))
+        await AsyncStorage.setItem(global.DEV_STORE,
+	JSON.stringify(currentDevices))
         return true
 
     }catch(error){
@@ -60,82 +30,74 @@ const saveDevice = async(device) =>{
         return false
     }
 }
-const getSavedDevices = async() =>{
+const getFromStore = async(options)=>{
+    //Method from retrieving from phones local storage
+
+    console.log("retrieving from storage")
+    let fromStore = undefined
+    let error = undefined
 
     try{
-        let fromStore = await AsyncStorage.getItem(global.DEV_STORE)
+        fromStore = await AsyncStorage.getItem(options.storKey)
         fromStore = JSON.parse(fromStore)
-
-        if (fromStore == null) return []
-        return fromStore
-        
-    }catch(error){
-        console.log(error)
     }
-}
-const getSavedLocations = async() =>{
-    
-    try{
-        let fromStore = await AsyncStorage.getItem(global.LOC_UPDATES)
-        fromStore = JSON.parse(fromStore)
-
-        if (fromStore == null) return []
-        return fromStore
-
-    }catch(error){
-        console.log(error)
+    catch(error){
+        error = error
     }
-}
 
-const getApplication = async(appID) =>{
+    //Makes sure data is in an expected format
+    switch (options.type) {
 
-    const apps = await getApplicationList()
+        case 'ApplicationList':
+            //Returns list of applications
+            console.log('getting application list')
+            return {fromStore, error}
 
-    if (apps != null){
+        case 'DeviceList':
+            //Returns list of devices in a specific application
+            console.log('Getting dev list')
+            fromStore.forEach((app)=>{
 
-        for (let app in apps){
-            let app_obj = apps[app]
-            const id = app_obj['application_id']
-
-            if (appID == id){
-                console.log('finished reading cache')
-                return app_obj
+                if (app.application_id == options.key){
+                    fromStore = {...app}
+                    return
+                }
+            })
+            return {fromStore, error}
+        case 'FavList':
+            console.log('getting favs')
+            if (error || fromStore == null){
+                fromStore = []
             }
-        }
+            return {fromStore,error}
+        case 'QueDeviceList':
+            if (error || fromStore == null){
+                fromStore = []
+            }
+            return {fromStore, error}
+        case 'CommsList':
+            return {fromStore, error}
+        default:
+            console.log('in default')
+            return {fromStore, error}
     }
-    console.log('finished reading cache')
-    return null
-}
-const getApplicationList = async() =>{
-
-    console.log('reading cache')
-    let apps = []
-
-    try{
-        let fromStore = await AsyncStorage.getItem(global.APP_CACHE)
-        fromStore = JSON.parse(fromStore)
-        apps = fromStore
-
-    }catch(error){
-        console.log(error)
-    }
-
-    return apps
 }
 const cacheTTNdata = async(app_response) =>{ // Cache TTN data for offline use
-    
-    if (global.valid_token != true) return
+
+    console.log('chaching data')
 
     let applications = []
 
     try{
-        const apps = app_response.map((app) => ({id:app['ids']['application_id'], description:app['description']}))
+        const apps = app_response.map((app) => ({id:app['ids']['application_id'],
+	    description:app['description']}))
 
         for (let app in apps){
             const id = apps[app].id
             
             const url = `${config.ttnBaseURL}/${id}/devices?field_mask=attributes,locations,description`
-            let response = await fetch(url, {
+            let response = await fetch(url,
+            {
                 method:"GET",
                 headers:global.headers
             }).then((response) => response.json())
@@ -153,7 +115,8 @@ const cacheTTNdata = async(app_response) =>{ // Cache TTN data for offline use
         console.log("Caching TTN data failed")
     }
     try{
-        await AsyncStorage.setItem(global.APP_CACHE, JSON.stringify(applications))
+        await AsyncStorage.setItem(global.APP_CACHE,
+	JSON.stringify(applications))
         console.log('TTN data saved successfully')
 
     }catch(error){
@@ -163,14 +126,13 @@ const cacheTTNdata = async(app_response) =>{ // Cache TTN data for offline use
 }
 const updateToken = async(token) =>{
     
-    console.log('here')
-
     let tmpToken = token.replace('Bearer ','') //Does not matter whether user includes the word Bearer or not
     let bToken = `Bearer ${tmpToken}`
 
     try{
         await AsyncStorage.setItem(global.AUTH_TOKEN_STOR, bToken)
         global.headers = {"Authorization":bToken}
+        global.TTN_TOKEN = bToken
 
     }
     catch(error){
@@ -179,12 +141,13 @@ const updateToken = async(token) =>{
     
 }
 
-const getTTNToken = async() =>{
+const setTTNToken = async() =>{
     
-// Gets bearer token from memory
+// Gets bearer token from memory and sets it globaly
     try{
         let authToken = await AsyncStorage.getItem(global.AUTH_TOKEN_STOR)
         global.headers = {"Authorization":authToken}
+        global.TTN_TOKEN = authToken
 
         return authToken
 
@@ -193,37 +156,10 @@ const getTTNToken = async() =>{
         console.log(error)
     }
 }
-
-const isFirstLogon = async() =>{
-
-    try{
-        let first = await AsyncStorage.getItem('isFirstLogon')
-
-        if (first == null){
-
-            console.log("Users first logon")
-            return true
-        }
-        else{
-            console.log("Is not first logon")
-            return false
-        }
-    }
-    catch(error){
-        console.log(error)
-    }
+export {
+	getFromStore,
+	cacheTTNdata,
+	updateToken,
+	setTTNToken,
+	saveDevice,
 }
-const getFavourites = async(key)=>{
-    console.log(key)
-    try{
-        let fromStore = JSON.parse(await AsyncStorage.getItem(key))
-        if (fromStore == null) fromStore = []
-
-        return fromStore
-    }
-    catch(error){
-        console.log(error)
-        return []
-    }
-}
-export {getFavourites, getDevice, getApplication, cacheTTNdata, updateToken, getTTNToken, isFirstLogon, getApplicationList, saveDevice, getSavedDevices, getSavedLocations}

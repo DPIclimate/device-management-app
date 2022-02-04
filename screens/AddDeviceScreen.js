@@ -15,6 +15,7 @@ import * as Location from 'expo-location';
 import {checkNetworkStatus, registerDevice, LoadingComponent, updateDevice, checkUnique, updateDetails, saveDevice} from '../shared'
 import { AsyncAlert } from '../shared/AsyncAlert';
 
+
 const initialState = {
     appID:'',
     devName:'',

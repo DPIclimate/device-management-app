@@ -1,8 +1,6 @@
 import config from '../config';
 import Error from './ErrorClass'
 import { Alert } from 'react-native';
-import { useState } from 'react';
-import useFetch from './useFetch';
 
 const registerDevice = async(device) =>{
 
@@ -89,7 +87,7 @@ const updateDevice = async(data) =>{
     }
 }
 
-const checkUnique = async(data) =>{
+const checkUnique = async(data) =>{ //Checks that a particular device is unique
 
     console.log('checking unique')
     const deviceEUI = data['end_device']['ids']['dev_eui']

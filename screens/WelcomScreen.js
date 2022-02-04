@@ -7,13 +7,13 @@ import { HelpCard, DPI_TAG } from './SettingsScreen';
 import { LoadingComponent } from '../shared';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
+
 const WelcomScreen = (props) => {
-    
+
     const [token, changeToken] = useState('')
     const [invalidToken, setInvalid] = useState(false)
     const [validating, setValidating] = useState(false)
 
-    console.log('here')
     const handlePress = async() =>{
         console.log('pressed')
         setValidating(true)
@@ -21,10 +21,11 @@ const WelcomScreen = (props) => {
         const validToken = await validateToken(token)
 
         if (validToken){
-            
+            console.log('token is valid')
             global.valid_token = true
             await updateToken(token)
-            await AsyncStorage.setItem('isFirstLogon', 'false')
+            // await AsyncStorage.setItem('isFirstLogon', 'false')
+            props.retry()
             props.visible(false)
         }
         else{

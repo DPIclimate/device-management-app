@@ -1,5 +1,5 @@
 import React, { useState,useEffect } from 'react';
-import {Card, saveDevice} from '../shared';
+import {Card, LoadingComponent, saveDevice} from '../shared';
 import { Grid } from "react-native-easy-grid";
 import { Text, View, TouchableHighlight, Image,Button, ActivityIndicator, Pressable, TextInput, StyleSheet, KeyboardAvoidingView, Alert } from 'react-native';
 import globalStyles from '../styles';
@@ -9,16 +9,14 @@ import { AsyncAlert } from '../shared/AsyncAlert';
 
 function NotesCard() {
 
-    const [text, setText] = useState("")
-    const [isLoading, setLoadingState] = useState(false)
-    
     const data = useDataContext()
     
-    useEffect(()=>{
-        
-        let history = data.notes
-        setText(history)
-    },[])
+    const [text, setText] = useState()
+    const [isLoading, setLoadingState] = useState(false)
+    
+    useEffect(() =>{
+        setText(data?.notes)
+    },[data])
 
     const saveDetails = async() =>{
         setLoadingState(true)
@@ -61,6 +59,8 @@ function NotesCard() {
         setLoadingState(false)
 
     }
+
+    if (data == undefined) return <View/>
     return (
         <>
         <Card>

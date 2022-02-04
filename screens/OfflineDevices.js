@@ -1,8 +1,21 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, StyleSheet, Image, TouchableHighlight, TouchableOpacity, Alert} from 'react-native'
+import { View, Text,
+	StyleSheet,
+	Image,
+	TouchableHighlight,
+	TouchableOpacity,
+	Alert} from 'react-native'
 import globalStyles from '../styles';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import {registerDevice, updateDevice, Card, LoadingComponent, checkNetworkStatus, getSavedDevices, getSavedLocations, checkUnique, updateDetails, saveDevice} from '../shared'
+import {registerDevice,
+	updateDevice,
+	Card,
+	LoadingComponent,
+	checkNetworkStatus,
+	checkUnique,
+	updateDetails,
+    getFromStore
+} from '../shared'
 import { AsyncAlert } from '../shared/AsyncAlert';
 import { SwipeListView } from 'react-native-swipe-list-view';
 
@@ -26,7 +39,7 @@ function OfflineDevices({ route, navigation }) {
 
     const getSaved = async() =>{
 
-        const savedDev = await getSavedDevices()
+        const {fromStore: savedDev, error} = await getFromStore({storKey:global.DEV_STORE, type:'QueDeviceList'})
 
         changeSavedDevices(savedDev)
 
