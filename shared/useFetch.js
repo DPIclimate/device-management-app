@@ -59,7 +59,6 @@ export const useFetchState = (url, options) =>{
 			}else{
 				//Get offline version of request
 				const {fromStore, error} = await getFromStore(options)
-
 				setData(fromStore)
 				setIsLoading(false)
 				setError(error)
@@ -96,7 +95,7 @@ export const useFetch = async(url, options, netStatus) =>{
 
 	}else{
 		//Get offline version of request
-		const {fromStore, error} = await getFromStore(options.type)
+		const {fromStore, error} = await getFromStore(options)
 		if (error){console.log(error); return}
 
 		return fromStore

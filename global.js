@@ -1,5 +1,6 @@
 
 global.APP_CACHE = 'applicationCache'
+global.COMM_CACHE = 'commCache'
 global.DEV_STORE = 'devices'
 global.APP_FAV = 'appFavs'
 global.DEV_FAV = 'devFavs'

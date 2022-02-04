@@ -15,7 +15,6 @@ import { formatTime } from './CommCard';
 
 const ManageDevices = ({route, navigation}) => {
 
-    console.log('this is route',route)
     const [appID, appIDChange] = useState()
     const [deviceUID, uidChange] = useState()
     const [uidPresent, setUIDPresent] = useState()
@@ -23,23 +22,32 @@ const ManageDevices = ({route, navigation}) => {
     const [lastSeen, changeLastSeen] = useState('Loading...')
     const [isLoading, setLoadingState] = useState(false)
     const [autoSearch, setAutoSearch] = useState(false)
+    const [netStatus, setNetStatus] = useState(false)
 
     const [devData, changeDevData] = useState()
 
     const greenCircle = require('../assets/greenCircle.png')
     const redCirle  = require('../assets/redCircle.png')
     const orangeCirle = require('../assets/orangeCircle.png')
+    const greenHollow = require('../assets/greenCircle-hollow.png')
+    const redHollow = require('../assets/redCircle-hollow.png')
+    const orangeHollow = require('../assets/orangeCircle-hollow.png')
     const [circleImg, changeCirlce] = useState(greenCircle)
 
-    const netStatus = checkNetworkStatus()
-
     useEffect(()=>{
-        if (route.params?.autofill){
-           appIDChange(route.params?.autofill?.appID)
-           uidChange(route.params?.autofill?.uid)
-           setUIDPresent(route.params?.autofill?.uidPresent)
-           setAutoSearch(true)
+        async function loaded(){
+            
+            const status = await checkNetworkStatus()
+            setNetStatus(status)
+            
+            if (route.params?.autofill){
+                appIDChange(route.params?.autofill?.appID)
+                uidChange(route.params?.autofill?.uid)
+                setUIDPresent(route.params?.autofill?.uidPresent)
+                setAutoSearch(true)
+            }
         }
+        loaded()
     },[route])
     
     useEffect(() =>{
@@ -52,8 +60,7 @@ const ManageDevices = ({route, navigation}) => {
     const handlePress = async() =>{
 
         setLoadingState(true)
-        console.log(appID)
-        let data = await useFetch(`${config.ttnBaseURL}/${appID}/devices?field_mask=attributes,locations,description`,{type:{type:"ApplicationList"}}, netStatus)
+        let data = await useFetch(`${config.ttnBaseURL}/${appID}/devices?field_mask=attributes,locations,description`,{type:"DeviceList", storKey:global.APP_CACHE, appID:appID}, netStatus)
 
         getData(data)
         setLoadingState(false)
@@ -66,15 +73,11 @@ const ManageDevices = ({route, navigation}) => {
 
         for (let i in data.end_devices){
             let dev = data.end_devices[i]
-            
-            console.log(dev.attributes?.uid, deviceUID, uidPresent)
-           
+                       
             if (dev.attributes?.uid == deviceUID && uidPresent == true){
-                console.log('mathced on uid', dev.attributes.uid)
                 device = dev
                 break;
             }else if (dev.ids.device_id == route.params?.autofill?.name){
-                console.log('mathced on name', dev.ids.name)
                 device = dev
                 break;
             }
@@ -119,11 +122,20 @@ const ManageDevices = ({route, navigation}) => {
             case 'red':
                 changeCirlce(redCirle)
                 break;
-            case 'organge':
+            case 'orange':
                 changeCirlce(orangeCirle)
                 break;
             case 'green':
                 changeCirlce(greenCircle)
+                break;
+            case 'red-hollow':
+                changeCirlce(redHollow)
+                break;
+            case 'orange-hollow':
+                changeCirlce(orangeHollow)
+                break;
+            case 'green-hollow':
+                changeCirlce(greenHollow)
                 break;
             default:
                 break;
@@ -152,6 +164,7 @@ const ManageDevices = ({route, navigation}) => {
             )
         
         }else if (devData && netStatus){
+
             return(
                 <TouchableOpacity style={[{width:140},globalStyles.blueButton]} onPress={handlePress}>
                     <Text style={globalStyles.blueButtonText}>Refresh</Text>

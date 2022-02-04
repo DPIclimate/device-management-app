@@ -25,7 +25,7 @@ function Devices({route, navigation}) {
     const [noData, setNoData] = useState(false)
     const [netStatus, setNetStatus] = useState(false)
 
-    const {data, isLoading, error, retry} = useFetchState(`${config.ttnBaseURL}/${route.params.application_id}/devices?field_mask=attributes,locations,description`, {type:'DeviceList', key:route.params?.application_id, storKey:global.APP_CACHE})
+    const {data, isLoading, error, retry} = useFetchState(`${config.ttnBaseURL}/${route.params.application_id}/devices?field_mask=attributes,locations,description`, {type:'DeviceList', appID:route.params?.application_id, storKey:global.APP_CACHE})
 
     useEffect(()=>{
 

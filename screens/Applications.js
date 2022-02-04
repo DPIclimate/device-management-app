@@ -5,7 +5,8 @@ import {View,
 	Image,
 	TouchableHighlight,TouchableOpacity,
 	Pressable,
-	StyleSheet} from 'react-native'
+	StyleSheet,
+} from 'react-native'
 import globalStyles from '../styles';
 import config from '../config.json'
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -15,14 +16,13 @@ import {NavButtons,
 	checkNetworkStatus,
     renderHiddenItem,
 	LoadingComponent,
-	getSavedDevices,
-	getFavourites,
     Offline,
     getFromStore} from '../shared'
 import { Overlay } from 'react-native-elements';
 import WelcomScreen from './WelcomScreen';
 import { SwipeListView } from 'react-native-swipe-list-view';
 import useFetchState from '../shared/useFetch.js';
+import * as Progress from 'react-native-progress';
 
 function Applications({navigation}) {
 
@@ -37,7 +37,6 @@ function Applications({navigation}) {
     const [validToken, changeValid] = useState(true)
     const [welcomeVisable, setWelcVisable] = useState(false);
 
-    
     useLayoutEffect(() => {
         //Settings icon
         navigation.setOptions({

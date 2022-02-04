@@ -58,12 +58,11 @@ const getFromStore = async(options)=>{
             console.log('Getting dev list')
             fromStore.forEach((app)=>{
 
-                if (app.application_id == options.key){
+                if (app.application_id == options.appID){
                     fromStore = {...app}
-                    return
+                    return {fromStore, error}
                 }
             })
-            return {fromStore, error}
         case 'FavList':
             console.log('getting favs')
             if (error || fromStore == null){
@@ -75,7 +74,16 @@ const getFromStore = async(options)=>{
                 fromStore = []
             }
             return {fromStore, error}
+            
         case 'CommsList':
+            console.log("checking comm list")
+            for (const i in fromStore){
+                const dev = fromStore[i]
+                if (dev.application_id == options.appID && dev.device_id == options.devID){
+                    fromStore = dev.commData
+                    return{fromStore, error}
+                }
+            }
             return {fromStore, error}
         default:
             console.log('in default')
@@ -110,6 +118,9 @@ const cacheTTNdata = async(app_response) =>{ // Cache TTN data for offline use
                 }
             )
         }
+        await cacheCommData(applications)
+        console.log("finished caching",applications.length, "application")
+        
     }catch(error){
         console.log(error)
         console.log("Caching TTN data failed")
@@ -122,6 +133,53 @@ const cacheTTNdata = async(app_response) =>{ // Cache TTN data for offline use
     }catch(error){
         console.log(error)
         console.log("Caching TTN data failed")
+    }
+}
+const cacheCommData = async(applications) =>{
+    console.log('caching commdata')
+
+    let devices = applications.map((app)=>{
+        if (app.end_devices != undefined){
+            return app.end_devices
+        }
+    })
+    devices = [].concat(...devices) //Converts 2D array to 1D array
+
+    let devComms = []
+    for (const i in devices){
+
+        const dev = devices[i]
+        if (dev?.ids ==undefined){continue}
+
+        try{
+            const url = `https://au1.cloud.thethings.network/api/v3/ns/applications/${dev.ids.application_ids.application_id}/devices/${dev.ids.device_id}?field_mask=mac_state.recent_uplinks,pending_mac_state.recent_uplinks,session.started_at,pending_session`
+
+            let response = await fetch(url,
+                {
+                    method:'GET',
+                    headers:global.headers
+                }).then((response) => response.json())
+            
+            devComms.push(
+                {
+                    'application_id':dev.ids.application_ids.application_id,
+                    'device_id':dev.ids.device_id,
+                    'commData':response
+                }
+            )
+        }catch(error){
+            console.log('comm cache failed for',dev.ids.device_id, error)
+        }
+    }
+    try{
+        // console.log(devComms)
+        await AsyncStorage.setItem(global.COMM_CACHE,
+	JSON.stringify(devComms))
+        console.log('caching comms succeeded')
+
+    }catch(error){
+        console.log(error)
+        console.log("Caching comms data failed")
     }
 }
 const updateToken = async(token) =>{

@@ -7,6 +7,7 @@ import {useDataContext} from '../shared/DataContextManager'
 import useFetchState from '../shared/useFetch';
 import moment from 'moment';
 import LoadingComponent from '../shared/LoadingComponent';
+import checkNetworkStatus from '../shared/NetworkStatus';
 
 const RowContent = ({data}) =>{
     return(
@@ -42,12 +43,15 @@ function CommCard({changeLastSeen, setCircle}) {
 
     const devData = useDataContext()
     
-    const {data: commRawData, isLoading: commLoading, error: commError, retry: commRetry, netStatus} = useFetchState(`https://au1.cloud.thethings.network/api/v3/ns/applications/${devData?.appID}/devices/${devData?.name}?field_mask=mac_state.recent_uplinks,pending_mac_state.recent_uplinks,session.started_at,pending_session`, {method:'GET'})
+    const {data: commRawData, isLoading: commLoading, error: commError, retry: commRetry} = useFetchState(`https://au1.cloud.thethings.network/api/v3/ns/applications/${devData?.appID}/devices/${devData?.name}?field_mask=mac_state.recent_uplinks,pending_mac_state.recent_uplinks,session.started_at,pending_session`, {storKey:global.COMM_CACHE, type:'CommsList', devID:devData?.name, appID:devData?.appID})
     const [commData, changeCommData] = useState()
-
+    const [netStatus, setNetStatus] = useState(false)
 
     useEffect(()=>{//When comm data is returned
         async function loaded(){
+
+            const status = await checkNetworkStatus()
+            setNetStatus(status)
             
             if (commLoading) return
             if (commError) {return}
@@ -67,13 +71,12 @@ function CommCard({changeLastSeen, setCircle}) {
                 'snrs':snrs,
                 'times':times
             }
-            // return cData
             changeCommData(cData)
             calcLastSeen(cData)
         }
         loaded()
 
-    },[commLoading, commError])
+    },[commRawData])
 
     const calcLastSeen = (cData) =>{
 
@@ -95,13 +98,13 @@ function CommCard({changeLastSeen, setCircle}) {
             }
 
             if (diff/60 > 12){
-                setCircle('red')
+                netStatus? setCircle('red') : setCircle('red-hollow')
             }
             else if (diff/60 > 2){
-                setCircle('orange')
+                netStatus? setCircle('orange') : setCircle('orange-hollow')
             }
             else{
-                setCircle('green')
+                netStatus? setCircle('green') : setCircle('green-hollow')
             }
         }
         else {
@@ -112,7 +115,7 @@ function CommCard({changeLastSeen, setCircle}) {
             else{
                 changeLastSeen('Unknown')
             }
-            setCircle('red')
+            netStatus? setCircle('red') : setCircle('red-hollow')
         }
     }
     const Content = () =>{
