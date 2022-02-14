@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
-import { cacheTTNdata, checkNetworkStatus, getFromStore, setTTNToken } from '.';
+import { cacheTTNdata, getFromStore, setTTNToken } from './ManageLocStorage';
+import checkNetworkStatus from './NetworkStatus';
 import config from '../config.json'
 
 export const useFetchState = (url, options) =>{

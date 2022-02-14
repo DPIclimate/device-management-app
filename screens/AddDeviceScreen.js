@@ -75,7 +75,10 @@ function reducer(state, action){
 
         case ACTIONS.UPDATE_EUI:
             isVal = state.valEUI
-            const eui = action.payload.toLowerCase()
+
+            const eui = action?.payload?.toLowerCase()
+            console.log(eui)
+            if (eui == undefined){return state}
 
             if (!eui.includes('-') && eui.length==16){
                 isVal = true
