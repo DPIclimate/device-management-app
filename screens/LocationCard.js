@@ -13,8 +13,11 @@ function LocationCard() {
     const [mapType, setMapType] = useState('satellite')
     const [isLoading, setLoadingState] = useState(false)
 
-    const [data, changeData] = useState(useDataContext())
+    // const [data, changeData] = useState(useDataContext())
+    const data = useDataContext()
 
+    if (data == undefined) return <View/>
+    
     const toggleSwitch = () => {
         isEnabled == false ? setMapType('satellite') : setMapType('terrain')
         setIsEnabled(previousState => !previousState)
@@ -57,7 +60,6 @@ function LocationCard() {
             const isConnected = await checkNetworkStatus()
 
             if (isConnected){
-                console.log("connected")
                 await updateDevice(body)
                 changeData(body)
                 setLoadingState(false)
@@ -156,10 +158,10 @@ function LocationCard() {
 
     let rows=[]
     if (data.location != undefined){
-        rows.push(<Row key={1}><RowTemplate title={'Latitude'} data={data.location['latitude']}/></Row>)
-        rows.push(<Row key={2}><RowTemplate title={'Longitude'} data={data.location['longitude']}/></Row>)
-        rows.push(<Row key={3}><RowTemplate title={'Altitude (m)'} data={data.location['altitude'] != undefined? data.location['altitude']: "-"}/></Row>)
-        rows.push(<Row key={4}><RowTemplate title={'Accuracy (m)'} data={data.location['accuracy'] != undefined? data.location['accuracy']: "-"}/></Row>)
+        rows.push(<Row key={1}><RowTemplate title={'Latitude'} data={data.location?.latitude}/></Row>)
+        rows.push(<Row key={2}><RowTemplate title={'Longitude'} data={data.location?.longitude}/></Row>)
+        rows.push(<Row key={3}><RowTemplate title={'Altitude (m)'} data={data.location?.altitude != undefined? data.location?.altitude: "-"}/></Row>)
+        rows.push(<Row key={4}><RowTemplate title={'Accuracy (m)'} data={data.location?.accuracy != undefined? data.location?.accuracy: "-"}/></Row>)
     }else{
         return (
         <Card>

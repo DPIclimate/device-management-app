@@ -1,12 +1,15 @@
-import React, { useContext } from 'react';
+import React from 'react';
 import Card from '../shared/Card';
 import { Col, Row, Grid } from "react-native-easy-grid";
-import { Text, Linking } from 'react-native';
+import { Text, Linking, View, TouchableHighlight, Image } from 'react-native';
 import globalStyles from '../styles';
 import {useDataContext} from '../shared/DataContextManager'
+import LoadingComponent from '../shared/LoadingComponent'
 
-function DeviceCard() {
+function DeviceCard({params, navigation}) {
     const data = useDataContext()
+
+    if (data == undefined) return <View/>
 
     const RowTemplate = ({title, item}) =>{
         return(
@@ -30,7 +33,12 @@ function DeviceCard() {
 
     return (
         <Card>
-            <Text style={globalStyles.cardTitle}>Device Details</Text>
+            <View style={{flexDirection:'row', justifyContent:'space-between', alignItems:'center'}}>
+                <Text style={globalStyles.cardTitle}>Device Details</Text>
+                <TouchableHighlight acitveOpacity={0.6} underlayColor="#DDDDDD" onPress={() => navigation.navigate('MoveDevice', {data:data})}>
+                    <Image style={{width:25, height:25, padding:5}} source={require('../assets/move.png')}/>
+                </TouchableHighlight>
+                </View>
             <Grid>
                 {rows}
             </Grid>

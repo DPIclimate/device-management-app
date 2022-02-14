@@ -4,8 +4,11 @@ import { Grid } from "react-native-easy-grid";
 import { Text, View, TouchableHighlight, Image,StyleSheet, Alert} from 'react-native';
 import globalStyles from '../styles';
 import * as ImagePicker from 'expo-image-picker';
+import { useDataContext } from '../shared/DataContextManager';
 
 function PhotosCard({params, navigation}) {
+
+    const devData = useDataContext()    
     const [IMAGES, setImages ] = useState([]);
 
     const handlePress = () =>{
@@ -54,6 +57,7 @@ function PhotosCard({params, navigation}) {
         img.push(result)
         setImages(img);
     }
+    if (devData == undefined) return <View/>
     return (
         <Card>
              <View style={{flexDirection:'row', justifyContent:'space-between', alignItems:'center'}}>

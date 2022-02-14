@@ -2,7 +2,6 @@ import React, { useEffect, useState } from 'react';
 import {View,
 	Text,
 	Alert,
-	InteractionManager,
 	StyleSheet
 } from 'react-native'
 import globalStyles from '../styles';
@@ -10,108 +9,64 @@ import config from '../config.json'
 import {NavButtons,
 	renderItem,
     renderHiddenItem,
-	checkNetworkStatus,
 	LoadingComponent,
-	getFavourites,
     Offline,
-    getDevice,
-	getApplication
+    checkNetworkStatus,
+    getFromStore
 } from '../shared/index.js'
 import { SwipeListView } from 'react-native-swipe-list-view';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import useFetchState from '../shared/useFetch';
+
 
 function Devices({route, navigation}) {
 
-    const [devData, changeData] = useState([]);
-    const [isLoading, setLoading] = useState(true)
-    const [isConnected, changeIsConnected] = useState(false)
-    const [isRendered, changeRenderState] = useState(false)
-    const [noResults, setNoResults] = useState(false)
+    const [listData, changeData] = useState([])
+    const [noData, setNoData] = useState(false)
+    const [netStatus, setNetStatus] = useState(false)
 
-    useEffect(() =>{
-        console.log(route.params)
-        async function retrieveData(){
-            let connected = await checkNetworkStatus()
-            if (connected){
-                getDevices()
-            }
-            else{
-                getDevIds()
-            }
-            changeIsConnected(connected)
+    const {data, isLoading, error, retry} = useFetchState(`${config.ttnBaseURL}/${route.params.application_id}/devices?field_mask=attributes,locations,description`, {type:'DeviceList', appID:route.params?.application_id, storKey:global.APP_CACHE})
+
+    useEffect(()=>{
+
+        async function loaded(){
+            const status = await checkNetworkStatus()
+            setNetStatus(status)
+
+            if (isLoading) return
+            setListData(data)
         }
+        loaded()
+    },[isLoading])
+    
+    const setListData = async(data) =>{
+        if (isLoading) return
+        if (error) return
 
-        InteractionManager.runAfterInteractions(() =>{
-            //Testing if this improves performance
-            changeRenderState(true)
-            retrieveData()
-        })
-    },[])
-
-    const getDevices = async () =>{
-        
-        const favs = await getFavourites(global.DEV_FAV)
-
+        const {fromStore: favs, error} = await getFromStore({type:'FavList', storKey:global.DEV_FAV})
         try{
-            const url = `${config.ttnBaseURL}/${route.params.application_id}/devices`
-            let response = await fetch(url, {
-                method:"GET",
-                headers:global.headers
-            }).then((response) => response.json())
-
-            response = response['end_devices']
-            const devices = response.map((dev) => ({id:dev['ids']['device_id'], isFav:favs.includes(dev['ids']['device_id'])}))
+            const devices = data.end_devices.map((dev) =>({id:dev['ids']['device_id'], isFav:favs.includes(dev['ids']['device_id'])}))
             changeData(devices)
-        }
-        catch(error){
-            setNoResults(true)
-        }
-        
-        setLoading(false)
-    }
-
-    const getDevIds = async() =>{
-        
-        try{
-            const favs = await getFavourites(global.DEV_FAV)
-            const app = await getApplication(route.params.application_id)
-            const devices = app['end_devices']
-
-            let listOfIds = devices.map((dev) => ({id:dev['ids']['device_id'], isFav:favs.includes(dev['ids']['device_id'])}))
-            changeData(listOfIds)
 
         }catch(error){
-            //May trigger if no devices in application
-
-            setNoResults(true)
-            console.log(error)
+            setNoData(true)
         }
-        setLoading(false)
-
     }
 
     const handlePress = async(item) =>{
 
-        const devName = item.id
-        let response = null
+        let device = null
 
-        if (isConnected){
-            const url = `${config.ttnBaseURL}/${route.params.application_id}/devices/${devName}?field_mask=attributes`
+        data.end_devices.forEach((dev)=>{
+            if (dev.ids.device_id == item.id){
+                device = dev
+            }
+        })
 
-            let res = await fetch(url, {
-                method:"GET",
-                headers:global.headers
-            }).then((response) => response.json())
-
-            response = res
-        }
-        else{
-            response = await getDevice(route.params.application_id, devName)
-        }
         try{
-            const uid = response['attributes']['uid']
-            const application_id = response['ids']['application_ids']['application_id']
-            const name = response['ids']['device_id']
+            const uid = device['attributes']['uid']
+            const application_id = device['ids']['application_ids']['application_id']
+            const name = device['ids']['device_id']
             
             let devData = {
                 'appID':application_id,
@@ -127,11 +82,11 @@ function Devices({route, navigation}) {
             Alert.alert("No UID exists", "Would you like to assign a UID to this device?",[
                 {
                     text:"Yes",
-                    onPress:() => navigate(response, "AddDeviceScreen")
+                    onPress:() => navigate(device, "AddDeviceScreen")
                 },
                 {
                     text: "Continue Without",
-                    onPress:() => isConnected ? navigate(response, 'ManageDevices'): Alert.alert('Cannot show details', 'Cannot show device with no UID while you are offline')
+                    onPress:() => netStatus ? navigate(device, 'ManageDevices'): Alert.alert('Cannot show details', 'Cannot show device with no UID while you are offline')
                 },
                 {
                     text:"Cancel",
@@ -141,12 +96,12 @@ function Devices({route, navigation}) {
         }
     }
 
-    const navigate = (response, screen) =>{
+    const navigate = (device, screen) =>{
         //Navigate to withough a UID
         let devData ={
-            'appID':response['ids']['application_ids']['application_id'],
-            'name':response['ids']['device_id'],
-            'eui':response['ids']['dev_eui'],
+            'appID':device['ids']['application_ids']['application_id'],
+            'name':device['ids']['device_id'],
+            'eui':device['ids']['dev_eui'],
             'uidPresent':false
         }
         navigation.navigate(screen,{autofill:devData})
@@ -158,7 +113,7 @@ function Devices({route, navigation}) {
           }
 
         try{
-            let favs = await getFavourites(global.DEV_FAV)
+            let {fromStore: favs, error} = await getFromStore({type:'FavList', storKey:global.DEV_FAV})
 
             if (favs.includes(data.item.id)){
                 favs.splice(favs.indexOf(data.item.id),1)
@@ -173,7 +128,7 @@ function Devices({route, navigation}) {
             console.log(error)
         }
 
-        changeData(devData.map(item => item.id == data.item.id? {...item, isFav:!item.isFav}:item))
+        changeData(listData.map(item => item.id == data.item.id? {...item, isFav:!item.isFav}:item))
 
     }
     return (
@@ -181,29 +136,25 @@ function Devices({route, navigation}) {
             <Text style={[globalStyles.title,styles.title]}>{route.params.application_id}</Text>
             <Text style={[globalStyles.text, styles.text]}>{route.params.app_description}</Text>
 
-            {isRendered?
-                <View style={{position:'absolute', right:0, top:5, margin:10}}>
-                    <Offline isConnected={isConnected}/>
-                </View>:<View/>}
+            <View style={{position:'absolute', right:0, top:5, margin:10}}>
+                <Offline isConnected={netStatus}/>
+            </View>
 
-            {!noResults ?<LoadingComponent loading={isLoading}/> :<Text style={{textAlign:'center', fontWeight:'bold', paddingTop:20}}>No devices in application</Text>}
+            {!noData ?<LoadingComponent loading={isLoading}/> :<Text style={{textAlign:'center', fontWeight:'bold', paddingTop:20}}>No devices in application</Text>}
 
-                {isRendered? 
-                    <SwipeListView
-                        style={[{flex:1},globalStyles.list]} 
-                        data={devData.sort((a,b)=>{
-                            return (a.isFav === b.isFav) ? a.id > b.id : a.isFav ? -1 : 1
+            <SwipeListView
+                style={[{flex:1},globalStyles.list]} 
+                data={listData.sort((a,b)=>{
+                    return (a.isFav === b.isFav) ? a.id > b.id : a.isFav ? -1 : 1
 
-                        })}
-                        renderItem={(item) => renderItem(item, handlePress, 'Devices')}
-                        keyExtractor={(item, index) => index.toString()}
-                        renderHiddenItem={(data, rowMap) => renderHiddenItem(data, rowMap, toggleFavourite)}
-                        leftOpenValue={80}
-                        stopRightSwipe={1}
-                        contentContainerStyle={{ paddingBottom: 90 }}
-                    />
-                : 
-                <View style={{flex:1}}/>}
+                })}
+                renderItem={(item) => renderItem(item, handlePress, 'Devices')}
+                keyExtractor={(item, index) => index.toString()}
+                renderHiddenItem={(data, rowMap) => renderHiddenItem(data, rowMap, toggleFavourite)}
+                leftOpenValue={80}
+                stopRightSwipe={1}
+                contentContainerStyle={{ paddingBottom: 90 }}
+            />
 
             <NavButtons navigation={navigation}/>
         </View>

@@ -12,6 +12,8 @@ import {
 } from '../screens/index';
 import Camera from '../screens/Camera'
 import SettingsScreen from '../screens/SettingsScreen';
+import MoveDevice from '../screens/MoveDevice';
+import AppList from '../screens/AppList';
 
 const { Screen, Navigator } = createStackNavigator();
 
@@ -74,6 +76,16 @@ function ScreenStack() {
       name="SettingsScreen"
       component={SettingsScreen}
       options={{title:"Settings"}}
+      />
+      <Screen
+      name="MoveDevice"
+      component={MoveDevice}
+      options={{title:"Move Device"}}
+      />
+      <Screen
+      name="AppList"
+      component={AppList}
+      options={{title:"App List"}}
       />
     </Navigator>
   );

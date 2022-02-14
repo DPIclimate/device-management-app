@@ -15,6 +15,7 @@ import * as Location from 'expo-location';
 import {checkNetworkStatus, registerDevice, LoadingComponent, updateDevice, checkUnique, updateDetails, saveDevice} from '../shared'
 import { AsyncAlert } from '../shared/AsyncAlert';
 
+
 const initialState = {
     appID:'',
     devName:'',
@@ -74,7 +75,10 @@ function reducer(state, action){
 
         case ACTIONS.UPDATE_EUI:
             isVal = state.valEUI
-            const eui = action.payload.toLowerCase()
+
+            const eui = action?.payload?.toLowerCase()
+            console.log(eui)
+            if (eui == undefined){return state}
 
             if (!eui.includes('-') && eui.length==16){
                 isVal = true
@@ -249,6 +253,7 @@ const AddDeviceScreen = ({ route, navigation }) => {
 
             if (isUnique){
                 success = await registerDevice(device)
+                if (success) Alert.alert("Success!", "Device successfully registered")
             }
             else{
                 let update = await AsyncAlert("Device already exists",`Device with this name already exists in this application, would you like to add these updated details to the device?`)

@@ -133,8 +133,8 @@ const HelpCard = () =>{
 const DPI_TAG = () =>{
     return(
         <View style={{alignItems:'center'}}>
-            <Image style={{height:50}} resizeMode="contain" source={require('../assets/dpiLogo.png')}/>
-            <Text style={{fontSize:10, textAlign:'center', paddingTop:10}}>This app was produced by the NSW Department of Primary Industries Climate Change Reasearch Project, funded by the NSW Climate Change Fund.</Text>
+            <Image style={{height:60}} resizeMode="contain" source={require('../assets/dpiLogo.png')}/>
+            <Text style={{fontSize:10, textAlign:'center', paddingTop:10}}>This app was produced by the NSW Department of Primary Industries Climate Change Research Project, funded by the NSW Climate Change Fund.</Text>
         </View>
     )
 }

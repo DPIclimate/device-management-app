@@ -1,33 +1,41 @@
 import React, { useEffect, useState, useLayoutEffect } from 'react';
 import '../global.js'
-import {View, Text, Image, TouchableHighlight,TouchableOpacity, Alert, Pressable, InteractionManager, StyleSheet} from 'react-native'
+import {View,
+	Text,
+	Image,
+	TouchableHighlight,TouchableOpacity,
+	Pressable,
+	StyleSheet,
+} from 'react-native'
 import globalStyles from '../styles';
 import config from '../config.json'
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useIsFocused } from '@react-navigation/native';
-import {NavButtons, renderItem, checkNetworkStatus,renderHiddenItem, LoadingComponent, cacheTTNdata, getTTNToken, isFirstLogon, getApplicationList, validateToken, getSavedDevices, getFavourites} from '../shared'
+import {NavButtons,
+	renderItem,
+	checkNetworkStatus,
+    renderHiddenItem,
+	LoadingComponent,
+    Offline,
+    getFromStore} from '../shared'
 import { Overlay } from 'react-native-elements';
 import WelcomScreen from './WelcomScreen';
 import { SwipeListView } from 'react-native-swipe-list-view';
-import { getApplications } from '../shared/InterfaceTTN';
-import { Offline } from '../shared/OfflineIcon.js';
-import useFetch from '../shared/useFetch.js';
-
-export  const DataContext = React.createContext()
+import useFetchState from '../shared/useFetch.js';
+import * as Progress from 'react-native-progress';
 
 function Applications({navigation}) {
 
-    const [appData, changeData] = useState([]);
+    const [listData, changeData] = useState([]);
+    const {data, isLoading, error, retry} = useFetchState(`${config.ttnBaseURL}?field_mask=description`,{type:"ApplicationList", storKey:global.APP_CACHE})
+    const [netStatus, setNetStaus] = useState(false)
+    const [noData, setNoData] = useState(false)
 
-    const [isLoading, setLoading] = useState(true)
     const [savedDevices, setSavedDevices] = useState(false)
     const isFocused = useIsFocused()
-    const [isConnected, changeIsConnected] = useState(false)
 
     const [validToken, changeValid] = useState(true)
-    const [firstLoad, changeFirstLoad] = useState(true)
     const [welcomeVisable, setWelcVisable] = useState(false);
-    const [reload, setReload] = useState(false)
 
     useLayoutEffect(() => {
         //Settings icon
@@ -36,55 +44,42 @@ function Applications({navigation}) {
         });
       }, [navigation]);
 
-    const toggleReload = () =>{
-        setReload(!reload)
-    }
-
     useEffect(()=>{
-        async function retrieveData(){
 
-            let fLogon = await isFirstLogon()
-        
-            if (fLogon && firstLoad && welcomeVisable == false){
+        async function loaded(){
+
+            if (isLoading) return
+
+            if (error == 'User not logged in'){
+                console.log('use not logged in')
                 setWelcVisable(true)
-                changeFirstLoad(false)
             }
-            else if(welcomeVisable == false){
-                global.TTN_TOKEN = await getTTNToken()
-                global.valid_token = await validateToken(global.TTN_TOKEN)
-
-                let connected = await checkNetworkStatus()
-
-                if (connected){
-
-                    let apps = await getApplications()
-                    setListData(apps)
-                    cacheTTNdata(apps)
-                }else{
-                    setListFromStore()
-                }
-                changeIsConnected(connected)
+            else{
+                setListData(data)
             }
         }
-        retrieveData()
-
-    },[,welcomeVisable, reload])
+        loaded()
+    },[isLoading])
 
     useEffect(() =>{
-        //When screen is visible check for saved devices and network status 
+
         async function onFocus(){
+            const status = await checkNetworkStatus()
+            setNetStaus(status)
             checkSavedReg()
-            const connected = await checkNetworkStatus()
-            changeIsConnected(connected)
         }
         onFocus()
         
     }, [isFocused])
 
+    const handleTmp = async() =>{
+        //Temporty button to clear app storage
+        AsyncStorage.clear()
+    }
     const Icon = () =>{
   
         return (
-            // <TouchableOpacity onPress={() => setWelcVisable(true)}>
+            // <TouchableOpacity onPress={() => handleTmp()}>
           <TouchableOpacity onPress={() => navigation.navigate('SettingsScreen')}>
             <Image source={require('../assets/settingsWhite.png')} style={{width:25, height:25, marginRight:15}}/>
           </TouchableOpacity>
@@ -92,9 +87,8 @@ function Applications({navigation}) {
       }
 
     const checkSavedReg = async() =>{ //Check for saved devices or updates
-        let saved = []
 
-        saved = await getSavedDevices()
+        const {fromStore: saved, error} = await getFromStore({storKey:global.DEV_STORE, type:'QueDeviceList'})
 
         if (saved.length != 0){
             setSavedDevices(true)
@@ -103,41 +97,31 @@ function Applications({navigation}) {
             setSavedDevices(false)
         }
     }
-    const setListFromStore = async() =>{ //Read application data from cache
+    const setListData = async(data) => {//Request applications from ttn
+        if (isLoading) return
+        if (error != null && error != undefined) {changeValid(false);return}
 
-        const apps = await getApplicationList()
-        const favs = await getFavourites(global.APP_FAV)
+        const {fromStore: favs, error} = await getFromStore({type:'FavList', storKey:global.APP_FAV})
 
-        if (apps != null){
+        if (netStatus){
+            if (data?.applications == undefined){setNoData(true); return}
+            const apps = data?.applications
 
-            let listOfIds = apps.map((app) => ({id:app['application_id'], isFav:favs.includes(app['application_id']), description:app['description']}))
-            changeData(listOfIds)
-
-        }
-        else{
-            changeData(null)
-        }
-        setLoading(false)
-    }
-    const setListData = async(apps) => {//Request applications from ttn
-
-        if (apps != null){
-
-            const favs = await getFavourites(global.APP_FAV)
             const appList = apps.map((app) => ({id:app['ids']['application_id'], isFav:favs.includes(app['ids']['application_id']), description:app['description']}))
 
             changeData(appList)
             changeValid(true)
         }
         else{
-            changeValid(false)
+            if (data.length == 0){setNoData(true); return}
+            let listOfIds = data.map((app) => ({id:app['application_id'], isFav:favs.includes(app['application_id']), description:app['description']}))
+            changeData(listOfIds)
         }
-        setLoading(false)
     }
 
     const DataError = () =>{
         
-        if (!isConnected && appData == null){
+        if (!netStatus && listData == null){
 
             return(
                 <Text style={[globalStyles.text, {justifyContent:'center'}]}>No applications to display</Text>
@@ -166,7 +150,7 @@ function Applications({navigation}) {
         }
         return(
             <View style={{width:200, height:45, position:'absolute', justifyContent:'flex-end', flexDirection:'row', right:0, top:5, margin:10}} >
-                <Offline isConnected={isConnected}/>
+                <Offline isConnected={netStatus}/>
                 <SavedDevices/>
             </View>
         )
@@ -178,7 +162,7 @@ function Applications({navigation}) {
           }
 
         try{
-            let favs = await getFavourites(global.APP_FAV)
+            let {fromStore: favs, error} = await getFromStore({type:'FavList', storKey:global.APP_FAV})
 
             if (favs.includes(data.item.id)){
                 favs.splice(favs.indexOf(data.item.id),1)
@@ -193,7 +177,7 @@ function Applications({navigation}) {
             console.log(error)
         }
 
-        changeData(appData.map(item => item.id == data.item.id? {...item, isFav:!item.isFav}:item))
+        changeData(listData.map(item => item.id == data.item.id? {...item, isFav:!item.isFav}:item))
 
     }
 
@@ -210,7 +194,7 @@ function Applications({navigation}) {
                 <View style={[{flex:1}, globalStyles.list]}>
 
                     <SwipeListView
-                    data={appData.sort((a,b)=>{
+                    data={listData.sort((a,b)=>{
                         return (a.isFav === b.isFav) ? a.id > b.id : a.isFav ? -1 : 1
 
                     })}
@@ -230,7 +214,7 @@ function Applications({navigation}) {
                 <View style={{position:'absolute'}}>
 
                     <Pressable style={[globalStyles.redButton, styles.redButtonLoc]} onPress={()=> navigation.navigate('SettingsScreen')}>
-                        <Text style={globalStyles.redText}>Fix Token</Text>
+                        <Text style={{color:'white'}}>Fix Token</Text>
                     </Pressable>
 
                     <TouchableOpacity style={{width:300, height:50, paddingTop:10}} onPress={()=> toggleReload()}>
@@ -241,7 +225,7 @@ function Applications({navigation}) {
             }
 
             <Overlay isVisible={welcomeVisable} overlayStyle={{borderRadius:10, width:350, height:650, backgroundColor:'#f3f2f3'}}>
-                <WelcomScreen visible={setWelcVisable} firstLoad={changeFirstLoad} validT/>
+                <WelcomScreen retry={retry} visible={setWelcVisable} validT/>
             </Overlay >
         </View>
     );

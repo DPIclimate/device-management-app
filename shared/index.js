@@ -11,21 +11,16 @@ export {default as InterfaceTTN,
     updateDevice, 
     validateToken, 
     checkUnique, 
-    updateDetails
+    updateDetails,
+    moveDevice
 } from './InterfaceTTN'
 
 export {
-    getDevice, 
     saveDevice, 
-    getApplication, 
     cacheTTNdata, 
     updateToken, 
-    getTTNToken, 
-    isFirstLogon, 
-    getApplicationList, 
-    getSavedLocations, 
-    getSavedDevices,
-    getFavourites,
+    setTTNToken, 
+    getFromStore
 } from './ManageLocStorage'
 
 export {Offline} from './OfflineIcon'
