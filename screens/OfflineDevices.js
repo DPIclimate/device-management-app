@@ -14,7 +14,8 @@ import {registerDevice,
 	checkNetworkStatus,
 	checkUnique,
 	updateDetails,
-    getFromStore
+    getFromStore,
+    moveDevice
 } from '../shared'
 import { AsyncAlert } from '../shared/AsyncAlert';
 import { SwipeListView } from 'react-native-swipe-list-view';
@@ -82,12 +83,28 @@ function OfflineDevices({ route, navigation }) {
 
         let success = false
 
-        if (item.type == 'registerDevice'){
-            success = await handleRegister(index)
-        }
-        else{
-            const selected = savedDevices[index]
-            success = await updateDevice(selected)
+        switch (item.type) {
+            case 'registerDevice':{
+                success = await handleRegister(index)
+                break;
+            }
+            case 'locationUpdate':{
+                const selected = savedDevices[index]
+                success = await updateDevice(selected)
+                break;
+            }
+            case 'descriptionUpdate':{
+                const selected = savedDevices[index]
+                success = await updateDevice(selected)
+                break;
+            }
+            case 'move':{
+                const selected = savedDevices[index]
+                success = await moveDevice(selected, selected.moveTo)
+                break;
+            }
+            default:
+                break;
         }
         
         console.log("success status", success)
@@ -145,7 +162,7 @@ function OfflineDevices({ route, navigation }) {
     const renderItem = (data, rowMap) => {
 
         const {item, index} = data
-        
+        console.log(item)
         const Content = () =>{ //Returns the content of a card to display
 
             switch (item.type){
@@ -173,6 +190,14 @@ function OfflineDevices({ route, navigation }) {
                             <Text style={[globalStyles.text, styles.cardText]}>Note: {item.end_device.description}</Text>
                         </>
                     )
+                case 'move':
+                    return (
+                        <> 
+                            <Text style={[globalStyles.text, styles.cardText]}>Device Name: {item.name}</Text>
+                            <Text style={[globalStyles.text, styles.cardText]}>Move From: {item.appID}</Text>
+                            <Text style={[globalStyles.text, styles.cardText]}>Move To: {item.moveTo}</Text>
+                        </>
+                    )
                 }
             } 
         const Title = () =>{
@@ -180,6 +205,7 @@ function OfflineDevices({ route, navigation }) {
             if (item.type == 'registerDevice') return 'Deploy'
             if(item.type == 'locationUpdate') return 'Location Update'
             if(item.type == 'descriptionUpdate') return 'Notes Update'
+            if(item.type == 'move') return 'Move Device'
         }
         return(
             <View>

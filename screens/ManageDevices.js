@@ -82,6 +82,8 @@ const ManageDevices = ({route, navigation}) => {
                 break;
             }
         }
+        //GXYPLW
+        if (device == undefined) Alert.alert("No device found")
         device = createDeviceObj(device)
         changeDevData(device)
     }
@@ -198,7 +200,7 @@ const ManageDevices = ({route, navigation}) => {
                     
 
                     <Text style={[globalStyles.text2, globalStyles.subtitleView]}>Device UID</Text>
-                    <TextInput value={deviceUID} placeholder='e.g ABC123 (Max. 6 Characters)' style={globalStyles.inputWborder} onChangeText={(e) => {uidChange(e); e.length> 0 ? setUIDPresent(true):setUIDPresent(false)}} autoCorrect={false} autoCapitalize='none'/>
+                    <TextInput value={deviceUID} placeholder='e.g ABC123 (Max. 6 Characters)' style={globalStyles.inputWborder} onChangeText={(e) => {uidChange(e.toUpperCase()); e.length> 0 ? setUIDPresent(true):setUIDPresent(false)}} autoCorrect={false} autoCapitalize='none'/>
                     <View style={{paddingTop:15, flexDirection:'row', justifyContent:'space-between'}}>
                         {devData? <LastSeen/>:<View/>}
                         <SearchButton/>        
@@ -206,7 +208,7 @@ const ManageDevices = ({route, navigation}) => {
                     
                     <DataContextProvider value={devData}>
 
-                        <DeviceCard/>
+                        <DeviceCard navigation={navigation}/>
                         <CommCard changeLastSeen={changeLastSeen} setCircle={setCircle}/>
                         <LocationCard/>  
                         <NotesCard/>

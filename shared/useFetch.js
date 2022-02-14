@@ -31,7 +31,7 @@ export const useFetchState = (url, options) =>{
 				try{
 					console.log(url)
 					if (global.TTN_TOKEN == null) throw Error("User not logged in")
-					if (url.includes(undefined)) throw Error("Invalid URL")
+					if (url.includes(undefined)) throw Error(`Invalid URL`)
 
 					console.log('fetching')
 					const resp = await fetch(url, { 

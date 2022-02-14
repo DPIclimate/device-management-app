@@ -250,6 +250,7 @@ const AddDeviceScreen = ({ route, navigation }) => {
 
             if (isUnique){
                 success = await registerDevice(device)
+                if (success) Alert.alert("Success!", "Device successfully registered")
             }
             else{
                 let update = await AsyncAlert("Device already exists",`Device with this name already exists in this application, would you like to add these updated details to the device?`)

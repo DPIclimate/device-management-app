@@ -1,20 +1,22 @@
 import config from '../config';
 import Error from './ErrorClass'
 import { Alert } from 'react-native';
+import { useFetch } from './useFetch';
 
 const registerDevice = async(device) =>{
 
     console.log('in register')
 
-    console.log('device is unique')
-    const appID = device['end_device']['ids']['application_ids']['application_id']
-    const deviceName = device['end_device']['ids']['device_id']
+    // return true
+    const appID = device.end_device.ids.application_ids.application_id
+    const deviceName = device.end_device.ids.device_id
 
-    if (device['end_device']['ids']['dev_eui'].length == 0){
+    if (device.end_device.ids.dev_eui.length == 0 && device.type != 'move'){
         //If eui was not providered request one from TTN
-        device['end_device']['ids']['dev_eui'] = await getEUI(appID)
+        device.end_device.ids.dev_eui = await getEUI(appID)
     }
-    
+    delete device.end_device.type
+
     try{
         console.log('making request')
 
@@ -32,10 +34,7 @@ const registerDevice = async(device) =>{
             //If key code exists then an error occured
             throw new Error(json['code'], json['message'], deviceName)
         }
-        else{
-            Alert.alert("Success!", "Device was successfully registered.")
-            return true
-        }
+        return true
     }
     catch (error){
         console.log("An error occured", error)
@@ -43,7 +42,7 @@ const registerDevice = async(device) =>{
         return false
     }
 
-}
+} 
 const getEUI = async (appID) =>{
 
     //Request EUI from ttn
@@ -236,4 +235,76 @@ const getApplications = async() => {//Request applications from ttn
     }
 
 }
-export {registerDevice, getEUI, updateDevice, validateToken, checkUnique, updateDetails, getApplications}
+const deleteDevice = async(device) =>{
+
+    console.log('deleting device', device.ids.device_id)
+    const appID = device.ids.application_ids.application_id
+    const devID = device.ids.device_id
+
+    const url = `${config.ttnBaseURL}/${appID}/devices/${devID}`
+    console.log('deleting', url)
+    try{
+        const response = await fetch(url,{
+            method:'DELETE',
+            headers:global.headers
+        })
+
+        if ('code' in response){
+            //If key code exists then an error occured
+            throw new Error(json['code'], json['message'], deviceName)
+        }
+        return true
+    }catch(error){
+        console.log("An error occured", error)
+        error.alertWithCode()
+        return false
+    }
+    
+}  
+const moveDevice = async(device, moveTo) =>{
+
+    //Get current device object
+    const app = await useFetch(`${config.ttnBaseURL}/${device.appID}/devices?field_mask=attributes,locations,description`, {type:'DeviceList', appID:device.appID, storKey:global.APP_CACHE}, true)
+
+    let selectedDevice = null
+    for (const i in app?.end_devices){
+      const dev = app.end_devices[i]
+      if (dev.ids.device_id == device.name){
+        selectedDevice = dev
+      }
+    }
+
+    if (selectedDevice == null) {Alert.alert("Failed to move", "An error occured trying to find device, move aborted"); return}
+
+    //Delete old device
+    console.log("deleting")
+    success = await deleteDevice(selectedDevice)
+    if (!success){
+      Alert.alert("Failed to remove", "Was able to register device with new application, but failed to remove the existing device")
+      return false
+    }
+    
+    //Register new device
+    selectedDevice.ids.application_ids.application_id = moveTo
+    selectedDevice.type = 'move'
+    //Required for register device function to work
+    selectedDevice = {
+      'end_device':selectedDevice
+    }
+    
+    let success = await registerDevice(selectedDevice)
+    if (!success) {
+      Alert.alert("Move failed", "Moving device failed for an unkown reason")
+      return false
+    }
+}
+export {
+    registerDevice,
+    getEUI,
+    updateDevice,
+    validateToken,
+    checkUnique,
+    updateDetails,
+    getApplications,
+    moveDevice
+    }

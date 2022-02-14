@@ -52,7 +52,7 @@ const getFromStore = async(options)=>{
             //Returns list of applications
             console.log('getting application list')
             return {fromStore, error}
-
+            break;
         case 'DeviceList':
             //Returns list of devices in a specific application
             console.log('Getting dev list')
@@ -60,21 +60,22 @@ const getFromStore = async(options)=>{
 
                 if (app.application_id == options.appID){
                     fromStore = {...app}
-                    return {fromStore, error}
                 }
             })
+            return {fromStore, error}
         case 'FavList':
             console.log('getting favs')
             if (error || fromStore == null){
                 fromStore = []
             }
             return {fromStore,error}
+            break;
         case 'QueDeviceList':
             if (error || fromStore == null){
                 fromStore = []
             }
             return {fromStore, error}
-            
+            break;
         case 'CommsList':
             console.log("checking comm list")
             for (const i in fromStore){
@@ -85,9 +86,11 @@ const getFromStore = async(options)=>{
                 }
             }
             return {fromStore, error}
+            break;
         default:
             console.log('in default')
             return {fromStore, error}
+            break;
     }
 }
 const cacheTTNdata = async(app_response) =>{ // Cache TTN data for offline use

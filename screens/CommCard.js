@@ -44,6 +44,7 @@ function CommCard({changeLastSeen, setCircle}) {
     const devData = useDataContext()
     
     const {data: commRawData, isLoading: commLoading, error: commError, retry: commRetry} = useFetchState(`https://au1.cloud.thethings.network/api/v3/ns/applications/${devData?.appID}/devices/${devData?.name}?field_mask=mac_state.recent_uplinks,pending_mac_state.recent_uplinks,session.started_at,pending_session`, {storKey:global.COMM_CACHE, type:'CommsList', devID:devData?.name, appID:devData?.appID})
+
     const [commData, changeCommData] = useState()
     const [netStatus, setNetStatus] = useState(false)
 
@@ -56,6 +57,7 @@ function CommCard({changeLastSeen, setCircle}) {
             if (commLoading) return
             if (commError) {return}
 
+            console.log("here in loaded")
             const recent_uplinks = commRawData?.mac_state?.recent_uplinks
 
             const m_types = recent_uplinks?.map((data) => data.payload?.m_hdr?.m_type).reverse()
@@ -76,7 +78,7 @@ function CommCard({changeLastSeen, setCircle}) {
         }
         loaded()
 
-    },[commRawData])
+    },[commRawData, commError])
 
     const calcLastSeen = (cData) =>{
 
