@@ -6,12 +6,12 @@ import { useFetch } from './useFetch';
 const registerDevice = async(device) =>{
 
     console.log('in register')
-
+    console.log(device)
     // return true
     const appID = device.end_device.ids.application_ids.application_id
-    const deviceName = device.end_device.ids.device_id
+    const deviceID = device.end_device.ids.device_id
 
-    if (device.end_device.ids.dev_eui.length == 0 && device.type != 'move'){
+    if (device.end_device?.ids?.dev_eui?.length == 0 && device.type != 'move'){
         //If eui was not providered request one from TTN
         device.end_device.ids.dev_eui = await getEUI(appID)
     }
@@ -32,7 +32,7 @@ const registerDevice = async(device) =>{
 
         if ('code' in json){
             //If key code exists then an error occured
-            throw new Error(json['code'], json['message'], deviceName)
+            throw new Error(json['code'], json['message'], deviceID)
         }
         return true
     }
@@ -60,10 +60,10 @@ const updateDevice = async(data) =>{
     let device = {...data}
     delete device['type']
     const appID = device['end_device']['ids']['application_ids']['application_id']
-    const deviceName = device['end_device']['ids']['device_id']
+    const deviceID = device['end_device']['ids']['device_id']
 
     try{
-        const url =  `${config.ttnBaseURL}/${appID}/devices/${deviceName}`
+        const url =  `${config.ttnBaseURL}/${appID}/devices/${deviceID}`
         const response = await fetch(url,{
             method:"PUT",
             headers:global.headers,
@@ -72,7 +72,7 @@ const updateDevice = async(data) =>{
 
         if ('code' in response){
             //If key code exists then an error occured
-            throw new Error(json['code'], json['message'], deviceName)
+            throw new Error(json['code'], json['message'], deviceID)
         }
         else{
             Alert.alert('Device Successfully updated')
@@ -91,7 +91,7 @@ const checkUnique = async(data) =>{ //Checks that a particular device is unique
     console.log('checking unique')
     const deviceEUI = data['end_device']['ids']['dev_eui']
     const deviceUID = data['end_device']['attributes']['uid']
-    const deviceName = data['end_device']['ids']['device_id']
+    const deviceID = data['end_device']['ids']['device_id']
     const appID = data['end_device']['ids']['application_ids']['application_id']
 
     let url =  `${config.ttnBaseURL}/${appID}/devices?field_mask=attributes`
@@ -100,7 +100,7 @@ const checkUnique = async(data) =>{ //Checks that a particular device is unique
         headers:global.headers
     }).then((response) => response.json())
     .then((response) =>{
-        if ('code' in response) throw new Error(response['code'], response['message'], deviceName)
+        if ('code' in response) throw new Error(response['code'], response['message'], deviceID)
         return response
 
     }).catch((error) =>{ 
@@ -115,12 +115,12 @@ const checkUnique = async(data) =>{ //Checks that a particular device is unique
     const devices = response['end_devices']
     let euiList = []
     let uidList = []
-    let nameList = []
+    let IDList = []
 
     devices.map((dev) =>{
         try{
             euiList.push(dev['ids']['dev_eui'])
-            nameList.push(dev['ids']['device_id'])
+            IDList.push(dev['ids']['device_id'])
             uidList.push(dev['attributes']['uid'])
 
         }catch(error){//Error may occur if device does not have uid
@@ -136,9 +136,9 @@ const checkUnique = async(data) =>{ //Checks that a particular device is unique
        
         uidList.map((uid) =>{
             if (deviceUID == uid && uid != undefined){
-                // console.log(deviceName, nameList[item], deviceUID, uid)
+                // console.log(deviceID, IDList[item], deviceUID, uid)
                 console.log("uid already exists")
-                throw new Error(null, 'Device UID already exists', deviceName)
+                throw new Error(null, 'Device UID already exists', deviceID)
             }})
         
     }catch(error){
@@ -146,10 +146,10 @@ const checkUnique = async(data) =>{ //Checks that a particular device is unique
         return null
     }
     try{
-        nameList.map((name)=>{
-            if (deviceName == name && name != undefined){
-                console.log("name already exists")
-                throw new Error(null, null, name)
+        IDList.map((ID)=>{
+            if (deviceID == ID && ID != undefined){
+                console.log("ID already exists")
+                throw new Error(null, null, ID)
             }
         })
     }
@@ -251,7 +251,7 @@ const deleteDevice = async(device) =>{
 
         if ('code' in response){
             //If key code exists then an error occured
-            throw new Error(json['code'], json['message'], deviceName)
+            throw new Error(json['code'], json['message'], deviceID)
         }
         return true
     }catch(error){
@@ -269,7 +269,7 @@ const moveDevice = async(device, moveTo) =>{
     let selectedDevice = null
     for (const i in app?.end_devices){
       const dev = app.end_devices[i]
-      if (dev.ids.device_id == device.name){
+      if (dev.ids.device_id == device.ID){
         selectedDevice = dev
       }
     }
@@ -307,4 +307,4 @@ export {
     updateDetails,
     getApplications,
     moveDevice
-    }
+}

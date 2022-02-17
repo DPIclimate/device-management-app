@@ -1,12 +1,8 @@
 import { StyleSheet, Text, View, TouchableOpacity, Image, Pressable, Alert } from 'react-native';
 import React, {useEffect, useState} from 'react';
 import globalStyles from '../styles';
-import { useDataContext } from '../shared/DataContextManager';
-import { TextInput } from 'react-native-gesture-handler';
 import { Card, checkNetworkStatus, registerDevice, moveDevice, saveDevice } from '../shared';
 import { AsyncAlert } from '../shared/AsyncAlert';
-import { useFetch } from '../shared/useFetch';
-import config from '../config.json'
 
 export default function MoveDevice({route, navigation}) {
 
@@ -30,7 +26,7 @@ export default function MoveDevice({route, navigation}) {
 
   const handlePress = async() =>{
 
-    const confirm = await AsyncAlert("Are you sure?",`Are you sure you want to move device ${data.name} from application ${data.appID} to application ${appMove}, this action CAN NOT be undone?`)
+    const confirm = await AsyncAlert("Are you sure?",`Are you sure you want to move device ${data.ID} from application ${data.appID} to application ${appMove}, this action CAN NOT be undone?`)
     if (confirm == 'NO') return
 
     let device = data
@@ -56,7 +52,7 @@ export default function MoveDevice({route, navigation}) {
 
   return (
     <View style={styles.contentView}>
-      <Text style={[globalStyles.title, styles.title]}>Move Device "{data.name}"</Text>
+      <Text style={[globalStyles.title, styles.title]}>Move Device "{data.ID}"</Text>
       <Text style={styles.sub}>From:</Text>
         <Card>
           <View style={{height:25, justifyContent:'center'}}>

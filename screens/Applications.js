@@ -22,7 +22,6 @@ import { Overlay } from 'react-native-elements';
 import WelcomScreen from './WelcomScreen';
 import { SwipeListView } from 'react-native-swipe-list-view';
 import useFetchState from '../shared/useFetch.js';
-import * as Progress from 'react-native-progress';
 
 function Applications({navigation}) {
 

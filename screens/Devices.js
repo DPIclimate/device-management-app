@@ -25,7 +25,7 @@ function Devices({route, navigation}) {
     const [noData, setNoData] = useState(false)
     const [netStatus, setNetStatus] = useState(false)
 
-    const {data, isLoading, error, retry} = useFetchState(`${config.ttnBaseURL}/${route.params.application_id}/devices?field_mask=attributes,locations,description`, {type:'DeviceList', appID:route.params?.application_id, storKey:global.APP_CACHE})
+    const {data, isLoading, error, retry} = useFetchState(`${config.ttnBaseURL}/${route.params.application_id}/devices?field_mask=attributes,locations,description,name`, {type:'DeviceList', appID:route.params?.application_id, storKey:global.APP_CACHE})
 
     useEffect(()=>{
 
@@ -45,7 +45,7 @@ function Devices({route, navigation}) {
 
         const {fromStore: favs, error} = await getFromStore({type:'FavList', storKey:global.DEV_FAV})
         try{
-            const devices = data.end_devices.map((dev) =>({id:dev['ids']['device_id'], isFav:favs.includes(dev['ids']['device_id'])}))
+            const devices = data.end_devices.map((dev) =>({id:dev['ids']['device_id'], isFav:favs.includes(dev['ids']['device_id']), name:dev['name']}))
             changeData(devices)
 
         }catch(error){
@@ -66,11 +66,13 @@ function Devices({route, navigation}) {
         try{
             const uid = device['attributes']['uid']
             const application_id = device['ids']['application_ids']['application_id']
-            const name = device['ids']['device_id']
+            const ID = device['ids']['device_id']
+            const name = device['name']
             
             let devData = {
                 'appID':application_id,
                 'uid':uid,
+                'ID':ID,
                 'name':name,
                 'uidPresent':true
             }
@@ -100,7 +102,8 @@ function Devices({route, navigation}) {
         //Navigate to withough a UID
         let devData ={
             'appID':device['ids']['application_ids']['application_id'],
-            'name':device['ids']['device_id'],
+            'ID':device['ids']['device_id'],
+            'name':device['name'],
             'eui':device['ids']['dev_eui'],
             'uidPresent':false
         }

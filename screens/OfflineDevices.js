@@ -64,7 +64,7 @@ function OfflineDevices({ route, navigation }) {
             success = await registerDevice(selectedDevice)
         }
         else{
-            let update = await AsyncAlert("Device already exists",`Device with this name already exists in this application, would you like to add these updated details to the device?`)
+            let update = await AsyncAlert("Device already exists",`Device with this ID already exists in this application, would you like to add these updated details to the device?`)
 
             if (update == 'NO')return
 
@@ -169,7 +169,7 @@ function OfflineDevices({ route, navigation }) {
                 case 'registerDevice':
                     return(
                         <> 
-                            <Text style={[globalStyles.text, styles.cardText]}>Device Name: {item.end_device.ids.device_id}</Text>
+                            <Text style={[globalStyles.text, styles.cardText]}>Device ID: {item.end_device.ids.device_id}</Text>
                             <Text style={[globalStyles.text, styles.cardText]}>App ID: {item.end_device.ids.application_ids.application_id}</Text>
                             <Text style={[globalStyles.text, styles.cardText]}>UID: {item.end_device.attributes.uid}</Text>
                         </>
@@ -177,7 +177,7 @@ function OfflineDevices({ route, navigation }) {
                 case 'locationUpdate':
                     return(
                             <>
-                                <Text style={[globalStyles.text, styles.cardText]}>Device Name: {item.end_device.ids.device_id}</Text>
+                                <Text style={[globalStyles.text, styles.cardText]}>Device ID: {item.end_device.ids.device_id}</Text>
                                 <Text style={[globalStyles.text, styles.cardText]}>Longitude: {item.end_device.locations.user.latitude}</Text>
                                 <Text style={[globalStyles.text, styles.cardText]}>Latitude: {item.end_device.locations.user.longitude}</Text>
                             </>
@@ -185,7 +185,7 @@ function OfflineDevices({ route, navigation }) {
                 case 'descriptionUpdate':
                     return (
                         <> 
-                            <Text style={[globalStyles.text, styles.cardText]}>Device Name: {item.end_device.ids.device_id}</Text>
+                            <Text style={[globalStyles.text, styles.cardText]}>Device ID: {item.end_device.ids.device_id}</Text>
                             <Text style={[globalStyles.text, styles.cardText]}>App ID: {item.end_device.ids.application_ids.application_id}</Text>
                             <Text style={[globalStyles.text, styles.cardText]}>Note: {item.end_device.description}</Text>
                         </>
@@ -193,7 +193,7 @@ function OfflineDevices({ route, navigation }) {
                 case 'move':
                     return (
                         <> 
-                            <Text style={[globalStyles.text, styles.cardText]}>Device Name: {item.name}</Text>
+                            <Text style={[globalStyles.text, styles.cardText]}>Device ID: {item.ID}</Text>
                             <Text style={[globalStyles.text, styles.cardText]}>Move From: {item.appID}</Text>
                             <Text style={[globalStyles.text, styles.cardText]}>Move To: {item.moveTo}</Text>
                         </>

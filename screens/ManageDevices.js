@@ -32,7 +32,7 @@ const ManageDevices = ({route, navigation}) => {
     const greenHollow = require('../assets/greenCircle-hollow.png')
     const redHollow = require('../assets/redCircle-hollow.png')
     const orangeHollow = require('../assets/orangeCircle-hollow.png')
-    const [circleImg, changeCirlce] = useState(greenCircle)
+    const [circleImg, changeCirlce] = useState()
 
     useEffect(()=>{
         async function loaded(){
@@ -60,7 +60,7 @@ const ManageDevices = ({route, navigation}) => {
     const handlePress = async() =>{
 
         setLoadingState(true)
-        let data = await useFetch(`${config.ttnBaseURL}/${appID}/devices?field_mask=attributes,locations,description`,{type:"DeviceList", storKey:global.APP_CACHE, appID:appID}, netStatus)
+        let data = await useFetch(`${config.ttnBaseURL}/${appID}/devices?field_mask=attributes,locations,description,name`,{type:"DeviceList", storKey:global.APP_CACHE, appID:appID}, netStatus)
 
         getData(data)
         setLoadingState(false)
@@ -77,7 +77,7 @@ const ManageDevices = ({route, navigation}) => {
             if (dev.attributes?.uid == deviceUID && uidPresent == true){
                 device = dev
                 break;
-            }else if (dev.ids.device_id == route.params?.autofill?.name){
+            }else if (dev.ids.device_id == route.params?.autofill?.ID){
                 device = dev
                 break;
             }
@@ -95,13 +95,14 @@ const ManageDevices = ({route, navigation}) => {
 
         devUID = device.attributes?.uid
 
-        const devName = device['ids']['device_id']
+        const devID = device['ids']['device_id']
         const devEui = device['ids']['dev_eui']
+        const devName = device['name']
         const dates = formatTime(device['created_at'])
 
         const created = `${dates[2]} ${dates[1]}` 
 
-        const ttn_link = `https://au1.cloud.thethings.network/console/applications/${applicationID}/devices/${devName}`
+        const ttn_link = `https://au1.cloud.thethings.network/console/applications/${applicationID}/devices/${devID}`
 
         let location = undefined 
         device['locations'] != undefined ? location = device['locations']['user'] : location = undefined
@@ -110,6 +111,7 @@ const ManageDevices = ({route, navigation}) => {
         const data = {
             "appID":applicationID,
             'uid':devUID,
+            'ID':devID,
             'name':devName,
             'eui':devEui,
             'creationDate':created,

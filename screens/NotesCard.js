@@ -23,7 +23,7 @@ function NotesCard() {
         const body = {
             "end_device":{
                 'ids':{
-                    'device_id': data.name,
+                    'device_id': data.ID,
                     "application_ids": {
                         "application_id": data.appID
                     }

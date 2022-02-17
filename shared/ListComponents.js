@@ -7,16 +7,17 @@ import globalStyles from '../styles';
 const renderItem = ({ item }, handlePress, screen) => {
 
     const id = item.id
+    const name = item?.name
+    console.log(item)
     return(
         <View>
             <Card>
                 <TouchableOpacity style={{flexDirection:'row', alignItems:'center', justifyContent:'space-between', width:'100%', height:30}} onPress={() => handlePress(item)}>
-                    <Text style={globalStyles.text}>{id}</Text>
+                    <Text style={globalStyles.text, {flex:1}}>{id}</Text>
+                    <Text style={{fontStyle:'italic', fontSize:12, flex:1}} numberOfLines={1} ellipsizeMode='tail'>     {name}</Text>
 
-                    <View style={{flexDirection:'row', alignItems:'center', justifyContent:'space-between', height:30}}>
-                        {item.isFav? <Image source={require('../assets/favBlue.png')} style={{height:20, width:20, marginRight:20}}/>:<View/>}
-                        <Image source={screen == "Applications" ? require('../assets/arrow.png') : require('../assets/arrowBlue.png')} style={{height:20, width:20}}/>
-                    </View>
+                    {item.isFav? <Image source={require('../assets/favBlue.png')} style={{height:20, width:20, marginRight:20}}/>:<View style={{height:20, width:20, marginRight:20}}/>}
+                    <Image source={screen == "Applications" ? require('../assets/arrow.png') : require('../assets/arrowBlue.png')} style={{height:20, width:20}}/>
                 </TouchableOpacity>
             </Card>
         </View>

@@ -18,11 +18,11 @@ import { AsyncAlert } from '../shared/AsyncAlert';
 
 const initialState = {
     appID:'',
-    devName:'',
+    devID:'',
     devUID:'',
     devEUI:'',
     valApp:true,
-    valName:true,
+    valID:true,
     valUID:true,
     valEUI:true
 }
@@ -30,7 +30,7 @@ const initialState = {
 const ACTIONS = {
     UPDATE_APP_ID: 'upApp',
     UPDATE_UID:'upUID',
-    UPDATE_NAME:'upName',
+    UPDATE_ID:'upID',
     UPDATE_EUI:'upEUI',
     CLEAR_ALL:'clearAll'
 }
@@ -61,17 +61,17 @@ function reducer(state, action){
             }
             return {...state, devUID:action.payload, valUID:isVal}
 
-        case ACTIONS.UPDATE_NAME:
-            isVal = state.valName
-            const name = action.payload.toLowerCase()
+        case ACTIONS.UPDATE_ID:
+            isVal = state.valID
+            const ID = action.payload.toLowerCase()
 
-            if (!allowedChars.test(name) && name.length >=3 || name.length <3 && name.length!=0){
+            if (!allowedChars.test(ID) && ID.length >=3 || ID.length <3 && ID.length!=0){
                 isVal=false
             }
             else{
                 isVal = true
             }
-            return {...state, devName:action.payload, valName:isVal}
+            return {...state, devID:action.payload, valID:isVal}
 
         case ACTIONS.UPDATE_EUI:
             isVal = state.valEUI
@@ -143,8 +143,8 @@ const AddDeviceScreen = ({ route, navigation }) => {
                     case 'uid':
                         dispatch({type:ACTIONS.UPDATE_UID, payload:data['uid']})
                         break
-                    case 'name':
-                        dispatch({type:ACTIONS.UPDATE_NAME, payload:data['name']})
+                    case 'ID':
+                        dispatch({type:ACTIONS.UPDATE_ID, payload:data['ID']})
                         setRegister(false)
                         break
                     case 'eui':
@@ -206,15 +206,15 @@ const AddDeviceScreen = ({ route, navigation }) => {
         return null
     }
 
-    const DevNameErr = () =>{
+    const DevIDErr = () =>{
 
-        const devName = state.devName.toLowerCase() // To ignore uppercase, dev ID will be converted to all lowercase before registration
+        const devID = state.devID.toLowerCase() // To ignore uppercase, dev ID will be converted to all lowercase before registration
 
-        if (!allowedChars.test(devName) && devName.length >=3){
+        if (!allowedChars.test(devID) && devID.length >=3){
             return <Text style={{color:'red'}}>Illegal character(s) present</Text>
         }
-        else if (devName.length <3 && devName.length!=0){
-            return <Text style={{color:'red'}}>Invalid Device Name length</Text>
+        else if (devID.length <3 && devID.length!=0){
+            return <Text style={{color:'red'}}>Invalid Device ID length</Text>
         }
         return null
     }
@@ -236,7 +236,7 @@ const AddDeviceScreen = ({ route, navigation }) => {
         console.log("pressed")
         setLoadingState(true)
 
-        if (state.valApp == false || state.valUID == false || state.valName == false || state.valEUI == false || state.appID.length == 0 || state.devUID.length == 0 || state.devName.length == 0){
+        if (state.valApp == false || state.valUID == false || state.valID == false || state.valEUI == false || state.appID.length == 0 || state.devUID.length == 0 || state.devID.length == 0){
             Alert.alert("Invalid inputs", "Could not register device because one or more inputs were invalid.")
             setLoadingState(false)
             return null
@@ -256,7 +256,7 @@ const AddDeviceScreen = ({ route, navigation }) => {
                 if (success) Alert.alert("Success!", "Device successfully registered")
             }
             else{
-                let update = await AsyncAlert("Device already exists",`Device with this name already exists in this application, would you like to add these updated details to the device?`)
+                let update = await AsyncAlert("Device already exists",`Device with this ID already exists in this application, would you like to add these updated details to the device?`)
 
                 if (update == 'NO'){setLoadingState(false); return}
 
@@ -298,7 +298,7 @@ const AddDeviceScreen = ({ route, navigation }) => {
         let data = newDeviceData()
 
         data["end_device"]["ids"]["dev_eui"] = eui
-        data["end_device"]["ids"]["device_id"] = state.devName
+        data["end_device"]["ids"]["device_id"] = state.devID
         data["end_device"]['ids']["application_ids"]["application_id"] = state.appID
         data['end_device']['attributes']['uid'] = state.devUID.toUpperCase()
 
@@ -348,10 +348,10 @@ const AddDeviceScreen = ({ route, navigation }) => {
                     <TextInput value={state.devUID} placeholder='e.g ABC123 (Max. 6 Characters)' style={[globalStyles.inputWborder, !state.valUID? globalStyles.inputInvalid:null]} onChangeText={(e) => dispatch({type:ACTIONS.UPDATE_UID, payload:e})} autoCorrect={false} autoCapitalize='none'/>
 
                     <View style={globalStyles.subtitleView}>
-                        <Text style={globalStyles.text2}>Device Name</Text>
-                        <DevNameErr/>
+                        <Text style={globalStyles.text2}>Device ID</Text>
+                        <DevIDErr/>
                     </View>
-                    <TextInput value={state.devName} placeholder='e.g my-device (Min. 3 Characters)' style={[globalStyles.inputWborder, !state.valName? globalStyles.inputInvalid:null]} onChangeText={(e) => dispatch({type:ACTIONS.UPDATE_NAME, payload:e})} autoCorrect={false} autoCapitalize='none'/>
+                    <TextInput value={state.devID} placeholder='e.g my-device (Min. 3 Characters)' style={[globalStyles.inputWborder, !state.valID? globalStyles.inputInvalid:null]} onChangeText={(e) => dispatch({type:ACTIONS.UPDATE_ID, payload:e})} autoCorrect={false} autoCapitalize='none'/>
 
                     <View style={globalStyles.subtitleView}>
                         <Text style={globalStyles.text2}>Device EUI (Optional)</Text>
