@@ -43,7 +43,7 @@ function CommCard({changeLastSeen, setCircle}) {
 
     const devData = useDataContext()
     
-    const {data: commRawData, isLoading: commLoading, error: commError, retry: commRetry} = useFetchState(`https://au1.cloud.thethings.network/api/v3/ns/applications/${devData?.appID}/devices/${devData?.name}?field_mask=mac_state.recent_uplinks,pending_mac_state.recent_uplinks,session.started_at,pending_session`, {storKey:global.COMM_CACHE, type:'CommsList', devID:devData?.name, appID:devData?.appID})
+    const {data: commRawData, isLoading: commLoading, error: commError, retry: commRetry} = useFetchState(`https://au1.cloud.thethings.network/api/v3/ns/applications/${devData?.appID}/devices/${devData?.ID}?field_mask=mac_state.recent_uplinks,pending_mac_state.recent_uplinks,session.started_at,pending_session`, {storKey:global.COMM_CACHE, type:'CommsList', devID:devData?.ID, appID:devData?.appID})
 
     const [commData, changeCommData] = useState()
     const [netStatus, setNetStatus] = useState(false)

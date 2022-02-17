@@ -5,7 +5,7 @@ export {default as NavButtons} from './NavButtons'
 export {default as LoadingComponent} from './LoadingComponent'
 export {default as checkNetworkStatus} from './NetworkStatus'
 
-export {default as InterfaceTTN, 
+export { 
     getEUI, 
     registerDevice, 
     updateDevice, 

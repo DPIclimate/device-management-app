@@ -2,10 +2,10 @@ import { Alert } from "react-native"
 
 class ErrorClass{
     //Class to handle device registration errors
-    constructor(code, message, deviceName){
+    constructor(code, message, deviceID){
         this.message = message
         this.code = code
-        this.deviceName = deviceName
+        this.deviceID = deviceID
     }
     getReason(){
         return this.message
@@ -13,14 +13,14 @@ class ErrorClass{
     getErrorCode(){
         return this.code
     }
-    getDeviceName(){
-        return this.deviceName
+    getDeviceID(){
+        return this.deviceID
     }
     alert(){
-        Alert.alert("An error occured", `An error occured while trying to register device ${this.getDeviceName()}\nReason: ${this.getReason()}`);
+        Alert.alert("An error occured", `An error occured while trying to register device ${this.getDeviceID()}\nReason: ${this.getReason()}`);
     }
     alertWithCode(){
-        Alert.alert("An error occured", `An error occured while trying to register device ${this.getDeviceName()}\nTTN error code: ${this.getErrorCode()} \nReason: ${this.getReason()}`);
+        Alert.alert("An error occured", `An error occured while trying to register device ${this.getDeviceID()}\nTTN error code: ${this.getErrorCode()} \nReason: ${this.getReason()}`);
     }
 }
 export default ErrorClass;
