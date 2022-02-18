@@ -8,12 +8,11 @@ import {updateDevice, checkNetworkStatus, Card, LoadingComponent, saveDevice} fr
 import { useDataContext } from '../shared/DataContextManager';
 import {AsyncAlert} from '../shared/AsyncAlert'
 
-function LocationCard() {
+function LocationCard({autoSearch}) {
     const [isEnabled, setIsEnabled] = useState(true);
     const [mapType, setMapType] = useState('satellite')
     const [isLoading, setLoadingState] = useState(false)
 
-    // const [data, changeData] = useState(useDataContext())
     const data = useDataContext()
 
     if (data == undefined) return <View/>
@@ -61,8 +60,9 @@ function LocationCard() {
 
             if (isConnected){
                 await updateDevice(body)
-                changeData(body)
+                console.log('finshed update')
                 setLoadingState(false)
+                autoSearch(true)
                 
             }else{
                 const choice = await AsyncAlert("No Internet Connection", "Would you like to save this updated location for when you are back online?")

@@ -39,6 +39,7 @@ const registerDevice = async(device) =>{
     }
     catch (error){
         console.log("An error occured", error)
+        console.log("in register error")
         error.alertWithCode()
         return false
     }
@@ -73,7 +74,7 @@ const updateDevice = async(data) =>{
 
         if ('code' in response){
             //If key code exists then an error occured
-            throw new Error(json['code'], json['message'], deviceID)
+            throw new Error(response['code'], response['message'], deviceID)
         }
         else{
             Alert.alert('Device Successfully updated')
@@ -81,8 +82,7 @@ const updateDevice = async(data) =>{
         return true
     }
     catch(error){
-        console.log("An error occured", error)
-        error.alertWithCode()
+        console.log("An error occured, in update", error)
         return false
     }
 }
