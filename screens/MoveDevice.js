@@ -26,6 +26,7 @@ export default function MoveDevice({route, navigation}) {
 
   const handlePress = async() =>{
 
+    if (appMove == undefined) {Alert.alert("No app selected", "Must select an application to move device to"); return}
     const confirm = await AsyncAlert("Are you sure?",`Are you sure you want to move device ${data.ID} from application ${data.appID} to application ${appMove}, this action CAN NOT be undone?`)
     if (confirm == 'NO') return
 
