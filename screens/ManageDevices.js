@@ -22,6 +22,7 @@ const ManageDevices = ({route, navigation}) => {
     const [lastSeen, changeLastSeen] = useState('Loading...')
     const [isLoading, setLoadingState] = useState(false)
     const [autoSearch, setAutoSearch] = useState(false)
+
     const [netStatus, setNetStatus] = useState(false)
 
     const [devData, changeDevData] = useState()
@@ -51,8 +52,8 @@ const ManageDevices = ({route, navigation}) => {
     },[route])
     
     useEffect(() =>{
-        if (autoSearch) {
-            handlePress()
+        if (autoSearch){
+            handlePress()  
             setAutoSearch(false)
         }
     },[autoSearch])
@@ -212,7 +213,7 @@ const ManageDevices = ({route, navigation}) => {
 
                         <DeviceCard navigation={navigation}/>
                         <CommCard changeLastSeen={changeLastSeen} setCircle={setCircle}/>
-                        <LocationCard/>  
+                        <LocationCard autoSearch={setAutoSearch}/>  
                         <NotesCard/>
                         {/* <PhotosCard params={route.params} navigation={navigation}/> */}
                         
