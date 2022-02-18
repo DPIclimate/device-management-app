@@ -2,6 +2,7 @@ import config from '../config';
 import Error from './ErrorClass'
 import { Alert } from 'react-native';
 import { useFetch } from './useFetch';
+import newDeviceData from '../repositories/newDeviceData';
 
 const registerDevice = async(device) =>{
 
@@ -284,15 +285,18 @@ const moveDevice = async(device, moveTo) =>{
       return false
     }
     
+
     //Register new device
-    selectedDevice.ids.application_ids.application_id = moveTo
-    selectedDevice.type = 'move'
-    //Required for register device function to work
-    selectedDevice = {
-      'end_device':selectedDevice
+    let newDevice = Object.assign(newDeviceData()['end_device'],selectedDevice)
+    newDevice.ids.application_ids.application_id = moveTo
+    newDevice.type = 'move'
+
+    // Required for register device function to work
+    newDevice = {
+      'end_device':newDevice
     }
     
-    let success = await registerDevice(selectedDevice)
+    let success = await registerDevice(newDevice)
     if (!success) {
       Alert.alert("Move failed", "Moving device failed for an unkown reason")
       return false

@@ -8,7 +8,6 @@ const renderItem = ({ item }, handlePress, screen) => {
 
     const id = item.id
     const name = item?.name
-    console.log(item)
     return(
         <View>
             <Card>

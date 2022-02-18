@@ -214,7 +214,7 @@ const ManageDevices = ({route, navigation}) => {
                         <CommCard changeLastSeen={changeLastSeen} setCircle={setCircle}/>
                         <LocationCard/>  
                         <NotesCard/>
-                        <PhotosCard params={route.params} navigation={navigation}/>
+                        {/* <PhotosCard params={route.params} navigation={navigation}/> */}
                         
                     </DataContextProvider>
 
