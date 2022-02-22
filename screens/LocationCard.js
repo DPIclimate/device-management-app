@@ -98,7 +98,7 @@ function LocationCard({autoSearch}) {
                         onPress:() => console.log("canceled")
                     }
             ])}>
-                <Image style={{width:23, height:23, padding:5}} source={require('../assets/settingsIcon.png')}/>
+                <Image style={{width:25, height:25, padding:5}} source={require('../assets/locationIcon.png')}/>
             </TouchableHighlight>
         );
     }

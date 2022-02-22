@@ -39,7 +39,8 @@ function Applications({navigation}) {
     useLayoutEffect(() => {
         //Settings icon
         navigation.setOptions({
-            headerRight: () => <Icon/>,
+            headerRight: () => <SettingsIcon/>,
+            headerLeft: () => <NearbyIcon/>
         });
       }, [navigation]);
 
@@ -75,7 +76,7 @@ function Applications({navigation}) {
         //Temporty button to clear app storage
         AsyncStorage.clear()
     }
-    const Icon = () =>{
+    const SettingsIcon = () =>{
   
         return (
             // <TouchableOpacity onPress={() => handleTmp()}>
@@ -84,7 +85,13 @@ function Applications({navigation}) {
           </TouchableOpacity>
         )
       }
-
+    const NearbyIcon = () =>{
+        return (
+          <TouchableOpacity onPress={() => navigation.navigate('NearbyDevices')}>
+            <Image source={require('../assets/nearby.png')} style={{width:25, height:25, marginLeft:15}}/>
+          </TouchableOpacity>
+        )
+    }
     const checkSavedReg = async() =>{ //Check for saved devices or updates
 
         const {fromStore: saved, error} = await getFromStore({storKey:global.DEV_STORE, type:'QueDeviceList'})

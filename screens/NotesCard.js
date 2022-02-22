@@ -1,11 +1,12 @@
 import React, { useState,useEffect } from 'react';
 import {Card, LoadingComponent, saveDevice} from '../shared';
 import { Grid } from "react-native-easy-grid";
-import { Text, View, TouchableHighlight, Image,Button, ActivityIndicator, Pressable, TextInput, StyleSheet, KeyboardAvoidingView, Alert } from 'react-native';
+import { Text, View, TouchableHighlight, Image,Button, TouchableOpacity, ActivityIndicator, Pressable, TextInput, StyleSheet, KeyboardAvoidingView, Alert,InputAccessoryView } from 'react-native';
 import globalStyles from '../styles';
 import {updateDevice, checkNetworkStatus} from '../shared/index'
 import { useDataContext } from '../shared/DataContextManager';
 import { AsyncAlert } from '../shared/AsyncAlert';
+
 
 function NotesCard() {
 
@@ -13,6 +14,8 @@ function NotesCard() {
     
     const [text, setText] = useState()
     const [isLoading, setLoadingState] = useState(false)
+
+    const inputAccessoryViewID = 'uniqueID';
     
     useEffect(() =>{
         setText(data?.notes)
@@ -75,9 +78,15 @@ function NotesCard() {
                 }
                 </View>
             <Grid>
-                <TextInput multiline blurOnSubmit={true} value={text} placeholder='Add some text here' style={styles.input} onChangeText={setText} autoCorrect={true} autoCapitalize='sentences'/>
+                    <TextInput onSubmitEditing={()=>console.log("pressed")} inputAccessoryViewID={inputAccessoryViewID} multiline={true} value={text} placeholder='Add some text here' style={styles.input} onChangeText={setText} autoCorrect={true} autoCapitalize='sentences'/>
             </Grid>
         </Card>
+
+        <InputAccessoryView nativeID={inputAccessoryViewID}>
+            <TouchableOpacity onPress={() => {console.log('button press')}} style={{alignItems:'flex-end', justifyContent:'center', paddingRight:10, height:35, backgroundColor:'white'}}>
+                <Text style={{color:'#128cde', fontSize:17, fontWeight:'bold'}}>done</Text>
+            </TouchableOpacity>
+        </InputAccessoryView>
         </>
 
     );
