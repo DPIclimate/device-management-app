@@ -1,5 +1,5 @@
 import React, {useEffect, useState} from 'react';
-import{View, StyleSheet,ScrollView, Text, TextInput, Image, TouchableHighlight, Alert, KeyboardAvoidingView, TouchableOpacity} from 'react-native'
+import{View, StyleSheet,ScrollView, Text, TextInput, Image, TouchableHighlight, Alert, KeyboardAvoidingView, TouchableOpacity, InputAccessoryView,Button} from 'react-native'
 import globalStyles from '../styles';
 import config from '../config';
 import DeviceCard from './DeviceCard';
@@ -187,9 +187,9 @@ const ManageDevices = ({route, navigation}) => {
     
     return (
         <KeyboardAvoidingView style={{ flex: 1 }}
-        keyboardVerticalOffset={50}
+        keyboardVerticalOffset={70}
         behavior={Platform.OS === "ios" ? "position" : "height"}>
-            <ScrollView style={globalStyles.scrollView}>
+            <ScrollView style={globalStyles.scrollView} keyboardDismissMode="interactive">
                 <View style={styles.contentView}>
                     <View style={{paddingTop:15, flexDirection:'row', justifyContent:'space-between'}}>
                         <Text style={[globalStyles.title, styles.title]}>Device Lookup</Text>
@@ -220,6 +220,7 @@ const ManageDevices = ({route, navigation}) => {
                     </DataContextProvider>
 
                     <LoadingComponent loading={isLoading}/>
+                {/* <TextInput style={{borderColor:'black', borderWidth:1}} InputAccessoryViewID={inputAccessoryViewID}/> */}
                 </View>
             </ScrollView>
         </KeyboardAvoidingView>

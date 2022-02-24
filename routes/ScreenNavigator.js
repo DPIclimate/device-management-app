@@ -14,6 +14,7 @@ import Camera from '../screens/Camera'
 import SettingsScreen from '../screens/SettingsScreen';
 import MoveDevice from '../screens/MoveDevice';
 import AppList from '../screens/AppList';
+import NearbyDevices from '../screens/NearbyDevices'
 
 const { Screen, Navigator } = createStackNavigator();
 
@@ -86,6 +87,11 @@ function ScreenStack() {
       name="AppList"
       component={AppList}
       options={{title:"App List"}}
+      />
+      <Screen
+        name="NearbyDevices"
+        component={NearbyDevices}
+        options={{ title: 'Nearby Devices' }}
       />
     </Navigator>
   );
