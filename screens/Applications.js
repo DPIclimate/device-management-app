@@ -6,6 +6,7 @@ import {View,
 	TouchableHighlight,TouchableOpacity,
 	Pressable,
 	StyleSheet,
+    Dimensions,
 } from 'react-native'
 import globalStyles from '../styles';
 import config from '../config.json'
@@ -229,8 +230,7 @@ function Applications({navigation}) {
                 </View>
             </>
             }
-
-            <Overlay isVisible={welcomeVisable} overlayStyle={{borderRadius:10, width:350, height:650, backgroundColor:'#f3f2f3'}}>
+            <Overlay isVisible={welcomeVisable} overlayStyle={{borderRadius:10, width:Dimensions.get('window').width - 20, height:Dimensions.get('window').height -40, backgroundColor:'#f3f2f3'}}>
                 <WelcomScreen retry={retry} visible={setWelcVisable} validT/>
             </Overlay >
         </View>

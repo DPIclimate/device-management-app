@@ -1,12 +1,12 @@
 import React, {useEffect, useState} from 'react'
-import { StyleSheet, Text, View, TouchableOpacity, Image } from 'react-native'
+import { StyleSheet, Text, View, TouchableOpacity, Image, Alert } from 'react-native'
 import { FlatList } from 'react-native-gesture-handler'
 import { Card, getFromStore, LoadingComponent } from '../shared'
 import * as Location from 'expo-location';
 import globalStyles from '../styles';
 import MultiSlider from '@ptomasroos/react-native-multi-slider';
 
-export default function NearbyDevices() {
+export default function NearbyDevices({route, navigation}) {
 
   const [data, setData] = useState([])
   const [errorMsg, setErrorMsg] = useState(null);
@@ -20,6 +20,8 @@ export default function NearbyDevices() {
       let { status } = await Location.requestForegroundPermissionsAsync();
       if (status !== 'granted') {
         setErrorMsg('Permission to access location was denied');
+        Alert.alert("Location Needed", "Please enable location services in order to use this feature")
+        navigation.goBack()
         return;
       }
     }
@@ -32,6 +34,9 @@ export default function NearbyDevices() {
     setLoading(true)
     console.log('in getdata')
     const fromStore = await getFromStore({type:"ApplicationList", storKey:'applicationCache'})
+    console.log(fromStore)
+    if (fromStore.fromStore == null) {setErrorMsg("We have not cahced any device data yet. Please come back later");return}
+
     const applications = fromStore?.fromStore
     let devices = applications.map((app)=>app.end_devices)
     devices = [].concat(...devices)
@@ -93,11 +98,24 @@ export default function NearbyDevices() {
     setData(filtered_devs)
     setLoading(false)
   }
-  const handlePress = () =>{
+  const handlePress = (device) =>{
+
+    const uid = device?.attributes?.uid
+    const application_id = device.ids.application_ids.application_id
+    const ID = device.ids.device_id
+    const name = device.name
+    
+    let devData = {
+        'appID':application_id,
+        'uid':uid,
+        'ID':ID,
+        'name':name,
+        'uidPresent':uid == undefined?false:true
+    }
+    navigation.navigate('ManageDevices', {autofill:devData})
 
   }
   const renderItem =({item}) =>{
-    console.log(item)
     return(
           <Card>
               <TouchableOpacity style={{flexDirection:'row', alignItems:'center', justifyContent:'space-between', width:'100%', height:30}} onPress={() => handlePress(item)}>
@@ -129,7 +147,7 @@ export default function NearbyDevices() {
           keyExtractor={(item, index) => index.toString()}
           />
           :
-          <View style={{alignItems:'center', height:'100%', width:'100%'}}><Text>No devices nearby</Text></View>
+          <View style={{alignItems:'center', height:'100%', width:'100%'}}><Text>{errorMsg}</Text></View>
         }
         <LoadingComponent loading={isLoading}/>
       </View>

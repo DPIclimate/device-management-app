@@ -24,7 +24,7 @@ const WelcomScreen = (props) => {
             console.log('token is valid')
             global.valid_token = true
             await updateToken(token)
-            // await AsyncStorage.setItem('isFirstLogon', 'false')
+
             props.retry()
             props.visible(false)
         }
