@@ -153,7 +153,7 @@ const ManageDevices = ({route, navigation}) => {
                 <View style={{paddingTop:20}}>
                     <Text>
                         <Image style={{width:15, height:15}} source={circleImg} />
-                        <Text style={{fontSize:17}}>{` Last seen: ${lastSeen}`}</Text> 
+                        <Text style={{fontSize:17}} numberOfLines={1} adjustsFontSizeToFit>{` Last seen: ${lastSeen}`}</Text> 
                     </Text>
                 </View>
             )
@@ -164,7 +164,7 @@ const ManageDevices = ({route, navigation}) => {
         if (!devData){
             return(
             <TouchableOpacity style={[{width:120},globalStyles.blueButton]} onPress={handlePress}>
-                <Text style={globalStyles.blueButtonText}>Search</Text>
+                <Text adjustsFontSizeToFit numberOfLines={1} style={globalStyles.blueButtonText}>Search</Text>
             </TouchableOpacity>
             )
         
@@ -172,7 +172,7 @@ const ManageDevices = ({route, navigation}) => {
 
             return(
                 <TouchableOpacity style={[{width:140},globalStyles.blueButton]} onPress={handlePress}>
-                    <Text style={globalStyles.blueButtonText}>Refresh</Text>
+                    <Text adjustsFontSizeToFit numberOfLines={1} style={globalStyles.blueButtonText}>Refresh</Text>
                 </TouchableOpacity>
             )
         }
@@ -205,8 +205,12 @@ const ManageDevices = ({route, navigation}) => {
                     <Text style={[globalStyles.text2, globalStyles.subtitleView]}>Device UID</Text>
                     <TextInput value={deviceUID} placeholder='e.g ABC123 (Max. 6 Characters)' style={globalStyles.inputWborder} onChangeText={(e) => {uidChange(e.toUpperCase()); e.length> 0 ? setUIDPresent(true):setUIDPresent(false)}} autoCorrect={false} autoCapitalize='none'/>
                     <View style={{paddingTop:15, flexDirection:'row', justifyContent:'space-between'}}>
-                        {devData? <LastSeen/>:<View/>}
-                        <SearchButton/>        
+                        <View style={{flex:1}}>
+                            {devData&& <LastSeen/>}
+                        </View>
+                        <View>
+                            <SearchButton/>        
+                        </View>
                     </View>
                     
                     <DataContextProvider value={devData}>
@@ -220,7 +224,6 @@ const ManageDevices = ({route, navigation}) => {
                     </DataContextProvider>
 
                     <LoadingComponent loading={isLoading}/>
-                {/* <TextInput style={{borderColor:'black', borderWidth:1}} InputAccessoryViewID={inputAccessoryViewID}/> */}
                 </View>
             </ScrollView>
         </KeyboardAvoidingView>
