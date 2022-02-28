@@ -1,12 +1,13 @@
 import React,  {useState} from 'react';
 import { Col, Row, Grid } from "react-native-easy-grid";
-import { Text, StyleSheet, Switch, View, Image, TouchableHighlight, Alert, ActivityIndicator } from 'react-native';
+import { Text, StyleSheet, Switch, Pressable, View, Image, TouchableHighlight, Alert, ActivityIndicator } from 'react-native';
 import globalStyles from '../styles';
-import MapView, {Marker, PROVIDER_DEFAULT, Circle} from 'react-native-maps';
+import MapView, {Marker, PROVIDER_DEFAULT, Circle, Callout} from 'react-native-maps';
 import * as Location from 'expo-location';
 import {updateDevice, checkNetworkStatus, Card, LoadingComponent, saveDevice} from '../shared'
 import { useDataContext } from '../shared/DataContextManager';
 import {AsyncAlert} from '../shared/AsyncAlert'
+import { Linking } from 'react-native';
 
 function LocationCard({autoSearch}) {
     const [isEnabled, setIsEnabled] = useState(true);
@@ -85,6 +86,22 @@ function LocationCard({autoSearch}) {
         }
     }
 
+    const getDirections = async() =>{
+        
+        // Redirect user to apple or google maps for directions
+        const lat = data.location.latitude
+        const lng = data.location.longitude
+        const scheme = Platform.select({ ios: 'maps:0,0?q=', android: 'geo:0,0?q=' });
+        const latLng = `${lat},${lng}`;
+        const label = data.name? data.name : data.ID;
+        const url = Platform.select({
+          ios: `${scheme}${label}@${latLng}`,
+          android: `${scheme}${latLng}(${label})`
+        });
+        
+        Linking.openURL(url);
+    }
+
     const UpdateLocationIcon = () =>{
         return (
             <TouchableHighlight disabled={isLoading} acitveOpacity={0.6} underlayColor="#DDDDDD" onPress={() => 
@@ -142,7 +159,16 @@ function LocationCard({autoSearch}) {
                             latitudeDelta: 0.002,
                             longitudeDelta: 0.003,
                         }}>
-                            <Marker coordinate={{latitude: data.location['latitude'], longitude: data.location['longitude']}}/>
+                            <Marker onCalloutPress={() => getDirections()} coordinate={{latitude: data.location['latitude'], longitude: data.location['longitude']}}>
+                                <Callout>
+                                    <View style={{flexDirection:'row'}}>
+                                        <View style={[globalStyles.blueButton, {flexDirection:'row', justifyContent:'center', alignItems:'center'}]}>
+                                            <Text  adjustsFontSizeToFit numberOfLines={1} style={globalStyles.blueButtonText}>Get Directions    </Text>
+                                            <Image source={require('../assets/navigation.png')} style={{width:15, height:15}}/>
+                                        </View>
+                                    </View>
+                                </Callout>    
+                            </Marker>
                             <AccuracyCircle/>
                     </MapView>
                     <View style={{paddingTop:20, flexDirection:'row', justifyContent:'space-between', alignItems:'center'}}>
