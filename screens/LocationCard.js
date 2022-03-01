@@ -184,10 +184,10 @@ function LocationCard({autoSearch}) {
 
     let rows=[]
     if (data.location != undefined){
-        rows.push(<Row key={1}><RowTemplate title={'Latitude'} data={data.location?.latitude}/></Row>)
-        rows.push(<Row key={2}><RowTemplate title={'Longitude'} data={data.location?.longitude}/></Row>)
-        rows.push(<Row key={3}><RowTemplate title={'Altitude (m)'} data={data.location?.altitude != undefined? data.location?.altitude: "-"}/></Row>)
-        rows.push(<Row key={4}><RowTemplate title={'Accuracy (m)'} data={data.location?.accuracy != undefined? data.location?.accuracy: "-"}/></Row>)
+        rows.push(<Row key={1} style={styles.cardRow}><RowTemplate title={'Latitude'} data={data.location?.latitude}/></Row>)
+        rows.push(<Row key={2} style={styles.cardRow}><RowTemplate title={'Longitude'} data={data.location?.longitude}/></Row>)
+        rows.push(<Row key={3} style={styles.cardRow}><RowTemplate title={'Altitude (m)'} data={data.location?.altitude != undefined? data.location?.altitude: "-"}/></Row>)
+        rows.push(<Row key={4} style={styles.cardRow}><RowTemplate title={'Accuracy (m)'} data={data.location?.accuracy != undefined? data.location?.accuracy: "-"}/></Row>)
     }else{
         return (
         <Card>
@@ -216,7 +216,11 @@ const styles = StyleSheet.create({
     map: {
         width: '100%',
         height: 300,
-        borderRadius:15
+        borderRadius:15,
+        marginTop:7
     },
+    cardRow:{
+        paddingTop:7
+    }
 })
 export default LocationCard;

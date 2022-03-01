@@ -52,6 +52,7 @@ function reducer(state, action){
 
         case ACTIONS.UPDATE_UID:
             isVal = state.valUID
+            if (action.payload == undefined) {return state}
             const uid = action.payload.toLowerCase()
             if (!allowedChars.test(uid) && uid.length >=3 || uid.length != 6 && uid.length != 0){
                 isVal= false

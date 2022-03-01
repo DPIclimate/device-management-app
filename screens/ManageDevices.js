@@ -1,5 +1,17 @@
-import React, {useEffect, useState} from 'react';
-import{View, StyleSheet,ScrollView, Text, TextInput, Image, TouchableHighlight, Alert, KeyboardAvoidingView, TouchableOpacity, InputAccessoryView,Button} from 'react-native'
+import React, {useEffect, useState, useRef} from 'react';
+import{View,
+	StyleSheet,
+	ScrollView,
+	Text,
+	TextInput,
+	Image,
+	TouchableHighlight,
+	Alert,
+	KeyboardAvoidingView,
+    Keyboard,
+	TouchableOpacity,
+	InputAccessoryView,
+	Button} from 'react-native'
 import globalStyles from '../styles';
 import config from '../config';
 import DeviceCard from './DeviceCard';
@@ -34,6 +46,9 @@ const ManageDevices = ({route, navigation}) => {
     const redHollow = require('../assets/redCircle-hollow.png')
     const orangeHollow = require('../assets/orangeCircle-hollow.png')
     const [circleImg, changeCirlce] = useState()
+    const keyboardHight = useKeyboard()
+
+    const scrollViewRef = useRef();
 
     useEffect(()=>{
         async function loaded(){
@@ -83,7 +98,7 @@ const ManageDevices = ({route, navigation}) => {
                 break;
             }
         }
-        //GXYPLW
+
         if (device == undefined) Alert.alert("No device found")
         device = createDeviceObj(device)
         changeDevData(device)
@@ -184,51 +199,75 @@ const ManageDevices = ({route, navigation}) => {
             )
         }
     }
-    
+
     return (
-        <KeyboardAvoidingView style={{ flex: 1 }}
-        keyboardVerticalOffset={70}
-        behavior={Platform.OS === "ios" ? "position" : "height"}>
-            <ScrollView style={globalStyles.scrollView} keyboardDismissMode="interactive">
-                <View style={styles.contentView}>
-                    <View style={{paddingTop:15, flexDirection:'row', justifyContent:'space-between'}}>
-                        <Text style={[globalStyles.title, styles.title]}>Device Lookup</Text>
+        
+        <ScrollView 
+            style={globalStyles.scrollView} 
+            keyboardDismissMode="interactive" 
+            ref={scrollViewRef}
+            >
+            <View style={styles.contentView}>
+                <View style={{paddingTop:15, flexDirection:'row', justifyContent:'space-between'}}>
+                    <Text style={[globalStyles.title, styles.title]}>Device Lookup</Text>
 
-                        <TouchableOpacity style={globalStyles.qrButton} onPress={() => navigation.navigate('QrScanner',{screen:'ManageDevices'})}>
-                            <Image style={globalStyles.qrCode} source={require('../assets/QR-code-icon.png')}/>
-                        </TouchableOpacity>
-                    </View>
-                    <Text style={[globalStyles.text2, globalStyles.subtitleView]}>Application ID</Text>
-                    <TextInput value={appID} placeholder='e.g example-app-id' style={globalStyles.inputWborder} onChangeText={appIDChange} autoCorrect={false} autoCapitalize='none'/>
-                    
-
-                    <Text style={[globalStyles.text2, globalStyles.subtitleView]}>Device UID</Text>
-                    <TextInput value={deviceUID} placeholder='e.g ABC123 (Max. 6 Characters)' style={globalStyles.inputWborder} onChangeText={(e) => {uidChange(e.toUpperCase()); e.length> 0 ? setUIDPresent(true):setUIDPresent(false)}} autoCorrect={false} autoCapitalize='none'/>
-                    <View style={{paddingTop:15, flexDirection:'row', justifyContent:'space-between'}}>
-                        <View style={{flex:1}}>
-                            {devData&& <LastSeen/>}
-                        </View>
-                        <View>
-                            <SearchButton/>        
-                        </View>
-                    </View>
-                    
-                    <DataContextProvider value={devData}>
-
-                        <DeviceCard navigation={navigation}/>
-                        <CommCard changeLastSeen={changeLastSeen} setCircle={setCircle}/>
-                        <LocationCard autoSearch={setAutoSearch}/>  
-                        <NotesCard/>
-                        {/* <PhotosCard params={route.params} navigation={navigation}/> */}
-                        
-                    </DataContextProvider>
-
-                    <LoadingComponent loading={isLoading}/>
+                    <TouchableOpacity style={globalStyles.qrButton} onPress={() => navigation.navigate('QrScanner',{screen:'ManageDevices'})}>
+                        <Image style={globalStyles.qrCode} source={require('../assets/QR-code-icon.png')}/>
+                    </TouchableOpacity>
                 </View>
-            </ScrollView>
-        </KeyboardAvoidingView>
+                <Text style={[globalStyles.text2, globalStyles.subtitleView]}>Application ID</Text>
+                <TextInput value={appID} placeholder='e.g example-app-id' style={globalStyles.inputWborder} onChangeText={appIDChange} autoCorrect={false} autoCapitalize='none'/>
+                
+
+                <Text style={[globalStyles.text2, globalStyles.subtitleView]}>Device UID</Text>
+                <TextInput value={deviceUID} placeholder='e.g ABC123 (Max. 6 Characters)' style={globalStyles.inputWborder} onChangeText={(e) => {uidChange(e.toUpperCase()); e.length> 0 ? setUIDPresent(true):setUIDPresent(false)}} autoCorrect={false} autoCapitalize='none'/>
+                <View style={{paddingTop:15, flexDirection:'row', justifyContent:'space-between'}}>
+                    <View style={{flex:1}}>
+                        {devData&& <LastSeen/>}
+                    </View>
+                    <View>
+                        <SearchButton/>        
+                    </View>
+                </View>
+                
+                <DataContextProvider value={devData}>
+
+                    <DeviceCard navigation={navigation}/>
+                    <CommCard changeLastSeen={changeLastSeen} setCircle={setCircle}/>
+                    <LocationCard autoSearch={setAutoSearch}/>  
+                    <NotesCard scrollViewRef={scrollViewRef}/>
+                    {/* <PhotosCard params={route.params} navigation={navigation}/> */}
+                    
+                </DataContextProvider>
+
+                <LoadingComponent loading={isLoading}/>
+                <View style={{width:'100%', height:keyboardHight}}/>
+            </View>
+        </ScrollView>
     );
 };
+export const useKeyboard = () => {
+    const [keyboardHeight, setKeyboardHeight] = useState(0);
+  
+    function onKeyboardDidShow(e) { // Remove type here if not using TypeScript
+      setKeyboardHeight(e.endCoordinates.height);
+    }
+  
+    function onKeyboardDidHide() {
+      setKeyboardHeight(0);
+    }
+  
+    useEffect(() => {
+      const showSubscription = Keyboard.addListener('keyboardDidShow', onKeyboardDidShow);
+      const hideSubscription = Keyboard.addListener('keyboardDidHide', onKeyboardDidHide);
+      return () => {
+        showSubscription.remove();
+        hideSubscription.remove();
+      };
+    }, []);
+  
+    return keyboardHeight;
+  };
 const styles = StyleSheet.create({
     contentView:{
         padding:10,
