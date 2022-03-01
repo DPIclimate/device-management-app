@@ -9,6 +9,7 @@ import MultiSlider from '@ptomasroos/react-native-multi-slider';
 export default function NearbyDevices({route, navigation}) {
 
   const [data, setData] = useState([])
+  const [devs, setDevs] = useState([])
   const [errorMsg, setErrorMsg] = useState(null);
   const [searchRadius, setSearchRadius] = useState(5)
   const [isLoading, setLoading] = useState(true)
@@ -24,23 +25,26 @@ export default function NearbyDevices({route, navigation}) {
         navigation.goBack()
         return;
       }
+      getData()
     }
-    
-    getData()
     hasLoaded()
   },[])
   
+  useEffect(()=>{
+
+    getDistances()
+
+  },[devs])
   async function getData(){
-    setLoading(true)
     console.log('in getdata')
+  
     const fromStore = await getFromStore({type:"ApplicationList", storKey:'applicationCache'})
-    console.log(fromStore)
+
     if (fromStore.fromStore == null) {setErrorMsg("We have not cahced any device data yet. Please come back later");return}
 
     const applications = fromStore?.fromStore
     let devices = applications.map((app)=>app.end_devices)
     devices = [].concat(...devices)
-    
 
     let dev_with_loc = []
     for (const i in devices){
@@ -50,10 +54,13 @@ export default function NearbyDevices({route, navigation}) {
         dev_with_loc.push(dev)
       }
     }
-    getDistances(dev_with_loc)
+    setDevs(dev_with_loc)
+
   }
 
-  const getDistances = async(devs) =>{
+  const getDistances = async() =>{
+
+    setLoading(true)
 
     if (devs == undefined) {console.log('returned with no devs');return }
     // if (userLocation == null) {console.log('returned with no location');return}
@@ -68,7 +75,7 @@ export default function NearbyDevices({route, navigation}) {
       const lon1 = userLocation?.coords.longitude
       const lon2 = dev.locations.user.longitude
       
-      // haversine formula to calculate the distance between 2 points on the earth
+      // haversine formula used to calculate the distance between 2 points on the earth
       // http://www.movable-type.co.uk/scripts/latlong.html
       
       var R = 6371; // km - radius of the earth
@@ -94,8 +101,10 @@ export default function NearbyDevices({route, navigation}) {
     filtered_devs.sort((a,b)=>{ //Sorts array from closest device to furthest
       return a.loc_difference - b.loc_difference
     })
-
+    console.log(filtered_devs, 'filtered')
     setData(filtered_devs)
+    
+    if (filtered_devs.length == 0){setErrorMsg('No devices nearby')}
     setLoading(false)
   }
   const handlePress = (device) =>{
@@ -134,23 +143,32 @@ export default function NearbyDevices({route, navigation}) {
         <MultiSlider
           value={searchRadius}
           onValuesChange={(e) => setSearchRadius(e[0])}
-          onValuesChangeFinish={getData}
+          onValuesChangeFinish={getDistances}
           max={301}
       />
       </View>
-      <View style={{height:'100%', paddingBottom:150}}>
-        {data.length != 0?
-          <FlatList
-          style={{paddingTop:10}}
-          data={data}
-          renderItem={(item) => renderItem(item)}
-          keyExtractor={(item, index) => index.toString()}
-          />
-          :
-          <View style={{alignItems:'center', height:'100%', width:'100%'}}><Text>{errorMsg}</Text></View>
-        }
-        <LoadingComponent loading={isLoading}/>
-      </View>
+      <View style={{width:'90%', height:2, backgroundColor:'#128cde', alignSelf:'center', margin:20}}/>
+      {!isLoading? 
+        <View style={{height:'100%', paddingBottom:150}}>
+          {console.log(data.length)}
+          {data.length==0?
+              
+              <View style={{alignItems:'center', height:'100%', width:'100%'}}><Text>{errorMsg}{console.log('here', errorMsg)}</Text></View>
+              :
+              <FlatList
+              style={{paddingTop:10}}
+              data={data}
+              renderItem={(item) => renderItem(item)}
+              keyExtractor={(item, index) => index.toString()}
+              contentContainerStyle={{ paddingBottom: 90 }}
+              />
+          }
+        </View>
+        :
+        <View style={{justifyContent:'center', alignItems:'center'}}>
+          <LoadingComponent loading={isLoading}/>
+        </View>
+      }
     </View>
   )
 }

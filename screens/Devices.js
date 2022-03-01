@@ -63,51 +63,20 @@ function Devices({route, navigation}) {
             }
         })
 
-        try{
-            const uid = device['attributes']['uid']
-            const application_id = device['ids']['application_ids']['application_id']
-            const ID = device['ids']['device_id']
-            const name = device['name']
-            
-            let devData = {
-                'appID':application_id,
-                'uid':uid,
-                'ID':ID,
-                'name':name,
-                'uidPresent':true
-            }
-            navigation.navigate('ManageDevices', {autofill:devData})
-
-
-        }catch(error){
-            console.log(error)
-            Alert.alert("No UID exists", "Would you like to assign a UID to this device?",[
-                {
-                    text:"Yes",
-                    onPress:() => navigate(device, "AddDeviceScreen")
-                },
-                {
-                    text: "Continue Without",
-                    onPress:() => netStatus ? navigate(device, 'ManageDevices'): Alert.alert('Cannot show details', 'Cannot show device with no UID while you are offline')
-                },
-                {
-                    text:"Cancel",
-                    onPress:() => console.log("No")
-                }
-            ])
+        // try{
+        const uid = device.attributes?.uid
+        const application_id = device.ids.application_ids.application_id
+        const ID = device.ids.device_id
+        const name = device.name
+        
+        let devData = {
+            'appID':application_id,
+            'uid':uid,
+            'ID':ID,
+            'name':name,
+            'uidPresent':uid ? true:false
         }
-    }
-
-    const navigate = (device, screen) =>{
-        //Navigate to withough a UID
-        let devData ={
-            'appID':device['ids']['application_ids']['application_id'],
-            'ID':device['ids']['device_id'],
-            'name':device['name'],
-            'eui':device['ids']['dev_eui'],
-            'uidPresent':false
-        }
-        navigation.navigate(screen,{autofill:devData})
+        navigation.navigate('ManageDevices', {autofill:devData})
     }
 
     const toggleFavourite = async(data, rowMap) =>{

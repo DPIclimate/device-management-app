@@ -54,6 +54,7 @@ function CommCard({changeLastSeen, setCircle}) {
             const status = await checkNetworkStatus()
             setNetStatus(status)
             
+            // console.log('in comm effect', devData, commLoading, commError, commData)
             if (commLoading) return
             if (commError) {return}
 
@@ -78,7 +79,7 @@ function CommCard({changeLastSeen, setCircle}) {
         }
         loaded()
 
-    },[commRawData, commError])
+    },[commRawData, commError, commLoading])
 
     const calcLastSeen = (cData) =>{
 
