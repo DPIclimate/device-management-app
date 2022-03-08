@@ -76,9 +76,6 @@ const globalStyles = StyleSheet.create({
         width:'100%',
         height:'100%'
     },
-    cardRow:{
-        paddingTop:10
-    },
     text:{
         fontSize:14
     },

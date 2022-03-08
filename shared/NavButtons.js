@@ -7,11 +7,11 @@ const NavButtons = ({navigation}) => {
     return(
         <>
         <Pressable style={[globalStyles.blueButton, styles.addDeviceLoc]} onPress={() => {navigation.navigate('AddDeviceScreen')}}>
-                <Text style={globalStyles.blueButtonText}>Add Device</Text>
+                <Text adjustsFontSizeToFit numberOfLines={1} style={globalStyles.blueButtonText}>Add Device</Text>
             </Pressable>
 
             <Pressable style={[globalStyles.blueButton, styles.manDeviceLoc]} onPress={() => {navigation.navigate('ManageDevices')}}>
-                <Text style={globalStyles.blueButtonText}>Manage</Text>
+                <Text  adjustsFontSizeToFit numberOfLines={1} style={globalStyles.blueButtonText}>Manage</Text>
             </Pressable>
         </>
     )

@@ -1,19 +1,19 @@
 import React,  {useState} from 'react';
 import { Col, Row, Grid } from "react-native-easy-grid";
-import { Text, StyleSheet, Switch, View, Image, TouchableHighlight, Alert, ActivityIndicator } from 'react-native';
+import { Text, StyleSheet, Switch, Pressable, View, Image, TouchableHighlight, Alert, ActivityIndicator } from 'react-native';
 import globalStyles from '../styles';
-import MapView, {Marker, PROVIDER_DEFAULT, Circle} from 'react-native-maps';
+import MapView, {Marker, PROVIDER_DEFAULT, Circle, Callout} from 'react-native-maps';
 import * as Location from 'expo-location';
 import {updateDevice, checkNetworkStatus, Card, LoadingComponent, saveDevice} from '../shared'
 import { useDataContext } from '../shared/DataContextManager';
 import {AsyncAlert} from '../shared/AsyncAlert'
+import { Linking } from 'react-native';
 
-function LocationCard() {
+function LocationCard({autoSearch}) {
     const [isEnabled, setIsEnabled] = useState(true);
     const [mapType, setMapType] = useState('satellite')
     const [isLoading, setLoadingState] = useState(false)
 
-    // const [data, changeData] = useState(useDataContext())
     const data = useDataContext()
 
     if (data == undefined) return <View/>
@@ -61,8 +61,9 @@ function LocationCard() {
 
             if (isConnected){
                 await updateDevice(body)
-                changeData(body)
+                console.log('finshed update')
                 setLoadingState(false)
+                autoSearch(true)
                 
             }else{
                 const choice = await AsyncAlert("No Internet Connection", "Would you like to save this updated location for when you are back online?")
@@ -85,6 +86,22 @@ function LocationCard() {
         }
     }
 
+    const getDirections = async() =>{
+        
+        // Redirect user to apple or google maps for directions
+        const lat = data.location.latitude
+        const lng = data.location.longitude
+        const scheme = Platform.select({ ios: 'maps:0,0?q=', android: 'geo:0,0?q=' });
+        const latLng = `${lat},${lng}`;
+        const label = data.name? data.name : data.ID;
+        const url = Platform.select({
+          ios: `${scheme}${label}@${latLng}`,
+          android: `${scheme}${latLng}(${label})`
+        });
+        
+        Linking.openURL(url);
+    }
+
     const UpdateLocationIcon = () =>{
         return (
             <TouchableHighlight disabled={isLoading} acitveOpacity={0.6} underlayColor="#DDDDDD" onPress={() => 
@@ -98,7 +115,7 @@ function LocationCard() {
                         onPress:() => console.log("canceled")
                     }
             ])}>
-                <Image style={{width:23, height:23, padding:5}} source={require('../assets/settingsIcon.png')}/>
+                <Image style={{width:25, height:25, padding:5}} source={require('../assets/locationIcon.png')}/>
             </TouchableHighlight>
         );
     }
@@ -142,7 +159,16 @@ function LocationCard() {
                             latitudeDelta: 0.002,
                             longitudeDelta: 0.003,
                         }}>
-                            <Marker coordinate={{latitude: data.location['latitude'], longitude: data.location['longitude']}}/>
+                            <Marker onCalloutPress={() => getDirections()} coordinate={{latitude: data.location['latitude'], longitude: data.location['longitude']}}>
+                                <Callout>
+                                    <View style={{flexDirection:'row'}}>
+                                        <View style={[globalStyles.blueButton, {flexDirection:'row', justifyContent:'center', alignItems:'center'}]}>
+                                            <Text  adjustsFontSizeToFit numberOfLines={1} style={globalStyles.blueButtonText}>Get Directions    </Text>
+                                            <Image source={require('../assets/navigation.png')} style={{width:15, height:15}}/>
+                                        </View>
+                                    </View>
+                                </Callout>    
+                            </Marker>
                             <AccuracyCircle/>
                     </MapView>
                     <View style={{paddingTop:20, flexDirection:'row', justifyContent:'space-between', alignItems:'center'}}>
@@ -158,10 +184,10 @@ function LocationCard() {
 
     let rows=[]
     if (data.location != undefined){
-        rows.push(<Row key={1}><RowTemplate title={'Latitude'} data={data.location?.latitude}/></Row>)
-        rows.push(<Row key={2}><RowTemplate title={'Longitude'} data={data.location?.longitude}/></Row>)
-        rows.push(<Row key={3}><RowTemplate title={'Altitude (m)'} data={data.location?.altitude != undefined? data.location?.altitude: "-"}/></Row>)
-        rows.push(<Row key={4}><RowTemplate title={'Accuracy (m)'} data={data.location?.accuracy != undefined? data.location?.accuracy: "-"}/></Row>)
+        rows.push(<Row key={1} style={styles.cardRow}><RowTemplate title={'Latitude'} data={data.location?.latitude}/></Row>)
+        rows.push(<Row key={2} style={styles.cardRow}><RowTemplate title={'Longitude'} data={data.location?.longitude}/></Row>)
+        rows.push(<Row key={3} style={styles.cardRow}><RowTemplate title={'Altitude (m)'} data={data.location?.altitude != undefined? data.location?.altitude: "-"}/></Row>)
+        rows.push(<Row key={4} style={styles.cardRow}><RowTemplate title={'Accuracy (m)'} data={data.location?.accuracy != undefined? data.location?.accuracy: "-"}/></Row>)
     }else{
         return (
         <Card>
@@ -190,7 +216,11 @@ const styles = StyleSheet.create({
     map: {
         width: '100%',
         height: 300,
-        borderRadius:15
+        borderRadius:15,
+        marginTop:7
     },
+    cardRow:{
+        paddingTop:7
+    }
 })
 export default LocationCard;

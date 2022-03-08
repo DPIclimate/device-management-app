@@ -9,9 +9,12 @@
     "test": "jest"
   },
   "dependencies": {
+    "@expo/vector-icons": "^12.0.0",
+    "@ptomasroos/react-native-multi-slider": "^2.2.2",
     "@react-native-async-storage/async-storage": "^1.13.0",
     "@react-native-community/masked-view": "0.1.10",
     "@react-native-community/netinfo": "6.0.0",
+    "@react-navigation/bottom-tabs": "^5.11.13",
     "@react-navigation/native": "^5.9.4",
     "@react-navigation/stack": "^5.14.5",
     "expo": "~41.0.1",
@@ -22,15 +25,19 @@
     "moment": "^2.29.1",
     "react": "^16.13.1",
     "react-native": "https://github.com/expo/react-native/archive/sdk-41.0.0.tar.gz",
+    "react-native-base64": "^0.2.1",
     "react-native-easy-grid": "^0.2.2",
     "react-native-elements": "^3.4.2",
     "react-native-gesture-handler": "~1.10.2",
+    "react-native-keyboard-accessory": "^0.1.16",
+    "react-native-map-link": "^2.8.3",
     "react-native-maps": "0.27.1",
     "react-native-progress": "^5.0.0",
     "react-native-safe-area-context": "3.2.0",
     "react-native-screens": "3.0.0",
     "react-native-svg": "12.1.0",
-    "react-native-swipe-list-view": "^3.2.9"
+    "react-native-swipe-list-view": "^3.2.9",
+    "react-navigation": "^4.4.4"
   },
   "devDependencies": {
     "@babel/core": "^7.9.9",

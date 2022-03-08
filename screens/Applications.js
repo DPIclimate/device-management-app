@@ -6,6 +6,7 @@ import {View,
 	TouchableHighlight,TouchableOpacity,
 	Pressable,
 	StyleSheet,
+    Dimensions,
 } from 'react-native'
 import globalStyles from '../styles';
 import config from '../config.json'
@@ -39,7 +40,8 @@ function Applications({navigation}) {
     useLayoutEffect(() => {
         //Settings icon
         navigation.setOptions({
-            headerRight: () => <Icon/>,
+            headerRight: () => <SettingsIcon/>,
+            headerLeft: () => <NearbyIcon/>
         });
       }, [navigation]);
 
@@ -75,7 +77,7 @@ function Applications({navigation}) {
         //Temporty button to clear app storage
         AsyncStorage.clear()
     }
-    const Icon = () =>{
+    const SettingsIcon = () =>{
   
         return (
             // <TouchableOpacity onPress={() => handleTmp()}>
@@ -84,7 +86,13 @@ function Applications({navigation}) {
           </TouchableOpacity>
         )
       }
-
+    const NearbyIcon = () =>{
+        return (
+          <TouchableOpacity onPress={() => navigation.navigate('NearbyDevices')}>
+            <Image source={require('../assets/nearby.png')} style={{width:25, height:25, marginLeft:15}}/>
+          </TouchableOpacity>
+        )
+    }
     const checkSavedReg = async() =>{ //Check for saved devices or updates
 
         const {fromStore: saved, error} = await getFromStore({storKey:global.DEV_STORE, type:'QueDeviceList'})
@@ -222,8 +230,7 @@ function Applications({navigation}) {
                 </View>
             </>
             }
-
-            <Overlay isVisible={welcomeVisable} overlayStyle={{borderRadius:10, width:350, height:650, backgroundColor:'#f3f2f3'}}>
+            <Overlay isVisible={welcomeVisable} overlayStyle={{borderRadius:10, width:Dimensions.get('window').width - 20, height:Dimensions.get('window').height -40, backgroundColor:'#f3f2f3'}}>
                 <WelcomScreen retry={retry} visible={setWelcVisable} validT/>
             </Overlay >
         </View>
