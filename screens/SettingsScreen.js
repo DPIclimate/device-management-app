@@ -105,7 +105,7 @@ function SettingsScreen() {
                     <HelpCard/>
                     <Card>
                         <Text style={globalStyles.title}>Found a bug?</Text>
-                        <Text style={[globalStyles.text,styles.text]}>Please report it <Text style={{color:'blue'}} onPress={() => Linking.openURL('https://forms.gle/y17SArBv3YXFWu1H9')}>here</Text></Text>
+                        <Text style={[globalStyles.text,styles.text]}>Please report it <Text style={{color:'blue'}} onPress={() => Linking.openURL('https://forms.gle/zZS4qDDyu8yhmvmx7')}>here</Text></Text>
                     </Card>
                     <DPI_TAG/>
                 </View>

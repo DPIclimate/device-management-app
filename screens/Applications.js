@@ -104,7 +104,9 @@ function Applications({navigation}) {
             setSavedDevices(false)
         }
     }
-    const setListData = async(data) => {//Request applications from ttn
+    const setListData = async(data) => {
+        //Format data for display
+        
         if (isLoading) return
         if (error != null && error != undefined) {changeValid(false);return}
 

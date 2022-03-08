@@ -4,6 +4,8 @@ import { Alert } from 'react-native';
 import { useFetch } from './useFetch';
 import newDeviceData from '../repositories/newDeviceData';
 
+//Functions used to interface with TTN
+
 const registerDevice = async(device) =>{
 
     console.log('in register')
@@ -137,7 +139,7 @@ const checkUnique = async(data) =>{ //Checks that a particular device is unique
        
         uidList.map((uid) =>{
             if (deviceUID == uid && uid != undefined){
-                // console.log(deviceID, IDList[item], deviceUID, uid)
+
                 console.log("uid already exists")
                 throw new Error(null, 'Device UID already exists', deviceID)
             }})

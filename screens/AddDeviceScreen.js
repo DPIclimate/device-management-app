@@ -186,7 +186,7 @@ const AddDeviceScreen = ({ route, navigation }) => {
     }
 
     const AppIDErr = () =>{
-        //TODO check ttn for valid app id
+
         if (!allowedChars.test(state.appID) && state.appID.length >=3){
             return <Text style={{color:'red'}}>Illegal character(s) present</Text>
         }
