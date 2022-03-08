@@ -1,7 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import {View,
 	Text,
-	Alert,
 	StyleSheet
 } from 'react-native'
 import globalStyles from '../styles';
@@ -63,7 +62,6 @@ function Devices({route, navigation}) {
             }
         })
 
-        // try{
         const uid = device.attributes?.uid
         const application_id = device.ids.application_ids.application_id
         const ID = device.ids.device_id
