@@ -15,9 +15,9 @@
   "submit": {
     "production": {
       "ios": {
-      "appleId": "harvey.bates@dpi.nsw.gov.au",
-      "appleTeamId": "27HNP7KTF9",
-      "ascAppId": "1604281764"
+        "appleId": "harvey.bates@dpi.nsw.gov.au",
+        "appleTeamId": "27HNP7KTF9",
+        "ascAppId": "1604281764"
       },
       "android": {
         "serviceAccountKeyPath": "./88087898553-339e434bba37.json",

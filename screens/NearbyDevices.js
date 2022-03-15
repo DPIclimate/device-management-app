@@ -2,9 +2,9 @@ import React, {useEffect, useState} from 'react'
 import { StyleSheet, Text, View, TouchableOpacity, Image, Alert } from 'react-native'
 import { FlatList } from 'react-native-gesture-handler'
 import { Card, getFromStore, LoadingComponent } from '../shared'
-import * as Location from 'expo-location';
 import globalStyles from '../styles';
 import MultiSlider from '@ptomasroos/react-native-multi-slider';
+import { getLocation } from '../shared/getLocation';
 
 export default function NearbyDevices({route, navigation}) {
 
@@ -13,31 +13,29 @@ export default function NearbyDevices({route, navigation}) {
   const [errorMsg, setErrorMsg] = useState(null);
   const [searchRadius, setSearchRadius] = useState(5)
   const [isLoading, setLoading] = useState(true)
+  const {loading: locLoading, location: userLocation, error: locError} = getLocation()
 
   useEffect(() =>{
 
-    async function hasLoaded(){
-      
-      let { status } = await Location.requestForegroundPermissionsAsync();
-      if (status !== 'granted') {
-        setErrorMsg('Permission to access location was denied');
-        Alert.alert("Location Needed", "Please enable location services in order to use this feature")
-        navigation.goBack()
-        return;
-      }
-      getData()
+    if (locLoading) return
+    console.log("loc not loading", userLocation, locLoading)
+    if (locError == 'Prermission denied'){
+      setErrorMsg('Permission to access location was denied')
     }
-    hasLoaded()
-  },[])
+    getData()
+  },[locLoading])
   
   useEffect(()=>{
+    
 
     getDistances()
 
   },[devs])
+
   async function getData(){
-    console.log('in getdata')
-  
+    
+    console.log('getting data...')
+
     const fromStore = await getFromStore({type:"ApplicationList", storKey:'applicationCache'})
 
     if (fromStore.fromStore == null) {setErrorMsg("We have not cahced any device data yet. Please come back later");return}
@@ -54,6 +52,7 @@ export default function NearbyDevices({route, navigation}) {
         dev_with_loc.push(dev)
       }
     }
+    console.log('writing data to state')
     setDevs(dev_with_loc)
 
   }
@@ -63,12 +62,11 @@ export default function NearbyDevices({route, navigation}) {
     setLoading(true)
 
     if (devs == undefined) {console.log('returned with no devs');return }
-    // if (userLocation == null) {console.log('returned with no location');return}
-    const userLocation = await Location.getCurrentPositionAsync({});
+    if (userLocation == null) {console.log('returned with no location');return}
 
     console.log('in get distances')
     let devs_dist = devs.map((dev) => {
-      
+
       const lat1 = userLocation?.coords.latitude
       const lat2 = dev.locations.user.latitude
       
@@ -91,8 +89,11 @@ export default function NearbyDevices({route, navigation}) {
       return dev
     })
     
+    console.log('finished calculation, sorting....')
+
     let filtered_devs = []
     devs_dist.forEach((dev)=>{
+      //Filter devices for ones that meat the search radius requirement
       if (dev.loc_difference <= searchRadius){
         filtered_devs.push(dev)
       } 
@@ -101,7 +102,8 @@ export default function NearbyDevices({route, navigation}) {
     filtered_devs.sort((a,b)=>{ //Sorts array from closest device to furthest
       return a.loc_difference - b.loc_difference
     })
-    console.log(filtered_devs, 'filtered')
+
+    console.log('finished sorting')
     setData(filtered_devs)
     
     if (filtered_devs.length == 0){setErrorMsg('No devices nearby')}
@@ -128,8 +130,8 @@ export default function NearbyDevices({route, navigation}) {
     return(
           <Card>
               <TouchableOpacity style={{flexDirection:'row', alignItems:'center', justifyContent:'space-between', width:'100%', height:30}} onPress={() => handlePress(item)}>
-                  <Text style={globalStyles.text, {flex:1}} numberOfLines={1} ellipsizeMode='tail' >{item.ids.device_id}</Text>
-                  <Text style={globalStyles.text, {flex:1, paddingLeft:10}}>Dist: {item.loc_difference.toFixed(2)}km</Text>
+                  <Text style={[globalStyles.text, {flex:1}]} numberOfLines={1} ellipsizeMode='tail' >{item.ids.device_id}</Text>
+                  <Text style={[globalStyles.text, {flex:1, paddingLeft:10}]}>Dist: {item.loc_difference.toFixed(2)}km</Text>
                   <Image source={require('../assets/arrowBlue.png')} style={{height:20, width:20}}/>
               </TouchableOpacity>
           </Card>
@@ -148,7 +150,8 @@ export default function NearbyDevices({route, navigation}) {
       />
       </View>
       <View style={{width:'90%', height:2, backgroundColor:'#128cde', alignSelf:'center', margin:20}}/>
-      {!isLoading? 
+      {console.log(isLoading, locLoading)}
+      {!isLoading && !locLoading? 
         <View style={{height:'100%', paddingBottom:150}}>
           {console.log(data.length)}
           {data.length==0?
@@ -166,11 +169,9 @@ export default function NearbyDevices({route, navigation}) {
         </View>
         :
         <View style={{justifyContent:'center', alignItems:'center'}}>
-          <LoadingComponent loading={isLoading}/>
+          <LoadingComponent loading={isLoading || locLoading}/>
         </View>
       }
     </View>
   )
 }
-
-const styles = StyleSheet.create({})

@@ -4,7 +4,7 @@ import checkNetworkStatus from './NetworkStatus';
 import config from '../config.json'
 
 export const useFetchState = (url, options) =>{
-	// Custom use Fetch hook that returns states
+	// Custom use Fetch hook
 
 	const [data, setData] = useState(null);
 	const [isLoading, setIsLoading] = useState(true);
