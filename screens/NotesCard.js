@@ -6,15 +6,12 @@ import { Text,
 	TouchableHighlight,
 	Image,
 	Button,
-    Keyboard,
-	TouchableOpacity,
 	ActivityIndicator,
-	Pressable,
 	TextInput,
 	StyleSheet,
-	KeyboardAvoidingView,
 	Alert,
-	InputAccessoryView } from 'react-native';
+	InputAccessoryView, 
+    Platform} from 'react-native';
 import globalStyles from '../styles';
 import {updateDevice, checkNetworkStatus} from '../shared/index'
 import { useDataContext } from '../shared/DataContextManager';
@@ -95,11 +92,11 @@ function NotesCard({scrollViewRef}) {
                 </Grid>
             </Card>
 
-            <InputAccessoryView nativeID={inputAccessoryViewID}>
+            {Platform.OS =='ios'&&<InputAccessoryView nativeID={inputAccessoryViewID}>
                 <View style={{alignItems:'flex-end', justifyContent:'center', paddingRight:10, height:35, backgroundColor:'white'}}>
                     <Button title="dismiss"/>
                 </View>
-            </InputAccessoryView>
+            </InputAccessoryView>}
         </>
 
     );
