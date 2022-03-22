@@ -11,7 +11,7 @@ const NavButtons = ({navigation}) => {
             </Pressable>
 
             <Pressable style={[globalStyles.blueButton, styles.manDeviceLoc]} onPress={() => {navigation.navigate('ManageDevices')}}>
-                <Text  adjustsFontSizeToFit numberOfLines={1} style={globalStyles.blueButtonText}>Manage</Text>
+                <Text  adjustsFontSizeToFit numberOfLines={1} style={globalStyles.blueButtonText}>Lookup</Text>
             </Pressable>
         </>
     )

@@ -116,14 +116,14 @@ function Applications({navigation}) {
             if (data?.applications == undefined){setNoData(true); return}
             const apps = data?.applications
 
-            const appList = apps.map((app) => ({id:app['ids']['application_id'], isFav:favs.includes(app['ids']['application_id']), description:app['description']}))
+            const appList = apps.map((app) => ({id:app.ids.application_id, isFav:favs.includes(app.ids.application_id), description:app.description}))
 
             changeData(appList)
             changeValid(true)
         }
         else{
             if (data.length == 0){setNoData(true); return}
-            let listOfIds = data.map((app) => ({id:app['application_id'], isFav:favs.includes(app['application_id']), description:app['description']}))
+            let listOfIds = data.map((app) => ({id:app.ids.application_id, isFav:favs.includes(app.ids.application_id), description:app.description}))
             changeData(listOfIds)
         }
     }
@@ -189,7 +189,7 @@ function Applications({navigation}) {
         changeData(listData.map(item => item.id == data.item.id? {...item, isFav:!item.isFav}:item))
 
     }
-
+    if (noData) return <View style={globalStyles.screen}><Text>No data to display</Text></View>
     return (
         <View style={globalStyles.screen}>
             

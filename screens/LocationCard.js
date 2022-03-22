@@ -126,7 +126,7 @@ function LocationCard({autoSearch}) {
                     <Text>{title}</Text>
                 </Col>
                 <Col>
-                    <Text>{data}</Text>
+                    <Text numberOfLines={1} ellipsizeMode='tail'>{data}</Text>
                 </Col>
             </>
         )

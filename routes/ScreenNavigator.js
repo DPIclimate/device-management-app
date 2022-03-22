@@ -61,7 +61,7 @@ function ScreenStack() {
       <Screen
         name="ManageDevices"
         component={ManageDevices}
-        options={{title:"Manage Devices"}}
+        options={{title:"Lookup Devices"}}
         />
       <Screen
       name="OfflineDevices"
