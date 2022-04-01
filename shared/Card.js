@@ -10,7 +10,7 @@ const Card = (props) => {
     
     const styles = StyleSheet.create({
         card: {
-            borderRadius: 8,
+            borderRadius: props.borderRadius ? props.borderRadius : 8,
             elevation: 3,
             backgroundColor: props.colour == undefined ?'#fff': props.colour,
             shadowOffset: { width: 1, height: 1 },

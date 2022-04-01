@@ -15,6 +15,7 @@ import SettingsScreen from '../screens/SettingsScreen';
 import MoveDevice from '../screens/MoveDevice';
 import AppList from '../screens/AppList';
 import NearbyDevices from '../screens/NearbyDevices'
+import HomeScreen from '../screens/HomeScreen';
 
 const { Screen, Navigator } = createStackNavigator();
 
@@ -25,7 +26,7 @@ const { Screen, Navigator } = createStackNavigator();
 function ScreenStack() {
   return (
     <Navigator
-      initialRouteName="Applications"
+      initialRouteName="HomeScreen"
       screenOptions={{
         headerStyle: {
           backgroundColor: '#128cde',
@@ -38,6 +39,11 @@ function ScreenStack() {
         gestureEnabled: true,
       }}
     >
+      <Screen
+        name="HomeScreen"
+        component={HomeScreen}
+        options={{title: "Home"}}
+        />
       <Screen
         name='Applications'
         component={Applications}

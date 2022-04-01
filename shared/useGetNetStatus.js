@@ -15,7 +15,7 @@ export const useGetNetStatus = () =>{
 
                 const isConnected = await NetInfo.fetch().then(state => state.isConnected)
                 if(isMounted){
-                    setStatus(!isConnected)
+                    setStatus(isConnected)
                     setLoading(false)
                 }
             }catch(error){

@@ -19,6 +19,7 @@ import {registerDevice,
 } from '../shared'
 import { AsyncAlert } from '../shared/AsyncAlert';
 import { SwipeListView } from 'react-native-swipe-list-view';
+import { useGetNetStatus } from '../shared/useGetNetStatus';
 
 function OfflineDevices({ route, navigation }) {
 
@@ -27,16 +28,13 @@ function OfflineDevices({ route, navigation }) {
     const [savedDevices, changeSavedDevices] = useState([]);
 
     const [reload, setReload] = useState(true)
-    const [isConnected, changeConnectionStatus] = useState(false)
+    const {loading:netLoading, netStatus, error: netError} = useGetNetStatus()
+    const [displayError, setError] = useState(null)
 
     useEffect (() =>{
+        if (netLoading)return
         getSaved()
-        async function net(){
-            let connected = await checkNetworkStatus()
-            changeConnectionStatus(connected)
-        }
-        net()
-    },[reload])
+    },[reload, netLoading])
 
     const getSaved = async() =>{
 
@@ -45,11 +43,10 @@ function OfflineDevices({ route, navigation }) {
         changeSavedDevices(savedDev)
 
         if (savedDev == 0){
-            navigation.goBack()
+            setError("No Devices in Que")
         }
 
         setLoading(false)
-
     }
     const handleRegister = async(index) =>{
 
@@ -77,7 +74,7 @@ function OfflineDevices({ route, navigation }) {
 
     const handlePress = async(data, rowMap) =>{
 
-        if (!isConnected) {Alert.alert("No Connection","Please connect to the internet to deploy/update this device");return}
+        if (!netStatus) {Alert.alert("No Connection","Please connect to the internet to deploy/update this device");return}
         
         const {item, index} = data
 
@@ -226,6 +223,9 @@ function OfflineDevices({ route, navigation }) {
     }
     return (
         <View style={globalStyles.screen}>
+            {displayError&&
+                <Text style={{fontWeight:'bold', paddingTop:20, fontSize:20}}>{displayError}</Text>
+                }
 
             <LoadingComponent loading={isLoading}/>
 
