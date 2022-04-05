@@ -110,7 +110,7 @@ function reducer(state, action){
     }
 }
 
-const AddDeviceScreen = ({ route, navigation }) => {
+const RegisterDevice = ({ route, navigation }) => {
 
     const [isLoading, setLoadingState] = useState(false)
 
@@ -331,7 +331,7 @@ const AddDeviceScreen = ({ route, navigation }) => {
                     <View style={{paddingTop:15, flexDirection:'row', justifyContent:'space-between'}}>
                         <Text style={[globalStyles.title, styles.title]}>{isRegister? <Text>Register Device</Text>:<Text>Update Device</Text>}</Text>
 
-                        <TouchableOpacity style={globalStyles.qrButton} onPress={() => navigation.navigate('QrScanner',{screen:'AddDeviceScreen'})}>
+                        <TouchableOpacity style={globalStyles.qrButton} onPress={() => navigation.navigate('QrScanner',{screen:'RegisterDevice'})}>
                             <Image style={globalStyles.qrCode} source={require('../assets/QR-code-icon.png')}/>
                         </TouchableOpacity>
                     </View>
@@ -393,4 +393,4 @@ const styles = StyleSheet.create({
         marginTop:25
     }
 })
-export default AddDeviceScreen;
+export default RegisterDevice;

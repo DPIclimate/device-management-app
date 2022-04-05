@@ -4,6 +4,8 @@ import {View,
 	TouchableOpacity,
 	Pressable,
 	StyleSheet,
+    TextInput,
+    Image
 } from 'react-native'
 import globalStyles from '../styles';
 import config from '../config.json'
@@ -23,9 +25,10 @@ function Applications({navigation}) {
     const [listData, changeData] = useState([]);
     const {data, isLoading, error, retry} = useFetchState(`${config.ttnBaseURL}?field_mask=description`,{type:"ApplicationList", storKey:global.APP_CACHE})
     const {loading:netLoading, netStatus, error: netError} = useGetNetStatus()
-    const [noData, setNoData] = useState(false)
 
     const [validToken, changeValid] = useState(true)
+    const [searchText, setSearchText] = useState('')
+    const [showSearch, setShow] = useState(false)
 
     useEffect(()=>{
 
@@ -47,25 +50,25 @@ function Applications({navigation}) {
         const {fromStore: favs, error} = await getFromStore({type:'FavList', storKey:global.APP_FAV})
 
         if (netStatus){
-            if (data?.applications == undefined){setNoData(true); return}
+            console.log("Online")
+            if (data?.applications == undefined){return}
             const apps = data?.applications
-            console.log(apps)
             const appList = apps.map((app) => ({id:app.ids.application_id, isFav:favs.includes(app.ids.application_id), description:app.description}))
 
             changeData(appList)
             changeValid(true)
         }
         else{
-            if (data.length == 0){setNoData(true); return}
-            let listOfIds = data.applications.map((app) => ({id:app.ids.application_id, isFav:favs.includes(app.ids.application_id), description:app.description}))
-            console.log(listOfIds)
+            console.log("Offline")
+            if (data.length == 0){return}
+            let listOfIds = data.map((app) => ({id:app.application_id, isFav:favs.includes(app.application_id), description:app.description}))
             changeData(listOfIds)
         }
     }
 
     const DataError = () =>{
         
-        if (!netStatus && listData == null){
+        if (listData == null){
 
             return(
                 <Text style={[globalStyles.text, {justifyContent:'center'}]}>No applications to display</Text>
@@ -104,26 +107,73 @@ function Applications({navigation}) {
         changeData(listData.map(item => item.id == data.item.id? {...item, isFav:!item.isFav}:item))
 
     }
-    if (noData) return <View style={globalStyles.screen}><Text>No data to display</Text></View>
+
+    const filteredData = () =>{
+
+
+        let list = listData
+        if (searchText != ''){
+
+            //Regex support
+            if (searchText.includes('regex: ')){
+
+                list = list.filter((app) =>{
+                    try{
+                        //Convert user text to regular expression
+                        const pattern = searchText.replace('regex: ','')
+                        const match = pattern.match(new RegExp('^/(.*?)/([gimy]*)$'));
+                        const regex = new RegExp(match[1], match[2]);
+
+                        const result = app.id.match(regex)
+                        if (result) return true
+                    }
+                    catch(e){
+                        return false
+                    }
+                })
+            }
+            else{
+                list = list.filter((app) => {
+                    return app.id.includes(searchText)
+                }
+                )}
+        }
+        list = list.sort((a,b)=>{
+            return (a.isFav === b.isFav) ? a.id > b.id : a.isFav ? -1 : 1
+        })
+        return list
+    }
     return (
         <View style={globalStyles.screen}>
             
             {validToken?
-            <>
-                <Text style={[globalStyles.title,styles.title]}>Applications</Text>
-                <View style={{width:200, height:45, position:'absolute', justifyContent:'flex-end', flexDirection:'row', right:0, top:5, margin:10}} >
-                    <Offline isConnected={netStatus}/>
+            <>  
+                
+                {showSearch&& 
+                <View style={{padding:10, width:'100%'}}>
+                    <TextInput clearButtonMode="always" autoFocus={true} onSubmitEditing={() => setShow(false)} value={searchText} placeholder='example-app-id' style={[globalStyles.inputWborder]} onChangeText={(e) => {setSearchText(e)}} autoCorrect={false} autoCapitalize='none'/>
                 </View>
+
+            }
+                <View style={{flexDirection:'row', alignItems:'center'}}>
+                    <View style={{paddingRight:50, alignSelf:'flex-end'}}>
+                        <Offline isConnected={netStatus}/>
+                    </View>
+                    <Text style={[globalStyles.title,styles.title]}>Applications</Text>
+
+                    <TouchableOpacity style={{paddingLeft:50, paddingBottom:5, alignSelf:'flex-end'}} onPress={(prev) => setShow(prev => !prev)}>
+                        <Image source={require('../assets/search.png')} style={{width:30, height:30, paddingRight:20}}/>
+                    </TouchableOpacity>
+                    
+                </View>
+                {searchText != '' && <Text>Search: {searchText}</Text>}
                 <LoadingComponent loading={isLoading}/>
                 <DataError/>
 
                 <View style={[{flex:1}, globalStyles.list]}>
 
                     <SwipeListView
-                    data={listData.sort((a,b)=>{
-                        return (a.isFav === b.isFav) ? a.id > b.id : a.isFav ? -1 : 1
-
-                    })}
+                    data={filteredData()}
                     renderItem={(item) => renderItem(item, handlePress, 'Applications')}
                     keyExtractor={(item, index) => index.toString()}
                     renderHiddenItem={(data, rowMap) => renderHiddenItem(data, rowMap, toggleFavourite)}
@@ -131,7 +181,6 @@ function Applications({navigation}) {
                     stopRightSwipe={1}
                     />
                 </View>
-                
             </>
             :
             <>

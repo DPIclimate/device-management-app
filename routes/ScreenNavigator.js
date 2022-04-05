@@ -3,7 +3,7 @@ import { NavigationContainer } from '@react-navigation/native';
 import { createStackNavigator } from '@react-navigation/stack';
 
 import {
-  AddDeviceScreen,
+  RegisterDevice,
   QrScanner,
   ManageDevices,
   Applications,
@@ -55,8 +55,8 @@ function ScreenStack() {
         options={{ title: 'Browse Devices'}}
       />
       <Screen
-        name='AddDeviceScreen'
-        component={AddDeviceScreen}
+        name='RegisterDevice'
+        component={RegisterDevice}
         options={{ title: 'Register/Update Device'}}
       />
       <Screen

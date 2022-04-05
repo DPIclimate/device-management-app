@@ -80,7 +80,7 @@ export default function HomeScreen({navigation}) {
             </View>
             <View style={{flexDirection:'row'}}>
                     <View style={{paddingRight:10}}><Icon title={"Scan QR Code"} image={scanQR} onPress={() => navigation.navigate("QrScanner", {screen:'ManageDevices'})}/></View>
-                    <Icon title={"Register Device"} image={regDev} onPress={() => navigation.navigate("AddDeviceScreen")}/>
+                    <Icon title={"Register Device"} image={regDev} onPress={() => navigation.navigate("RegisterDevice")}/>
             </View>
             <View style={{flexDirection:'row'}}>
                     <View style={{paddingRight:10}}><Icon title={"Manage Devices"} image={manageDev} onPress={() => navigation.navigate("ManageDevices")}/></View>

@@ -2,7 +2,6 @@ import React, { useEffect, useState } from 'react';
 import { View, Text,
 	StyleSheet,
 	Image,
-	TouchableHighlight,
 	TouchableOpacity,
 	Alert} from 'react-native'
 import globalStyles from '../styles';
@@ -11,7 +10,6 @@ import {registerDevice,
 	updateDevice,
 	Card,
 	LoadingComponent,
-	checkNetworkStatus,
 	checkUnique,
 	updateDetails,
     getFromStore,
@@ -224,7 +222,7 @@ function OfflineDevices({ route, navigation }) {
     return (
         <View style={globalStyles.screen}>
             {displayError&&
-                <Text style={{fontWeight:'bold', paddingTop:20, fontSize:20}}>{displayError}</Text>
+                <Text style={{fontWeight:'bold', paddingTop:20, fontSize:15}}>{displayError}</Text>
                 }
 
             <LoadingComponent loading={isLoading}/>
