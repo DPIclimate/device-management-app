@@ -5,7 +5,7 @@ import {View,
 } from 'react-native'
 import globalStyles from '../styles';
 import config from '../config.json'
-import {NavButtons,
+import {
 	renderItem,
     renderHiddenItem,
 	LoadingComponent,
@@ -16,27 +16,26 @@ import {NavButtons,
 import { SwipeListView } from 'react-native-swipe-list-view';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import useFetchState from '../shared/useFetch';
+import { useGetNetStatus } from '../shared/useGetNetStatus';
 
 
 function Devices({route, navigation}) {
 
     const [listData, changeData] = useState([])
     const [noData, setNoData] = useState(false)
-    const [netStatus, setNetStatus] = useState(false)
-
+    const {loading:netLoading, netStatus, netError} = useGetNetStatus()
     const {data, isLoading, error, retry} = useFetchState(`${config.ttnBaseURL}/${route.params.application_id}/devices?field_mask=attributes,locations,description,name`, {type:'DeviceList', appID:route.params?.application_id, storKey:global.APP_CACHE})
 
     useEffect(()=>{
 
         async function loaded(){
-            const status = await checkNetworkStatus()
-            setNetStatus(status)
 
             if (isLoading) return
+            if(netLoading) return
             setListData(data)
         }
         loaded()
-    },[isLoading])
+    },[isLoading, netLoading])
     
     const setListData = async(data) =>{
         if (isLoading) return
@@ -125,8 +124,6 @@ function Devices({route, navigation}) {
                 stopRightSwipe={1}
                 contentContainerStyle={{ paddingBottom: 90 }}
             />
-
-            <NavButtons navigation={navigation}/>
         </View>
     );
 }

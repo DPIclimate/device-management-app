@@ -102,7 +102,7 @@ function SettingsScreen() {
                         }
                         {invalidToken? <Text style={globalStyles.invalidText}>Invalid TTN Bearer Token</Text>:<View></View>  }
                     </Card>
-                    <AboutCard/>
+                    {/* <AboutCard/> */}
                     <HelpCard/>
                     <Card>
                         <Text style={globalStyles.title}>Found a bug?</Text>

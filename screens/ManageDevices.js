@@ -7,18 +7,15 @@ import{View,
 	Image,
 	TouchableHighlight,
 	Alert,
-	KeyboardAvoidingView,
     Keyboard,
 	TouchableOpacity,
-	InputAccessoryView,
-	Button} from 'react-native'
+	} from 'react-native'
 import globalStyles from '../styles';
 import config from '../config';
 import DeviceCard from './DeviceCard';
 import CommCard from './CommCard';
 import LocationCard from './LocationCard';
 import NotesCard from './NotesCard';
-import PhotosCard from './PhotosCard'
 import { checkNetworkStatus, LoadingComponent} from '../shared';
 import { DataContextProvider } from '../shared/DataContextManager';
 import {useFetch} from '../shared/useFetch';
@@ -201,7 +198,6 @@ const ManageDevices = ({route, navigation}) => {
     }
 
     return (
-        
         <ScrollView 
             style={globalStyles.scrollView} 
             keyboardDismissMode="interactive" 
@@ -236,7 +232,6 @@ const ManageDevices = ({route, navigation}) => {
                     <CommCard changeLastSeen={changeLastSeen} setCircle={setCircle}/>
                     <LocationCard autoSearch={setAutoSearch}/>  
                     <NotesCard scrollViewRef={scrollViewRef}/>
-                    {/* <PhotosCard params={route.params} navigation={navigation}/> */}
                     
                 </DataContextProvider>
 

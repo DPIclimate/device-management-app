@@ -27,7 +27,6 @@ export default function NearbyDevices({route, navigation}) {
   
   useEffect(()=>{
     
-
     getDistances()
 
   },[devs])
@@ -150,14 +149,12 @@ export default function NearbyDevices({route, navigation}) {
       />
       </View>
       <View style={{width:'90%', height:2, backgroundColor:'#128cde', alignSelf:'center', margin:20}}/>
-      {console.log(isLoading, locLoading)}
+
       {!isLoading && !locLoading? 
         <View style={{height:'100%', paddingBottom:150}}>
-          {console.log(data.length)}
-          {data.length==0?
-              
-              <View style={{alignItems:'center', height:'100%', width:'100%'}}><Text>{errorMsg}{console.log('here', errorMsg)}</Text></View>
-              :
+          {errorMsg&&
+                <Text style={{fontWeight:'bold', paddingTop:20, fontSize:15, alignSelf:'center'}}>{errorMsg}</Text>
+                }
               <FlatList
               style={{paddingTop:10}}
               data={data}
@@ -165,7 +162,6 @@ export default function NearbyDevices({route, navigation}) {
               keyExtractor={(item, index) => index.toString()}
               contentContainerStyle={{ paddingBottom: 90 }}
               />
-          }
         </View>
         :
         <View style={{justifyContent:'center', alignItems:'center'}}>

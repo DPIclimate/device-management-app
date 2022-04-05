@@ -1,109 +1,46 @@
-import React, { useEffect, useState, useLayoutEffect } from 'react';
-import '../global.js'
+import React, { useEffect, useState } from 'react';
 import {View,
 	Text,
-	Image,
-	TouchableHighlight,TouchableOpacity,
+	TouchableOpacity,
 	Pressable,
 	StyleSheet,
-    Dimensions,
+    TextInput,
+    Image
 } from 'react-native'
 import globalStyles from '../styles';
 import config from '../config.json'
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { useIsFocused } from '@react-navigation/native';
-import {NavButtons,
+import {
 	renderItem,
-	checkNetworkStatus,
     renderHiddenItem,
 	LoadingComponent,
     Offline,
     getFromStore} from '../shared'
-import { Overlay } from 'react-native-elements';
-import WelcomScreen from './WelcomScreen';
 import { SwipeListView } from 'react-native-swipe-list-view';
 import useFetchState from '../shared/useFetch.js';
+import { useGetNetStatus } from '../shared/useGetNetStatus';
 
 function Applications({navigation}) {
 
     const [listData, changeData] = useState([]);
     const {data, isLoading, error, retry} = useFetchState(`${config.ttnBaseURL}?field_mask=description`,{type:"ApplicationList", storKey:global.APP_CACHE})
-    const [netStatus, setNetStaus] = useState(false)
-    const [noData, setNoData] = useState(false)
-
-    const [savedDevices, setSavedDevices] = useState(false)
-    const isFocused = useIsFocused()
+    const {loading:netLoading, netStatus, error: netError} = useGetNetStatus()
 
     const [validToken, changeValid] = useState(true)
-    const [welcomeVisable, setWelcVisable] = useState(false);
-
-    useLayoutEffect(() => {
-        //Settings icon
-        navigation.setOptions({
-            headerRight: () => <SettingsIcon/>,
-            headerLeft: () => <NearbyIcon/>
-        });
-      }, [navigation]);
+    const [searchText, setSearchText] = useState('')
+    const [showSearch, setShow] = useState(false)
 
     useEffect(()=>{
 
         async function loaded(){
 
             if (isLoading) return
-
-            if (error == 'User not logged in'){
-                console.log('use not logged in')
-                setWelcVisable(true)
-            }
-            else{
-                setListData(data)
-            }
+            if(netLoading) return
+            setListData(data)
         }
         loaded()
-    },[isLoading])
-
-    useEffect(() =>{
-
-        async function onFocus(){
-            const status = await checkNetworkStatus()
-            setNetStaus(status)
-            checkSavedReg()
-        }
-        onFocus()
-        
-    }, [isFocused])
-
-    const handleTmp = async() =>{
-        //Temporty button to clear app storage
-        AsyncStorage.clear()
-    }
-    const SettingsIcon = () =>{
-  
-        return (
-            // <TouchableOpacity onPress={() => handleTmp()}>
-          <TouchableOpacity onPress={() => navigation.navigate('SettingsScreen')}>
-            <Image source={require('../assets/settingsWhite.png')} style={{width:25, height:25, marginRight:15}}/>
-          </TouchableOpacity>
-        )
-      }
-    const NearbyIcon = () =>{
-        return (
-          <TouchableOpacity onPress={() => navigation.navigate('NearbyDevices')}>
-            <Image source={require('../assets/nearby.png')} style={{width:25, height:25, marginLeft:15}}/>
-          </TouchableOpacity>
-        )
-    }
-    const checkSavedReg = async() =>{ //Check for saved devices or updates
-
-        const {fromStore: saved, error} = await getFromStore({storKey:global.DEV_STORE, type:'QueDeviceList'})
-
-        if (saved.length != 0){
-            setSavedDevices(true)
-        }
-        else{
-            setSavedDevices(false)
-        }
-    }
+    },[isLoading, netLoading])
+    
     const setListData = async(data) => {
         //Format data for display
         
@@ -113,24 +50,25 @@ function Applications({navigation}) {
         const {fromStore: favs, error} = await getFromStore({type:'FavList', storKey:global.APP_FAV})
 
         if (netStatus){
-            if (data?.applications == undefined){setNoData(true); return}
+            console.log("Online")
+            if (data?.applications == undefined){return}
             const apps = data?.applications
-
             const appList = apps.map((app) => ({id:app.ids.application_id, isFav:favs.includes(app.ids.application_id), description:app.description}))
 
             changeData(appList)
             changeValid(true)
         }
         else{
-            if (data.length == 0){setNoData(true); return}
-            let listOfIds = data.map((app) => ({id:app.ids.application_id, isFav:favs.includes(app.ids.application_id), description:app.description}))
+            console.log("Offline")
+            if (data.length == 0){return}
+            let listOfIds = data.map((app) => ({id:app.application_id, isFav:favs.includes(app.application_id), description:app.description}))
             changeData(listOfIds)
         }
     }
 
     const DataError = () =>{
         
-        if (!netStatus && listData == null){
+        if (listData == null){
 
             return(
                 <Text style={[globalStyles.text, {justifyContent:'center'}]}>No applications to display</Text>
@@ -143,26 +81,6 @@ function Applications({navigation}) {
     const handlePress = (item) =>{
 
         navigation.navigate('Devices',{application_id: item.id, app_description: item.description})
-    }
-
-    const Icons = () =>{
-        
-        const SavedDevices = () =>{
-            if (!savedDevices) return <View/>
-            return (
-                <View style={{paddingLeft:10}}>
-                    <TouchableHighlight style={{width:45, height:45, borderRadius:50}} acitveOpacity={0.6} underlayColor="#DDDDDD" onPress={() => navigation.navigate('OfflineDevices')}>
-                        <Image style={{width:'100%', height:'100%', borderRadius:50}} source={require('../assets/uploadFailed.png')}/>
-                    </TouchableHighlight>
-                </View>
-            )
-        }
-        return(
-            <View style={{width:200, height:45, position:'absolute', justifyContent:'flex-end', flexDirection:'row', right:0, top:5, margin:10}} >
-                <Offline isConnected={netStatus}/>
-                <SavedDevices/>
-            </View>
-        )
     }
     const toggleFavourite = async(data, rowMap) =>{
 
@@ -189,34 +107,80 @@ function Applications({navigation}) {
         changeData(listData.map(item => item.id == data.item.id? {...item, isFav:!item.isFav}:item))
 
     }
-    if (noData) return <View style={globalStyles.screen}><Text>No data to display</Text></View>
+
+    const filteredData = () =>{
+
+
+        let list = listData
+        if (searchText != ''){
+
+            //Regex support
+            if (searchText.includes('regex: ')){
+
+                list = list.filter((app) =>{
+                    try{
+                        //Convert user text to regular expression
+                        const pattern = searchText.replace('regex: ','')
+                        const match = pattern.match(new RegExp('^/(.*?)/([gimy]*)$'));
+                        const regex = new RegExp(match[1], match[2]);
+
+                        const result = app.id.match(regex)
+                        if (result) return true
+                    }
+                    catch(e){
+                        return false
+                    }
+                })
+            }
+            else{
+                list = list.filter((app) => {
+                    return app.id.includes(searchText)
+                }
+                )}
+        }
+        list = list.sort((a,b)=>{
+            return (a.isFav === b.isFav) ? a.id > b.id : a.isFav ? -1 : 1
+        })
+        return list
+    }
     return (
         <View style={globalStyles.screen}>
             
             {validToken?
-            <>
-                <Text style={[globalStyles.title,styles.title]}>Applications</Text>
-                <Icons/>
+            <>  
+                
+                {showSearch&& 
+                <View style={{padding:10, width:'100%'}}>
+                    <TextInput clearButtonMode="always" autoFocus={true} onSubmitEditing={() => setShow(false)} value={searchText} placeholder='example-app-id' style={[globalStyles.inputWborder]} onChangeText={(e) => {setSearchText(e)}} autoCorrect={false} autoCapitalize='none'/>
+                </View>
+
+            }
+                <View style={{flexDirection:'row', alignItems:'center'}}>
+                    <View style={{paddingRight:50, alignSelf:'flex-end'}}>
+                        <Offline isConnected={netStatus}/>
+                    </View>
+                    <Text style={[globalStyles.title,styles.title]}>Applications</Text>
+
+                    <TouchableOpacity style={{paddingLeft:50, paddingBottom:5, alignSelf:'flex-end'}} onPress={(prev) => setShow(prev => !prev)}>
+                        <Image source={require('../assets/search.png')} style={{width:30, height:30, paddingRight:20}}/>
+                    </TouchableOpacity>
+                    
+                </View>
+                {searchText != '' && <Text>Search: {searchText}</Text>}
                 <LoadingComponent loading={isLoading}/>
                 <DataError/>
 
                 <View style={[{flex:1}, globalStyles.list]}>
 
                     <SwipeListView
-                    data={listData.sort((a,b)=>{
-                        return (a.isFav === b.isFav) ? a.id > b.id : a.isFav ? -1 : 1
-
-                    })}
+                    data={filteredData()}
                     renderItem={(item) => renderItem(item, handlePress, 'Applications')}
                     keyExtractor={(item, index) => index.toString()}
                     renderHiddenItem={(data, rowMap) => renderHiddenItem(data, rowMap, toggleFavourite)}
                     leftOpenValue={80}
                     stopRightSwipe={1}
-                    contentContainerStyle={{ paddingBottom: 70 }}
                     />
                 </View>
-                
-                <NavButtons navigation={navigation}/>
             </>
             :
             <>
@@ -232,9 +196,7 @@ function Applications({navigation}) {
                 </View>
             </>
             }
-            <Overlay isVisible={welcomeVisable} overlayStyle={{borderRadius:10, width:Dimensions.get('window').width - 20, height:Dimensions.get('window').height -40, backgroundColor:'#f3f2f3'}}>
-                <WelcomScreen retry={retry} visible={setWelcVisable} validT/>
-            </Overlay >
+            
         </View>
     );
 }

@@ -27,7 +27,7 @@ function DeviceCard({params, navigation}) {
         console.log(data)
         let newData = {...data}
         newData.uid
-        navigation.navigate('AddDeviceScreen',{autofill:data})
+        navigation.navigate('RegisterDevice',{autofill:data})
     }
     const UID_FIELD=() =>{
 

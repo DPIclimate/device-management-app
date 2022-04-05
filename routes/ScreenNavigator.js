@@ -3,7 +3,7 @@ import { NavigationContainer } from '@react-navigation/native';
 import { createStackNavigator } from '@react-navigation/stack';
 
 import {
-  AddDeviceScreen,
+  RegisterDevice,
   QrScanner,
   ManageDevices,
   Applications,
@@ -15,6 +15,7 @@ import SettingsScreen from '../screens/SettingsScreen';
 import MoveDevice from '../screens/MoveDevice';
 import AppList from '../screens/AppList';
 import NearbyDevices from '../screens/NearbyDevices'
+import HomeScreen from '../screens/HomeScreen';
 
 const { Screen, Navigator } = createStackNavigator();
 
@@ -25,7 +26,7 @@ const { Screen, Navigator } = createStackNavigator();
 function ScreenStack() {
   return (
     <Navigator
-      initialRouteName="Applications"
+      initialRouteName="HomeScreen"
       screenOptions={{
         headerStyle: {
           backgroundColor: '#128cde',
@@ -39,6 +40,11 @@ function ScreenStack() {
       }}
     >
       <Screen
+        name="HomeScreen"
+        component={HomeScreen}
+        options={{title: "Home"}}
+        />
+      <Screen
         name='Applications'
         component={Applications}
         options={{ title: 'Browse Applications'}}
@@ -49,8 +55,8 @@ function ScreenStack() {
         options={{ title: 'Browse Devices'}}
       />
       <Screen
-        name='AddDeviceScreen'
-        component={AddDeviceScreen}
+        name='RegisterDevice'
+        component={RegisterDevice}
         options={{ title: 'Register/Update Device'}}
       />
       <Screen
