@@ -20,40 +20,50 @@ export default function Scanner({ route, navigation }) {
     setScanned(true);
     const devData = passData(data)
     console.log("In qrcode", devData)
-    navigation.navigate(route.params.screen,{autofill:devData})
+
+    navigation.navigate(devData.format == 'lora' ? 'RegisterDevice' : route.params.screen,{autofill:devData})
   };
   const passData = (data) =>{
-    //Only occurs once qr code has been scanned
+  //called once qr code has been scanned
     try{
-      let result = JSON.parse(data)
-      
-      let devData = {}
-      //Try and retrieve information from qr code
+        let result = JSON.parse(data)
+        let devData = {
+          'format':'custom'
+        }
+        
+        //Try and retrieve information from qr code
         for (let key in result){
 
-            switch (key) {
-                case 'application_id':
-                  devData['appID'] = result[key]
-                  break;
-                case 'dev_uid':
-                  devData['uid'] = result[key]
-                  devData['uidPresent'] = true
-                  break;
-                case 'dev_name':
-                  devData['name'] = result[key]
-                  break;
-                case 'dev_eui':
-                  devData['eui'] = result[key]
-                  break;
-                default:
-                  break;
-            }
+          switch (key) {
+              case 'application_id':
+                devData['appID'] = result[key]
+                break;
+              case 'dev_uid':
+                devData['uid'] = result[key]
+                devData['uidPresent'] = true
+                break;
+              default:
+                break;
+          }
         }
-        return devData
+      return devData
     }
     catch(error){
+      //check if qr is in LoRa Aliacnce format
+      try{
+        console.log(data)
+        let devData = {
+          "app_eui":data.split(':')[2],
+          "dev_eui":data.split(':')[3],
+          "format":'lora'
+        }
+        return devData
+
+      }catch(error){
+        console.log(error)
         Alert.alert("Invalid QR code")
         return null
+      }
     }
   }
   if (hasPermission === null) {

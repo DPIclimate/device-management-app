@@ -2,11 +2,11 @@ import React, {useEffect, useState} from 'react';
 import { View,Text, ScrollView,StyleSheet ,TextInput, Pressable, Alert, Linking, Image} from 'react-native';
 import globalStyles from '../styles';
 import {Card} from '../shared';
-import helpText from '../HelpText.json'
 import {updateToken} from '../shared/ManageLocStorage'
 import { LoadingComponent } from '../shared';
 import { validateToken } from '../shared';
 import version from '../app.json'
+import {what_is_bearer, why_bearer, how_to_part1, how_to_part2, api_link, about} from '../card_text.js'
 
 function SettingsScreen() {
     
@@ -102,6 +102,7 @@ function SettingsScreen() {
                         }
                         {invalidToken? <Text style={globalStyles.invalidText}>Invalid TTN Bearer Token</Text>:<View></View>  }
                     </Card>
+                    {/* <AboutCard/> */}
                     <HelpCard/>
                     <Card>
                         <Text style={globalStyles.title}>Found a bug?</Text>
@@ -115,18 +116,26 @@ function SettingsScreen() {
         </ScrollView>
     );
 }
+const AboutCard = () =>{
+    return(
+        <Card>
+            <Text style={globalStyles.title}>About</Text>
+            <Text style={[globalStyles.text, styles.text]}>{about}</Text>
+        </Card>
+    )
+}
 const HelpCard = () =>{
     return(
         <Card>
             <Text style={globalStyles.title}>Help</Text>
             <Text style={[globalStyles.subTitle, styles.subTitle]}>What is a bearer token?</Text>
-            <Text style={[globalStyles.text, styles.text]}>{helpText['whatBearer']}</Text>
+            <Text style={[globalStyles.text, styles.text]}>{what_is_bearer}</Text>
 
             <Text style={[globalStyles.subTitle, styles.subTitle]}>Why do I need this?</Text>
-            <Text style={[globalStyles.text, styles.text]}>{helpText['whyBearer']}</Text>
+            <Text style={[globalStyles.text, styles.text]}>{why_bearer}</Text>
 
             <Text style={[globalStyles.subTitle, styles.subTitle]}>How do I get one?</Text>
-            <Text style={[globalStyles.text, styles.text]}>{helpText['how1']}<Text style={{color:'blue'}} onPress={() => Linking.openURL(helpText['apiLink'])}>Personal API Keys </Text>{helpText['how2']}</Text>
+            <Text style={[globalStyles.text, styles.text]}>{how_to_part1}<Text style={{color:'blue'}} onPress={() => Linking.openURL(api_link)}>Personal API Keys </Text>{how_to_part2}</Text>
         </Card>
     )
 }

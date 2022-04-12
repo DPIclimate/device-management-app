@@ -110,7 +110,7 @@ function reducer(state, action){
     }
 }
 
-const AddDeviceScreen = ({ route, navigation }) => {
+const RegisterDevice = ({ route, navigation }) => {
 
     const [isLoading, setLoadingState] = useState(false)
 
@@ -134,7 +134,7 @@ const AddDeviceScreen = ({ route, navigation }) => {
             if (route.params.autofill == null) return
 
             let data = route.params.autofill
-
+            console.log('in effect', data)
             for (let item in data){
                 
                 switch (item){
@@ -148,8 +148,8 @@ const AddDeviceScreen = ({ route, navigation }) => {
                         dispatch({type:ACTIONS.UPDATE_ID, payload:data['ID']})
                         setRegister(false)
                         break
-                    case 'eui':
-                        dispatch({type:ACTIONS.UPDATE_EUI, payload:data['eui']})
+                    case 'dev_eui':
+                        dispatch({type:ACTIONS.UPDATE_EUI, payload:data['dev_eui']})
                     default:
                         console.log("Undable to detect param", item)
                 }
@@ -331,7 +331,7 @@ const AddDeviceScreen = ({ route, navigation }) => {
                     <View style={{paddingTop:15, flexDirection:'row', justifyContent:'space-between'}}>
                         <Text style={[globalStyles.title, styles.title]}>{isRegister? <Text>Register Device</Text>:<Text>Update Device</Text>}</Text>
 
-                        <TouchableOpacity style={globalStyles.qrButton} onPress={() => navigation.navigate('QrScanner',{screen:'AddDeviceScreen'})}>
+                        <TouchableOpacity style={globalStyles.qrButton} onPress={() => navigation.navigate('QrScanner',{screen:'RegisterDevice'})}>
                             <Image style={globalStyles.qrCode} source={require('../assets/QR-code-icon.png')}/>
                         </TouchableOpacity>
                     </View>
@@ -393,4 +393,4 @@ const styles = StyleSheet.create({
         marginTop:25
     }
 })
-export default AddDeviceScreen;
+export default RegisterDevice;

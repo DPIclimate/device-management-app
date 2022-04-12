@@ -197,6 +197,10 @@ def main():
     f = Figlet(font='slant')
     print(f.renderText('Create QR Code'))
 
+    if os.getenv("TTN_TOKEN") == None:
+        print("No bearer token detected. Please create a .env file and past the following:\nTTN_TOKEN=Bearer <Your_token_here>")
+        exit()
+
     path = "."
     num = 0
     applications = []
