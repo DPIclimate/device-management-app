@@ -15,6 +15,8 @@ export default function NearbyDevices({route, navigation}) {
   const [isLoading, setLoading] = useState(true)
   const {loading: locLoading, location: userLocation, error: locError} = getLocation()
 
+  console.log(locLoading)
+  
   useEffect(() =>{
 
     if (locLoading) return

@@ -20,7 +20,8 @@ export default function Scanner({ route, navigation }) {
     setScanned(true);
     const devData = passData(data)
     console.log("In qrcode", devData)
-    navigation.navigate(route.params.screen,{autofill:devData})
+
+    navigation.navigate(devData.format == 'lora' ? 'RegisterDevice' : route.params.screen,{autofill:devData})
   };
   const passData = (data) =>{
   //called once qr code has been scanned
@@ -40,12 +41,6 @@ export default function Scanner({ route, navigation }) {
               case 'dev_uid':
                 devData['uid'] = result[key]
                 devData['uidPresent'] = true
-                break;
-              case 'dev_name':
-                devData['name'] = result[key]
-                break;
-              case 'dev_eui':
-                devData['eui'] = result[key]
                 break;
               default:
                 break;
