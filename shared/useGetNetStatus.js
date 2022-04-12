@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react"
 import NetInfo from "@react-native-community/netinfo";
+import checkNetworkStatus from "./NetworkStatus";
 
 export const useGetNetStatus = () =>{
 
@@ -13,9 +14,9 @@ export const useGetNetStatus = () =>{
         const getStatus = async()=>{
             try{
 
-                const isConnected = await NetInfo.fetch().then(state => state.isConnected)
+                const isConnected = await checkNetworkStatus()
                 if(isMounted){
-                    setStatus(!isConnected)
+                    setStatus(isConnected)
                     setLoading(false)
                 }
             }catch(error){
