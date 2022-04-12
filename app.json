@@ -18,11 +18,11 @@
     ],
     "ios": {
       "supportsTablet": false,
-      "bundleIdentifier":"com.dpi.deviceManagementApp"
+      "bundleIdentifier": "com.dpi.deviceManagementApp"
     },
     "android": {
-      "package":"com.dpi.deviceManagementApp",
-      "versionCode": 3,
+      "package": "com.dpi.deviceManagementApp",
+      "versionCode": 4,
       "adaptiveIcon": {
         "foregroundImage": "./assets/icon.png",
         "backgroundColor": "#FFFFFF"
