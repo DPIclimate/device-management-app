@@ -134,7 +134,7 @@ const RegisterDevice = ({ route, navigation }) => {
             if (route.params.autofill == null) return
 
             let data = route.params.autofill
-
+            console.log('in effect', data)
             for (let item in data){
                 
                 switch (item){
@@ -148,8 +148,8 @@ const RegisterDevice = ({ route, navigation }) => {
                         dispatch({type:ACTIONS.UPDATE_ID, payload:data['ID']})
                         setRegister(false)
                         break
-                    case 'eui':
-                        dispatch({type:ACTIONS.UPDATE_EUI, payload:data['eui']})
+                    case 'dev_eui':
+                        dispatch({type:ACTIONS.UPDATE_EUI, payload:data['dev_eui']})
                     default:
                         console.log("Undable to detect param", item)
                 }

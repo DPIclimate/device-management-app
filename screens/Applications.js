@@ -110,7 +110,6 @@ function Applications({navigation}) {
 
     const filteredData = () =>{
 
-
         let list = listData
         if (searchText != ''){
 
