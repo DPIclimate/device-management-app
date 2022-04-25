@@ -36,12 +36,12 @@ function OfflineDevices({ route, navigation }) {
 
     const getSaved = async() =>{
 
-        const {fromStore: savedDev, error} = await getFromStore({storKey:global.DEV_STORE, type:'QueDeviceList'})
+        const {fromStore: savedDev, error} = await getFromStore({storKey:global.DEV_STORE, type:'QueueDeviceList'})
 
         changeSavedDevices(savedDev)
 
         if (savedDev == 0){
-            setError("No Devices in Que")
+            setError("No Devices in queue")
         }
 
         setLoading(false)

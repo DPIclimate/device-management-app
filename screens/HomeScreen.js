@@ -84,7 +84,7 @@ export default function HomeScreen({navigation}) {
             </View>
             <View style={{flexDirection:'row'}}>
                     <View style={{paddingRight:10}}><Icon title={"Manage Devices"} image={manageDev} onPress={() => navigation.navigate("ManageDevices")}/></View>
-                    <Icon title={"Qued"} image={failedUpload} onPress={() => navigation.navigate("OfflineDevices")}/>
+                    <Icon title={"Queue"} image={failedUpload} onPress={() => navigation.navigate("OfflineDevices")}/>
             </View>
             </View>
             </ScrollView>

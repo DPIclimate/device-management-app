@@ -70,7 +70,7 @@ const getFromStore = async(options)=>{
             }
             return {fromStore,error}
             break;
-        case 'QueDeviceList':
+        case 'QueueDeviceList':
             if (error || fromStore == null){
                 fromStore = []
             }
