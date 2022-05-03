@@ -8,7 +8,6 @@ import {View,
     Image
 } from 'react-native'
 import globalStyles from '../styles';
-import config from '../config.json'
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import {
 	renderItem,
@@ -23,7 +22,7 @@ import { useGetNetStatus } from '../shared/useGetNetStatus';
 function Applications({navigation}) {
 
     const [listData, changeData] = useState([]);
-    const {data, isLoading, error, retry} = useFetchState(`${config.ttnBaseURL}?field_mask=description`,{type:"ApplicationList", storKey:global.APP_CACHE})
+    const {data, isLoading, error, retry} = useFetchState(`${global.BASE_URL}/applications?field_mask=description`,{type:"ApplicationList", storKey:global.APP_CACHE})
     const {loading:netLoading, netStatus, error: netError} = useGetNetStatus()
 
     const [validToken, changeValid] = useState(true)

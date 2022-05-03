@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { cacheTTNdata, getFromStore, setTTNToken } from './ManageLocStorage';
 import checkNetworkStatus from './NetworkStatus';
-import config from '../config.json'
+
 
 export const useFetchState = (url, options) =>{
 	// Custom use Fetch hook
@@ -45,7 +45,7 @@ export const useFetchState = (url, options) =>{
 					setIsLoading(false);
 					setError(null);
 
-					if (url == `${config.ttnBaseURL}?field_mask=description`){cacheTTNdata(resp.applications)}
+					if (url == `${global.BASE_URL}/applications?field_mask=description`){cacheTTNdata(resp.applications)}
 
 				}catch(err){
 					if (err.name === 'AbortError') {

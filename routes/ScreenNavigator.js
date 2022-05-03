@@ -16,6 +16,7 @@ import MoveDevice from '../screens/MoveDevice';
 import AppList from '../screens/AppList';
 import NearbyDevices from '../screens/NearbyDevices'
 import HomeScreen from '../screens/HomeScreen';
+import Gateways from '../screens/Gateways';
 
 const { Screen, Navigator } = createStackNavigator();
 
@@ -99,6 +100,11 @@ function ScreenStack() {
         component={NearbyDevices}
         options={{ title: 'Nearby Devices' }}
       />
+      <Screen
+        name="Gateways"
+        component={Gateways}
+        options={{title: 'Gateways'}}
+        />
     </Navigator>
   );
 }

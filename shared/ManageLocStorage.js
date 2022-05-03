@@ -1,5 +1,5 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import config from '../config.json'
+
 
 //Functions to manage local storage
 const saveDevice = async(device) =>{
@@ -31,7 +31,6 @@ const saveDevice = async(device) =>{
     }
 }
 const getFromStore = async(options)=>{
-    //Method from retrieving from phones local storage
 
     console.log("retrieving from storage")
     let fromStore = undefined
@@ -45,7 +44,7 @@ const getFromStore = async(options)=>{
         error = error
     }
 
-    //Makes sure data is in an expected format
+    //Makes sure data is returned in a format same to api request
     switch (options.type) {
 
         case 'ApplicationList':
@@ -70,7 +69,8 @@ const getFromStore = async(options)=>{
             }
             return {fromStore,error}
             break;
-        case 'QueDeviceList':
+        case 'QueueDeviceList':
+            //Devices in que
             if (error || fromStore == null){
                 fromStore = []
             }
@@ -106,7 +106,7 @@ const cacheTTNdata = async(app_response) =>{ // Cache TTN data for offline use
         for (let app in apps){
             const id = apps[app].id
             
-            const url = `${config.ttnBaseURL}/${id}/devices?field_mask=attributes,locations,description,name`
+            const url = `${global.BASE_URL}/applications/${id}/devices?field_mask=attributes,locations,description,name`
             let response = await fetch(url,
             {
                 method:"GET",

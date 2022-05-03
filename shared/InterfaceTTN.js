@@ -1,4 +1,4 @@
-import config from '../config';
+;
 import Error from './ErrorClass'
 import { Alert } from 'react-native';
 import { useFetch } from './useFetch';
@@ -23,7 +23,7 @@ const registerDevice = async(device) =>{
     try{
         console.log('making request')
 
-        const url = `${config.ttnBaseURL}/${appID}/devices`
+        const url = `${global.BASE_URL}/applications/${appID}/devices`
         let json = await fetch(url,
             {
                 method:'POST',
@@ -50,7 +50,7 @@ const registerDevice = async(device) =>{
 const getEUI = async (appID) =>{
 
     //Request EUI from ttn
-    let url = `${config.ttnBaseURL}/${appID}/dev-eui`
+    let url = `${global.BASE_URL}/applications/${appID}/dev-eui`
     console.log(url)
     let json = await fetch(url,{
         method:'POST',
@@ -67,7 +67,7 @@ const updateDevice = async(data) =>{
     const deviceID = device['end_device']['ids']['device_id']
 
     try{
-        const url =  `${config.ttnBaseURL}/${appID}/devices/${deviceID}`
+        const url =  `${global.BASE_URL}/applications/${appID}/devices/${deviceID}`
         const response = await fetch(url,{
             method:"PUT",
             headers:global.headers,
@@ -97,7 +97,7 @@ const checkUnique = async(data) =>{ //Checks that a particular device is unique
     const deviceID = data['end_device']['ids']['device_id']
     const appID = data['end_device']['ids']['application_ids']['application_id']
 
-    let url =  `${config.ttnBaseURL}/${appID}/devices?field_mask=attributes`
+    let url =  `${global.BASE_URL}/applications/${appID}/devices?field_mask=attributes`
     let response = await fetch(url,{
         method:"GET",
         headers:global.headers
@@ -120,11 +120,9 @@ const checkUnique = async(data) =>{ //Checks that a particular device is unique
     let uidList = []
     let IDList = []
 
-    devices.map((dev) =>{
+    [euiList, uidList, IDList] = devices.map((dev) =>{
         try{
-            euiList.push(dev['ids']['dev_eui'])
-            IDList.push(dev['ids']['device_id'])
-            uidList.push(dev['attributes']['uid'])
+            return [dev['ids']['dev_eui'], dev['ids']['device_id'], dev['attributes']['uid']]
 
         }catch(error){//Error may occur if device does not have uid
             // console.log(error, "moving on")
@@ -224,7 +222,7 @@ const getApplications = async() => {//Request applications from ttn
     if (global.valid_token != true) return null
 
     try{
-        const url = `${config.ttnBaseURL}?field_mask=description`
+        const url = `${global.BASE_URL}/applications?field_mask=description`
         let response = await fetch(url, {
             method:"GET",
             headers:global.headers
@@ -244,7 +242,7 @@ const deleteDevice = async(device) =>{
     const appID = device.ids.application_ids.application_id
     const devID = device.ids.device_id
 
-    const url = `${config.ttnBaseURL}/${appID}/devices/${devID}`
+    const url = `${global.BASE_URL}/applications/${appID}/devices/${devID}`
     console.log('deleting', url)
     try{
         const response = await fetch(url,{
@@ -267,7 +265,7 @@ const deleteDevice = async(device) =>{
 const moveDevice = async(device, moveTo) =>{
 
     //Get current device object
-    const app = await useFetch(`${config.ttnBaseURL}/${device.appID}/devices?field_mask=attributes,locations,description`, {type:'DeviceList', appID:device.appID, storKey:global.APP_CACHE}, true)
+    const app = await useFetch(`${global.BASE_URL}/applications/${device.appID}/devices?field_mask=attributes,locations,description`, {type:'DeviceList', appID:device.appID, storKey:global.APP_CACHE}, true)
 
     let selectedDevice = null
     for (const i in app?.end_devices){
