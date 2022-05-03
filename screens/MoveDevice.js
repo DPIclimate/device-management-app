@@ -1,7 +1,7 @@
 import { StyleSheet, Text, View, TouchableOpacity, Image, Pressable, Alert } from 'react-native';
 import React, {useEffect, useState} from 'react';
 import globalStyles from '../styles';
-import { Card, checkNetworkStatus, registerDevice, moveDevice, saveDevice } from '../shared';
+import { Card, checkNetworkStatus, moveDevice, saveDevice } from '../shared';
 import { AsyncAlert } from '../shared/AsyncAlert';
 
 export default function MoveDevice({route, navigation}) {

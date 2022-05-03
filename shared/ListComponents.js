@@ -12,7 +12,7 @@ const renderItem = ({ item }, handlePress, screen) => {
         <View>
             <Card>
                 <TouchableOpacity style={{flexDirection:'row', alignItems:'center', justifyContent:'space-between', width:'100%', height:30}} onPress={() => handlePress(item)}>
-                    <Text numberOfLines={1} ellipsizeMode='tail' style={globalStyles.text, {flex:1}}>{id}</Text>
+                    <Text numberOfLines={1} ellipsizeMode='tail' style={[globalStyles.text, {flex:1}]}>{id}</Text>
                     {screen !='Applications'&&<Text style={{fontStyle:'italic', fontSize:12, flex:1}} numberOfLines={1} ellipsizeMode='tail'>     {name}</Text>}
 
                     {item.isFav? <Image source={require('../assets/favBlue.png')} style={{height:20, width:20, marginRight:20}}/>:<View style={{height:20, width:20, marginRight:20}}/>}

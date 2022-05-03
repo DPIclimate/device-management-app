@@ -84,35 +84,35 @@ function SettingsScreen() {
     
     return (
         <ScrollView>
-                <View style={globalStyles.contentView}> 
-                    <Card>
-                        <Text style={globalStyles.title}>Authentication</Text>
-                        <Text style={[globalStyles.subTitle, styles.subTitle]}>Current TTN Bearer Token:</Text>
-                        <Text style={[globalStyles.text,styles.text]}>{currentToken}</Text>
+            <View style={globalStyles.contentView}> 
+                <Card>
+                    <Text style={globalStyles.title}>Authentication</Text>
+                    <Text style={[globalStyles.subTitle, styles.subTitle]}>Current TTN Bearer Token:</Text>
+                    <Text style={[globalStyles.text,styles.text]}>{currentToken}</Text>
 
-                        <Text  style={[globalStyles.subTitle, styles.subTitle]}>New TTN Bearer Token</Text>
-                        <TextInput value={token} placeholder='e.g NNSXS.ABCDEF.........' style={[globalStyles.inputWOborder, invalidToken?globalStyles.inputInvalid:null]} onChangeText={changeToken} autoCorrect={false} autoCapitalize='none'/>
+                    <Text  style={[globalStyles.subTitle, styles.subTitle]}>New TTN Bearer Token</Text>
+                    <TextInput value={token} placeholder='e.g NNSXS.ABCDEF.........' style={[globalStyles.inputWOborder, invalidToken?globalStyles.inputInvalid:null]} onChangeText={changeToken} autoCorrect={false} autoCapitalize='none'/>
 
-                        {!validating?
-                            <Pressable style={[globalStyles.blueButton, styles.buttonLocation]} onPress={handlePress} disabled={token.length == 0? true: false}>
-                                <Text style={globalStyles.blueButtonText}>Update</Text>
-                            </Pressable>
-                            :
-                            <LoadingComponent loading={validating}/>
-                        }
-                        {invalidToken? <Text style={globalStyles.invalidText}>Invalid TTN Bearer Token</Text>:<View></View>  }
-                    </Card>
-                    {/* <AboutCard/> */}
-                    <HelpCard/>
-                    <Card>
-                        <Text style={globalStyles.title}>Found a bug?</Text>
-                        <Text style={[globalStyles.text,styles.text]}>Please report it <Text style={{color:'blue'}} onPress={() => Linking.openURL('https://forms.gle/zZS4qDDyu8yhmvmx7')}>here</Text></Text>
-                    </Card>
-                    <DPI_TAG/>
-                </View>
-                <View style={{height:50, alignItems:'center'}}>
-                    <Text>v{version['expo']['version']}</Text>
-                </View>
+                    {!validating?
+                        <Pressable style={[globalStyles.blueButton, styles.buttonLocation]} onPress={handlePress} disabled={token.length == 0? true: false}>
+                            <Text style={globalStyles.blueButtonText}>Update</Text>
+                        </Pressable>
+                        :
+                        <LoadingComponent loading={validating}/>
+                    }
+                    {invalidToken? <Text style={globalStyles.invalidText}>Invalid TTN Bearer Token</Text>:<View></View>  }
+                </Card>
+                {/* <AboutCard/> */}
+                <HelpCard/>
+                <Card>
+                    <Text style={globalStyles.title}>Found a bug?</Text>
+                    <Text style={[globalStyles.text,styles.text]}>Please report it <Text style={{color:'blue'}} onPress={() => Linking.openURL('https://github.com/DPIclimate/device-management-app/issues/new')}>here</Text></Text>
+                </Card>
+                <DPI_TAG/>
+            </View>
+            <View style={{height:50, alignItems:'center'}}>
+                <Text>v{version['expo']['version']}</Text>
+            </View>
         </ScrollView>
     );
 }

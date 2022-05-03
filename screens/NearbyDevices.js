@@ -1,5 +1,5 @@
 import React, {useEffect, useState} from 'react'
-import { StyleSheet, Text, View, TouchableOpacity, Image, Alert } from 'react-native'
+import {Text, View, TouchableOpacity, Image } from 'react-native'
 import { FlatList } from 'react-native-gesture-handler'
 import { Card, getFromStore, LoadingComponent } from '../shared'
 import globalStyles from '../styles';
@@ -11,7 +11,7 @@ export default function NearbyDevices({route, navigation}) {
   const [data, setData] = useState([])
   const [devs, setDevs] = useState([])
   const [errorMsg, setErrorMsg] = useState(null);
-  const [searchRadius, setSearchRadius] = useState(5)
+  const [searchRadius, setSearchRadius] = useState(1)
   const [isLoading, setLoading] = useState(true)
   const {loading: locLoading, location: userLocation, error: locError} = getLocation()
 
@@ -147,7 +147,7 @@ export default function NearbyDevices({route, navigation}) {
           value={searchRadius}
           onValuesChange={(e) => setSearchRadius(e[0])}
           onValuesChangeFinish={getDistances}
-          max={301}
+          max={10}
       />
       </View>
       <View style={{width:'90%', height:2, backgroundColor:'#128cde', alignSelf:'center', margin:20}}/>

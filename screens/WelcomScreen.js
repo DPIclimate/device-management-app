@@ -5,8 +5,6 @@ import { updateToken } from '../shared/ManageLocStorage';
 import globalStyles from '../styles';
 import { HelpCard, DPI_TAG } from './SettingsScreen';
 import { LoadingComponent } from '../shared';
-import AsyncStorage from '@react-native-async-storage/async-storage';
-
 
 const WelcomScreen = (props) => {
 
