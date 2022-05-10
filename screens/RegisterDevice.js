@@ -240,7 +240,7 @@ const RegisterDevice = ({ route, navigation }) => {
         if (state.valApp == false || state.valUID == false || state.valID == false || state.valEUI == false || state.appID.length == 0 || state.devUID.length == 0 || state.devID.length == 0){
             Alert.alert("Invalid inputs", "Could not register device because one or more inputs were invalid.")
             setLoadingState(false)
-            return null
+            return
         }
 
         const isConnected = await checkNetworkStatus()

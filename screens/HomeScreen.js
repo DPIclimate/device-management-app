@@ -58,8 +58,8 @@ export default function HomeScreen({navigation}) {
 
         }
         loaded()
-    },[isLoading])
 
+    },[isLoading])
     const SettingsIcon = () =>{
 
         return (

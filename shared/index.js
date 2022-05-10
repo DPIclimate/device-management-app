@@ -1,5 +1,4 @@
 export {default as Card} from './Card'
-export {default as ErrorClass} from './ErrorClass'
 export {default as renderItem, renderHiddenItem} from './ListComponents'
 export {default as LoadingComponent} from './LoadingComponent'
 export {default as checkNetworkStatus} from './NetworkStatus'
