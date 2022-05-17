@@ -192,7 +192,7 @@ const updateToken = async(token) =>{
 
     try{
         await AsyncStorage.setItem(global.AUTH_TOKEN_STOR, bToken)
-        global.headers = {"Authorization":bToken}
+        global.headers["Authorization"] = bToken
         global.TTN_TOKEN = bToken
 
     }
@@ -207,7 +207,7 @@ const setTTNToken = async() =>{
 // Gets bearer token from memory and sets it globaly
     try{
         let authToken = await AsyncStorage.getItem(global.AUTH_TOKEN_STOR)
-        global.headers = {"Authorization":authToken}
+        global.headers["Authorization"] = authToken
         global.TTN_TOKEN = authToken
 
         return authToken

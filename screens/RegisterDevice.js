@@ -240,7 +240,7 @@ const RegisterDevice = ({ route, navigation }) => {
         if (state.valApp == false || state.valUID == false || state.valID == false || state.valEUI == false || state.appID.length == 0 || state.devUID.length == 0 || state.devID.length == 0){
             Alert.alert("Invalid inputs", "Could not register device because one or more inputs were invalid.")
             setLoadingState(false)
-            return null
+            return
         }
 
         const isConnected = await checkNetworkStatus()
@@ -259,7 +259,7 @@ const RegisterDevice = ({ route, navigation }) => {
             else{
                 let update = await AsyncAlert("Device already exists",`Device with this ID already exists in this application, would you like to add these updated details to the device?`)
 
-                if (update == 'NO'){setLoadingState(false); return}
+                if (!update){setLoadingState(false); return}
 
                 const updatedDevice = updateDetails(device)
                 success = await updateDevice(updatedDevice)
@@ -268,7 +268,7 @@ const RegisterDevice = ({ route, navigation }) => {
         else{
             const resolution = await AsyncAlert("No internet connection", "Would you like to save the device for when you are back online?")
 
-            if (resolution == "NO"){setLoadingState(false); return}
+            if (!resolution){setLoadingState(false); return}
             success = await saveDevice(device)
             if(success) Alert.alert("Success!", "Device saved successfully")
         }

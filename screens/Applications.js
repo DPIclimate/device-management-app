@@ -165,7 +165,7 @@ function Applications({navigation}) {
                     
                 </View>
                 {searchText != '' && <Text>Search: {searchText}</Text>}
-                <LoadingComponent loading={isLoading}/>
+
                 <DataError/>
 
                 <View style={[{flex:1}, globalStyles.list]}>
@@ -177,6 +177,8 @@ function Applications({navigation}) {
                     renderHiddenItem={(data, rowMap) => renderHiddenItem(data, rowMap, toggleFavourite)}
                     leftOpenValue={80}
                     stopRightSwipe={1}
+                    onRefresh={()=> retry()}
+                    refreshing={isLoading}
                     />
                 </View>
             </>
