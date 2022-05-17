@@ -18,7 +18,7 @@ export default function Scanner({ route, navigation }) {
 
         //Custom permissions alert, cannot access default ios permissions alert as they are controlled by the os.
         const permissionsAlert = await AsyncAlert("Device Management App would like to use your camera", "Allow Device Management app to use your camera to scan QR codes?")
-        if (!permissionsAlert) {navigation.goBack()}
+        if (!permissionsAlert) {navigation.goBack(); return}
 
       }
       const { status } = await BarCodeScanner.requestPermissionsAsync();

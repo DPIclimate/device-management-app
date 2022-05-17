@@ -121,45 +121,38 @@ const checkUnique = async(data) =>{ //Checks that a particular device is unique
     if (response == null) return null
 
     const devices = response['end_devices']
-    let euiList = []
-    let uidList = []
-    let IDList = []
 
-    [euiList, uidList, IDList] = devices.map((dev) =>{
-        try{
-            return [dev['ids']['dev_eui'], dev['ids']['device_id'], dev['attributes']['uid']]
-
-        }catch(error){//Error may occur if device does not have uid
-            // console.log(error, "moving on")
-        }
-    })
+    let euiList = devices.map((dev) => dev?.ids?.dev_eui)
+    let IDList = devices.map((dev) => dev?.ids?.device_id)
+    let uidList = devices.map((dev) => dev?.attributes?.uid)
 
     try{
-        euiList.map((eui)=>{
+        euiList.forEach((eui)=>{
             if (deviceEUI == eui && eui != undefined){
-                throw new Error(null, 'Device EUI already exists')
+                throw new Error('Device EUI already exists')
             }})
        
-        uidList.map((uid) =>{
+        uidList.forEach((uid) =>{
             if (deviceUID == uid && uid != undefined){
 
                 console.log("uid already exists")
-                throw new Error(null, 'Device UID already exists', deviceID)
+                throw new Error('Device UID already exists')
             }})
         
     }catch(error){
-        error.alert()
-        return null
+        Alert.alert(`${error}`)
+        return
     }
     try{
-        IDList.map((ID)=>{
+        IDList.forEach((ID)=>{
             if (deviceID == ID && ID != undefined){
-                console.log("ID already exists")
-                throw new Error(null, null, ID)
+                console.log("Device ID already exists")
+                throw new Error(ID)
             }
         })
     }
     catch(error){
+        Alert.alert(`${error}`)
         return false
     }
 
