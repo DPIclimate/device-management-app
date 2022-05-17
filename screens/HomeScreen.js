@@ -8,14 +8,15 @@ import { StyleSheet,
 	 ImageBackground,
      TouchableOpacity,
     Dimensions,
-    Pressable} from 'react-native'
+    Pressable,
+    Platform,
+    Alert} from 'react-native'
 import Card from '../shared/Card'
 import globalStyles from '../styles'
 import WelcomScreen from './WelcomScreen';
 import useFetchState from '../shared/useFetch.js';
-import config from '../config.json'
 import { Overlay } from 'react-native-elements';
-import AsyncStorage from '@react-native-async-storage/async-storage';
+import { Col, Row } from "react-native-easy-grid";
 
 //Images for Icons
 const appList = require('../assets/appList.png')
@@ -24,13 +25,12 @@ const scanQR = require('../assets/qrCodeBlue.png')
 const regDev = require('../assets/add.png')
 const manageDev = require('../assets/manage.png')
 const failedUpload = require('../assets/uploadFailedBlue.png')
+const gateway = require('../assets/gateway.png')
 
 export default function HomeScreen({navigation}) {
 
     const [welcomeVisable, setWelcVisable] = useState(false);
-
-    //TODO - Check if first logon instead of checking for valid token
-    const {data, isLoading, error, retry} = useFetchState(`${config.ttnBaseURL}?field_mask=description`,{type:"ApplicationList", storKey:global.APP_CACHE})
+    const {data, isLoading, error, retry} = useFetchState(`${global.BASE_URL}/applications?field_mask=description`,{type:"ApplicationList", storKey:global.APP_CACHE})
 
     useLayoutEffect(() => {
         //Settings icon
@@ -39,10 +39,6 @@ export default function HomeScreen({navigation}) {
         });
     }, [navigation]);
 
-    const handleTmp = async() =>{
-        //Temporty button to clear app storage
-        AsyncStorage.clear()
-    }
     useEffect(()=>{
 
         async function loaded(){
@@ -51,16 +47,21 @@ export default function HomeScreen({navigation}) {
 
             if (error == 'User not logged in'){
                 console.log('use not logged in')
+
+                if (Platform.OS == 'android'){
+                    Alert.alert("In Beta", "As this app is still in beta testing some features such as writing to your TTN account may not work. Updates will be coming soon")
+                }
+
                 setWelcVisable(true)
             }
+
         }
         loaded()
-    },[isLoading])
 
+    },[isLoading])
     const SettingsIcon = () =>{
 
         return (
-            // <TouchableOpacity onPress={() => handleTmp()}>
             <TouchableOpacity onPress={() => navigation.navigate('SettingsScreen')}>
                 <Image source={require('../assets/settingsWhite.png')} style={{width:25, height:25, marginRight:20}}/>
             </TouchableOpacity>
@@ -68,24 +69,39 @@ export default function HomeScreen({navigation}) {
     }
   return (
       <>
-      <ImageBackground source={require("../assets/background.png")} resizeMode="cover" style={{width:'100%'}}>
+      <ImageBackground source={require("../assets/background.png")} resizeMode='cover' style={{width:'100%'}}>
         <ScrollView style={globalStyles.scrollView}>
-            <View style={{alignItems:'center'}}>
-
-            <View style={{flexDirection:'row', paddingTop:20}}>
-                    <View style={{paddingRight:10}}>
-                        <Icon title={"Browse"} image={appList} onPress={() => navigation.navigate("Applications")}/>
-                        </View>
-                    <Icon title={"Nearby Devices"} image={nearbyDevs} onPress={() => navigation.navigate("NearbyDevices")}/>
-            </View>
-            <View style={{flexDirection:'row'}}>
-                    <View style={{paddingRight:10}}><Icon title={"Scan QR Code"} image={scanQR} onPress={() => navigation.navigate("QrScanner", {screen:'ManageDevices'})}/></View>
-                    <Icon title={"Register Device"} image={regDev} onPress={() => navigation.navigate("RegisterDevice")}/>
-            </View>
-            <View style={{flexDirection:'row'}}>
-                    <View style={{paddingRight:10}}><Icon title={"Manage Devices"} image={manageDev} onPress={() => navigation.navigate("ManageDevices")}/></View>
-                    <Icon title={"Qued"} image={failedUpload} onPress={() => navigation.navigate("OfflineDevices")}/>
-            </View>
+                <View style={{paddingTop:20, paddingRight:10, paddingLeft:10}}>
+                <Row>
+                    <Col style={{alignItems:'center'}}>
+                        <Icon title={"Applications"} image={appList} onPress={() => navigation.navigate("Applications")}/>
+                     </Col>
+                     <Col style={{alignItems:'center'}}>
+                        <Icon title={"Nearby Devices"} image={nearbyDevs} onPress={() => navigation.navigate("NearbyDevices")}/>
+                     </Col>
+                </Row>
+                <Row>
+                    <Col style={{alignItems:'center'}}>
+                        <Icon title={"Scan QR Code"} image={scanQR} onPress={() => navigation.navigate("QrScanner", {screen:'ManageDevices'})}/>
+                    </Col>
+                    <Col style={{alignItems:'center'}}>
+                        <Icon title={"Register Device"} image={regDev} onPress={() => navigation.navigate("RegisterDevice")}/>
+                    </Col>
+                </Row>
+                <Row>
+                    <Col style={{alignItems:'center'}}>
+                        <Icon title={"Manage Devices"} image={manageDev} onPress={() => navigation.navigate("ManageDevices")}/>
+                    </Col>
+                    <Col>
+                        <Icon title={"Queue"} image={failedUpload} onPress={() => navigation.navigate("OfflineDevices")}/>
+                    </Col>
+                </Row>
+                <Row>
+                    <Col style={{alignItems:'center'}}>
+                        <Icon title={"Gateways"} image={gateway} onPress={() => navigation.navigate("Gateways")}/>
+                    </Col>
+                    <Col></Col>
+                </Row>
             </View>
             </ScrollView>
         </ImageBackground>

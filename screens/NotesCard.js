@@ -1,5 +1,5 @@
 import React, { useState,useEffect } from 'react';
-import {Card, LoadingComponent, saveDevice} from '../shared';
+import {Card, saveDevice} from '../shared';
 import { Grid } from "react-native-easy-grid";
 import { Text,
 	View,
@@ -58,7 +58,7 @@ function NotesCard({scrollViewRef}) {
         else{
             const choice = await AsyncAlert("No Internet Connection", "Would you like to save this note for when you are back online?")
 
-            if (choice == "NO") {setLoadingState(false);return}
+            if (!choice) {setLoadingState(false);return}
 
             const success = await saveDevice(body)
             if (success){

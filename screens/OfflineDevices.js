@@ -36,12 +36,12 @@ function OfflineDevices({ route, navigation }) {
 
     const getSaved = async() =>{
 
-        const {fromStore: savedDev, error} = await getFromStore({storKey:global.DEV_STORE, type:'QueDeviceList'})
+        const {fromStore: savedDev, error} = await getFromStore({storKey:global.DEV_STORE, type:'QueueDeviceList'})
 
         changeSavedDevices(savedDev)
 
         if (savedDev == 0){
-            setError("No Devices in Que")
+            setError("No Devices in queue")
         }
 
         setLoading(false)
@@ -61,7 +61,7 @@ function OfflineDevices({ route, navigation }) {
         else{
             let update = await AsyncAlert("Device already exists",`Device with this ID already exists in this application, would you like to add these updated details to the device?`)
 
-            if (update == 'NO')return
+            if (!update)return
 
             const updatedDevice = updateDetails(selectedDevice)
             success = await updateDevice(updatedDevice)

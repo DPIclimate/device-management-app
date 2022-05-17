@@ -1,7 +1,7 @@
 import { StyleSheet, Text, View , Image, TouchableOpacity} from 'react-native';
 import React, { useEffect, useState } from 'react';
 import useFetchState from '../shared/useFetch';
-import config from '../config.json'
+
 import { FlatList } from 'react-native-gesture-handler';
 import { Card, checkNetworkStatus, LoadingComponent } from '../shared';
 import globalStyles from '../styles';
@@ -9,7 +9,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 
 export default function AppList({route, navigation}) {
 
-    const {data: rawData, isLoading, error, retry} = useFetchState(`${config.ttnBaseURL}?field_mask=description`,{type:"ApplicationList", storKey:global.APP_CACHE})
+    const {data: rawData, isLoading, error, retry} = useFetchState(`${global.BASE_URL}/applications?field_mask=description`,{type:"ApplicationList", storKey:global.APP_CACHE})
     const [data, setData] = useState()
 
     useEffect(()=>{

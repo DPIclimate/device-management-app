@@ -11,7 +11,6 @@ import{View,
 	TouchableOpacity,
 	} from 'react-native'
 import globalStyles from '../styles';
-import config from '../config';
 import DeviceCard from './DeviceCard';
 import CommCard from './CommCard';
 import LocationCard from './LocationCard';
@@ -37,8 +36,8 @@ const ManageDevices = ({route, navigation}) => {
     const [devData, changeDevData] = useState()
 
     const greenCircle = require('../assets/greenCircle.png')
-    const redCirle  = require('../assets/redCircle.png')
-    const orangeCirle = require('../assets/orangeCircle.png')
+    const redCircle  = require('../assets/redCircle.png')
+    const orangeCircle = require('../assets/orangeCircle.png')
     const greenHollow = require('../assets/greenCircle-hollow.png')
     const redHollow = require('../assets/redCircle-hollow.png')
     const orangeHollow = require('../assets/orangeCircle-hollow.png')
@@ -73,7 +72,7 @@ const ManageDevices = ({route, navigation}) => {
     const handlePress = async() =>{
 
         setLoadingState(true)
-        let data = await useFetch(`${config.ttnBaseURL}/${appID}/devices?field_mask=attributes,locations,description,name`,{type:"DeviceList", storKey:global.APP_CACHE, appID:appID}, netStatus)
+        let data = await useFetch(`${global.BASE_URL}/applications/${appID}/devices?field_mask=attributes,locations,description,name`,{type:"DeviceList", storKey:global.APP_CACHE, appID:appID}, netStatus)
 
         getData(data)
         setLoadingState(false)
@@ -137,10 +136,10 @@ const ManageDevices = ({route, navigation}) => {
     const setCircle = (val) =>{
         switch (val) {
             case 'red':
-                changeCirlce(redCirle)
+                changeCirlce(redCircle)
                 break;
             case 'orange':
-                changeCirlce(orangeCirle)
+                changeCirlce(orangeCircle)
                 break;
             case 'green':
                 changeCirlce(greenCircle)

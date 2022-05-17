@@ -1,5 +1,3 @@
-import config from '../config';
-import Error from './ErrorClass'
 import { Alert } from 'react-native';
 import { useFetch } from './useFetch';
 import newDeviceData from '../repositories/newDeviceData';
@@ -9,40 +7,35 @@ import newDeviceData from '../repositories/newDeviceData';
 const registerDevice = async(device) =>{
 
     console.log('in register')
-    console.log(device)
-    // return true
+
     const appID = device.end_device.ids.application_ids.application_id
-    const deviceID = device.end_device.ids.device_id
 
     if (device.end_device?.ids?.dev_eui?.length == 0 && device.type != 'move'){
         //If eui was not providered request one from TTN
         device.end_device.ids.dev_eui = await getEUI(appID)
     }
-    delete device.end_device.type
+
+    delete device.type
 
     try{
-        console.log('making request')
+        console.log('making request to register')
 
-        const url = `${config.ttnBaseURL}/${appID}/devices`
-        let json = await fetch(url,
+        const url = `${global.BASE_URL}/applications/${appID}/devices`
+        let resp = await fetch(url,
             {
                 method:'POST',
                 headers:global.headers,
                 body:JSON.stringify(device)
-            },
+            }).then((res) => res.json())
 
-            ).then((response) => response.json())
-
-        if ('code' in json){
+        if ('code' in resp){
             //If key code exists then an error occured
-            throw new Error(json['code'], json['message'], deviceID)
+            throw new Error(resp.details[0].message_format)
         }
         return true
     }
     catch (error){
-        console.log("An error occured", error)
-        console.log("in register error")
-        error.alertWithCode()
+        Alert.alert("An error occurred", `${error}`)
         return false
     }
 
@@ -50,13 +43,26 @@ const registerDevice = async(device) =>{
 const getEUI = async (appID) =>{
 
     //Request EUI from ttn
-    let url = `${config.ttnBaseURL}/${appID}/dev-eui`
-    console.log(url)
-    let json = await fetch(url,{
-        method:'POST',
-        headers: global.headers
-    }).then((response) => response.json())
-    return json['dev_eui'];
+    try{
+
+        let url = `${global.BASE_URL}/applications/${appID}/dev-eui`
+        console.log(url)
+        let resp = await fetch(url,{
+            method:'POST',
+            headers: global.headers
+        }).then((response) => response.json())
+
+        if ('code' in resp){
+            throw Error(resp.message)
+        }
+        console.log(resp)
+        return resp['dev_eui']
+    }
+    catch(error){
+        console.log("Error occurred getting EUI")
+        console.log(error)
+        return
+    }
 }
 
 const updateDevice = async(data) =>{
@@ -67,7 +73,7 @@ const updateDevice = async(data) =>{
     const deviceID = device['end_device']['ids']['device_id']
 
     try{
-        const url =  `${config.ttnBaseURL}/${appID}/devices/${deviceID}`
+        const url =  `${global.BASE_URL}/applications/${appID}/devices/${deviceID}`
         const response = await fetch(url,{
             method:"PUT",
             headers:global.headers,
@@ -97,7 +103,7 @@ const checkUnique = async(data) =>{ //Checks that a particular device is unique
     const deviceID = data['end_device']['ids']['device_id']
     const appID = data['end_device']['ids']['application_ids']['application_id']
 
-    let url =  `${config.ttnBaseURL}/${appID}/devices?field_mask=attributes`
+    let url =  `${global.BASE_URL}/applications/${appID}/devices?field_mask=attributes`
     let response = await fetch(url,{
         method:"GET",
         headers:global.headers
@@ -107,7 +113,6 @@ const checkUnique = async(data) =>{ //Checks that a particular device is unique
         return response
 
     }).catch((error) =>{ 
-        error.alertWithCode()
         console.log('this error')
         setLoadingState(false)
         return null
@@ -116,47 +121,38 @@ const checkUnique = async(data) =>{ //Checks that a particular device is unique
     if (response == null) return null
 
     const devices = response['end_devices']
-    let euiList = []
-    let uidList = []
-    let IDList = []
 
-    devices.map((dev) =>{
-        try{
-            euiList.push(dev['ids']['dev_eui'])
-            IDList.push(dev['ids']['device_id'])
-            uidList.push(dev['attributes']['uid'])
-
-        }catch(error){//Error may occur if device does not have uid
-            // console.log(error, "moving on")
-        }
-    })
+    let euiList = devices.map((dev) => dev?.ids?.dev_eui)
+    let IDList = devices.map((dev) => dev?.ids?.device_id)
+    let uidList = devices.map((dev) => dev?.attributes?.uid)
 
     try{
-        euiList.map((eui)=>{
+        euiList.forEach((eui)=>{
             if (deviceEUI == eui && eui != undefined){
-                throw new Error(null, 'Device EUI already exists')
+                throw new Error('Device EUI already exists')
             }})
        
-        uidList.map((uid) =>{
+        uidList.forEach((uid) =>{
             if (deviceUID == uid && uid != undefined){
 
                 console.log("uid already exists")
-                throw new Error(null, 'Device UID already exists', deviceID)
+                throw new Error('Device UID already exists')
             }})
         
     }catch(error){
-        error.alert()
-        return null
+        Alert.alert(`${error}`)
+        return
     }
     try{
-        IDList.map((ID)=>{
+        IDList.forEach((ID)=>{
             if (deviceID == ID && ID != undefined){
-                console.log("ID already exists")
-                throw new Error(null, null, ID)
+                console.log("Device ID already exists")
+                throw new Error(ID)
             }
         })
     }
     catch(error){
+        Alert.alert(`${error}`)
         return false
     }
 
@@ -213,7 +209,7 @@ const validateToken = async(token) =>{
     else{
         console.log("TTN Token is valid")
 
-        global.headers = {"Authorization":token}
+        global.headers["Authorization"] = token
         global.TTN_TOKEN = token
 
         return true
@@ -224,7 +220,7 @@ const getApplications = async() => {//Request applications from ttn
     if (global.valid_token != true) return null
 
     try{
-        const url = `${config.ttnBaseURL}?field_mask=description`
+        const url = `${global.BASE_URL}/applications?field_mask=description`
         let response = await fetch(url, {
             method:"GET",
             headers:global.headers
@@ -244,7 +240,7 @@ const deleteDevice = async(device) =>{
     const appID = device.ids.application_ids.application_id
     const devID = device.ids.device_id
 
-    const url = `${config.ttnBaseURL}/${appID}/devices/${devID}`
+    const url = `${global.BASE_URL}/applications/${appID}/devices/${devID}`
     console.log('deleting', url)
     try{
         const response = await fetch(url,{
@@ -259,7 +255,6 @@ const deleteDevice = async(device) =>{
         return true
     }catch(error){
         console.log("An error occured", error)
-        error.alertWithCode()
         return false
     }
     
@@ -267,7 +262,7 @@ const deleteDevice = async(device) =>{
 const moveDevice = async(device, moveTo) =>{
 
     //Get current device object
-    const app = await useFetch(`${config.ttnBaseURL}/${device.appID}/devices?field_mask=attributes,locations,description`, {type:'DeviceList', appID:device.appID, storKey:global.APP_CACHE}, true)
+    const app = await useFetch(`${global.BASE_URL}/applications/${device.appID}/devices?field_mask=attributes,locations,description`, {type:'DeviceList', appID:device.appID, storKey:global.APP_CACHE}, true)
 
     let selectedDevice = null
     for (const i in app?.end_devices){

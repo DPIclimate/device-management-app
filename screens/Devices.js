@@ -4,13 +4,12 @@ import {View,
 	StyleSheet
 } from 'react-native'
 import globalStyles from '../styles';
-import config from '../config.json'
+
 import {
 	renderItem,
     renderHiddenItem,
 	LoadingComponent,
     Offline,
-    checkNetworkStatus,
     getFromStore
 } from '../shared/index.js'
 import { SwipeListView } from 'react-native-swipe-list-view';
@@ -24,7 +23,7 @@ function Devices({route, navigation}) {
     const [listData, changeData] = useState([])
     const [noData, setNoData] = useState(false)
     const {loading:netLoading, netStatus, netError} = useGetNetStatus()
-    const {data, isLoading, error, retry} = useFetchState(`${config.ttnBaseURL}/${route.params.application_id}/devices?field_mask=attributes,locations,description,name`, {type:'DeviceList', appID:route.params?.application_id, storKey:global.APP_CACHE})
+    const {data, isLoading, error, retry} = useFetchState(`${global.BASE_URL}/applications/${route.params.application_id}/devices?field_mask=attributes,locations,description,name`, {type:'DeviceList', appID:route.params?.application_id, storKey:global.APP_CACHE})
 
     useEffect(()=>{
 
@@ -109,7 +108,7 @@ function Devices({route, navigation}) {
                 <Offline isConnected={netStatus}/>
             </View>
 
-            {!noData ?<LoadingComponent loading={isLoading}/> :<Text style={{textAlign:'center', fontWeight:'bold', paddingTop:20}}>No devices in application</Text>}
+            {noData &&<Text style={{textAlign:'center', fontWeight:'bold', paddingTop:20}}>No devices in application</Text>}
 
             <SwipeListView
                 style={[{flex:1},globalStyles.list]} 
@@ -123,6 +122,8 @@ function Devices({route, navigation}) {
                 leftOpenValue={80}
                 stopRightSwipe={1}
                 contentContainerStyle={{ paddingBottom: 90 }}
+                onRefresh={()=> retry()}
+                refreshing={isLoading}
             />
         </View>
     );

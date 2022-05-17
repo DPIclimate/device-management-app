@@ -57,9 +57,9 @@ function DeviceCard({params, navigation}) {
         <Card>
             <View style={{flexDirection:'row', justifyContent:'space-between', alignItems:'center'}}>
                 <Text style={globalStyles.cardTitle}>Device Details</Text>
-                <TouchableHighlight acitveOpacity={0.6} underlayColor="#DDDDDD" onPress={() => navigation.navigate('MoveDevice', {data:data})}>
+                {/* <TouchableHighlight acitveOpacity={0.6} underlayColor="#DDDDDD" onPress={() => navigation.navigate('MoveDevice', {data:data})}>
                     <Image style={{width:25, height:25, padding:5}} source={require('../assets/move2.png')}/>
-                </TouchableHighlight>
+                </TouchableHighlight> */}
                 </View>
             <Grid>
                 {rows}

@@ -3,6 +3,7 @@ import { Text, View, StyleSheet, Image, Alert } from 'react-native';
 import { BarCodeScanner } from 'expo-barcode-scanner';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import globalStyles from '../styles';
+import { AsyncAlert } from '../shared/AsyncAlert';
 
 export default function Scanner({ route, navigation }) {
   const [hasPermission, setHasPermission] = useState(null);
@@ -11,6 +12,15 @@ export default function Scanner({ route, navigation }) {
   useEffect(() => {
     //Requests camera permission from user
     (async () => {
+      const currentPermissions = await BarCodeScanner.getPermissionsAsync()
+
+      if (!currentPermissions.granted && currentPermissions.canAskAgain){
+
+        //Custom permissions alert, cannot access default ios permissions alert as they are controlled by the os.
+        const permissionsAlert = await AsyncAlert("Device Management App would like to use your camera", "Allow Device Management app to use your camera to scan QR codes?")
+        if (!permissionsAlert) {navigation.goBack(); return}
+
+      }
       const { status } = await BarCodeScanner.requestPermissionsAsync();
       setHasPermission(status === 'granted');
     })();
@@ -77,7 +87,7 @@ export default function Scanner({ route, navigation }) {
     return(
         <SafeAreaView style={globalStyles.screen}>
             <Image style={{width:'10%', height:'20%'}} source={require('../assets/exclamation-mark.png')}/>
-            <Text style={{fontWeight:"bold", fontSize:20, padding:20, textAlign:'center'}}>No camera access granted. To use this function please grant this app access to your camera in your phone settings</Text>
+            <Text style={{fontWeight:"bold", fontSize:20, padding:20, textAlign:'center'}}>No camera access granted. To use this function please grant this app access to your camera in your phone's settings</Text>
         </SafeAreaView> 
     );
   }

@@ -1,7 +1,7 @@
 import { StyleSheet, Text, View, TouchableOpacity, Image, Pressable, Alert } from 'react-native';
 import React, {useEffect, useState} from 'react';
 import globalStyles from '../styles';
-import { Card, checkNetworkStatus, registerDevice, moveDevice, saveDevice } from '../shared';
+import { Card, checkNetworkStatus, moveDevice, saveDevice } from '../shared';
 import { AsyncAlert } from '../shared/AsyncAlert';
 
 export default function MoveDevice({route, navigation}) {
@@ -29,10 +29,10 @@ export default function MoveDevice({route, navigation}) {
     if (appMove == undefined) {Alert.alert("No app selected", "Must select an application to move device to"); return}
 
     {const confirm = await AsyncAlert("Note", 'This feature is currently in beta testing and is not guaranteed to work every time. Proceed at your own risk?')
-    if (confirm == "NO") return}
+    if (!confirm) return}
 
     {const confirm = await AsyncAlert("Are you sure?",`Are you sure you want to move device ${data.ID} from application ${data.appID} to application ${appMove}, this action CAN NOT be undone?`)
-    if (confirm == 'NO') return}
+    if (!confirm) return}
 
     //TODO - Check device for conflicts in other applications, to ensure higher success rate
 
