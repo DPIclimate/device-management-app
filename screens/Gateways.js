@@ -8,7 +8,7 @@ import moment from 'moment';
 export default function Gateways() {
 
     const {data, isLoading, error, retry} = useFetchState(`${global.BASE_URL}/gateways`)
-
+    // console.log(isLoading)
     const Last_seen = ({item}) =>{
         return(
             <View>
@@ -30,17 +30,19 @@ export default function Gateways() {
         )
     }
 
-    // if (!data) return <View></View>
-  return (
-    <View style={globalStyles.contentView}>
-      <FlatList
-      data={data?.gateways}
-      renderItem={(item) => renderItem(item)}
-      keyExtractor={(item, index) => index.toString()}
-      onRefresh={() => {retry()}}
-      refreshing={isLoading}
+    return (
+    <View style={globalStyles.screen}>
+        <View style={[{flex:1}, globalStyles.list]}>
 
-      />
+            <FlatList
+            data={data?.gateways}
+            renderItem={(item) => renderItem(item)}
+            keyExtractor={(item, index) => index.toString()}
+            onRefresh={() => {retry()}}
+            refreshing={isLoading}
+
+            />
+        </View>
     </View>
   )
 }

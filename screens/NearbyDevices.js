@@ -5,6 +5,8 @@ import { Card, getFromStore, LoadingComponent } from '../shared'
 import globalStyles from '../styles';
 import MultiSlider from '@ptomasroos/react-native-multi-slider';
 import { getLocation } from '../shared/getLocation';
+import * as Location from 'expo-location';
+
 
 export default function NearbyDevices({route, navigation}) {
 
@@ -15,24 +17,30 @@ export default function NearbyDevices({route, navigation}) {
   const [isLoading, setLoading] = useState(true)
   const {loading: locLoading, location: userLocation, error: locError} = getLocation()
 
-  console.log(locLoading)
+  console.log(locLoading, locError)
   
   useEffect(() =>{
-
+    
     if (locLoading) return
-    console.log("loc not loading", userLocation, locLoading)
-    if (locError == 'Prermission denied'){
+    console.log('error is', locError)
+    if (locError == 'Permission denied'){
+      console.log('permission was denied error', locLoading)
       setErrorMsg('Permission to access location was denied')
+      setLoading(false)
     }
-    getData()
-  },[locLoading])
+    else{
+      getData()
+
+    }
+    
+  },[locLoading, locError])
   
   useEffect(()=>{
     
     getDistances()
-
+    
   },[devs])
-
+  
   async function getData(){
     
     console.log('getting data...')
@@ -141,6 +149,7 @@ export default function NearbyDevices({route, navigation}) {
 
   return (
     <View style={globalStyles.contentView}>
+
       <View style={{height:20, margin:20, marginTop:30, justifyContent:'center', alignItems:'center'}}>
         <Text style={{fontWeight:'bold', fontSize:15}}>Search Radius: {searchRadius}km</Text>
         <MultiSlider
@@ -152,23 +161,27 @@ export default function NearbyDevices({route, navigation}) {
       </View>
       <View style={{width:'90%', height:2, backgroundColor:'#128cde', alignSelf:'center', margin:20}}/>
 
-      {!isLoading && !locLoading? 
-        <View style={{height:'100%', paddingBottom:150}}>
-          {errorMsg&&
-                <Text style={{fontWeight:'bold', paddingTop:20, fontSize:15, alignSelf:'center'}}>{errorMsg}</Text>
-                }
-              <FlatList
-              style={{paddingTop:10}}
-              data={data}
-              renderItem={(item) => renderItem(item)}
-              keyExtractor={(item, index) => index.toString()}
-              contentContainerStyle={{ paddingBottom: 90 }}
-              />
-        </View>
+      {errorMsg?
+          <Text style={{fontWeight:'bold', paddingTop:20, fontSize:15, alignSelf:'center'}}>{errorMsg}</Text>
         :
-        <View style={{justifyContent:'center', alignItems:'center'}}>
-          <LoadingComponent loading={isLoading || locLoading}/>
-        </View>
+        <View>
+          {!isLoading && !locLoading? 
+            <View style={{height:'100%', paddingBottom:150}}>
+              
+                  <FlatList
+                  style={{paddingTop:10}}
+                  data={data}
+                  renderItem={(item) => renderItem(item)}
+                  keyExtractor={(item, index) => index.toString()}
+                  contentContainerStyle={{ paddingBottom: 90 }}
+                  />
+            </View>
+            :
+            <View style={{justifyContent:'center', alignItems:'center'}}>
+              <LoadingComponent loading={isLoading || locLoading}/>
+            </View>
+          }
+      </View>
       }
     </View>
   )

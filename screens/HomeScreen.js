@@ -17,7 +17,6 @@ import WelcomScreen from './WelcomScreen';
 import useFetchState from '../shared/useFetch.js';
 import { Overlay } from 'react-native-elements';
 import { Col, Row } from "react-native-easy-grid";
-import { BackgroundImage } from 'react-native-elements/dist/config'
 
 //Images for Icons
 const appList = require('../assets/appList.png')
@@ -70,7 +69,7 @@ export default function HomeScreen({navigation}) {
     }
   return (
       <>
-      <ImageBackground source={require("../assets/background2.png")} resizeMode='cover' style={{width:'100%'}}>
+      <ImageBackground source={require("../assets/background.png")} resizeMode='cover' style={{width:'100%'}}>
         <ScrollView style={globalStyles.scrollView}>
                 <View style={{paddingTop:20, paddingRight:10, paddingLeft:10}}>
                 <Row>

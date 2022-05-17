@@ -1,5 +1,5 @@
 import { Alert } from "react-native"
-export const AsyncAlert = (title, msg) => new Promise((resolve)=>{
+export const AsyncAlert = (title, msg, buttons) => new Promise((resolve)=>{
     Alert.alert(title, msg,[
         {
             text:'Yes',
@@ -7,7 +7,7 @@ export const AsyncAlert = (title, msg) => new Promise((resolve)=>{
         },
         {
             text:'No',
-            onPress:() =>resolve("NO")
+            onPress:() =>resolve(null)
         }
     ])
 })

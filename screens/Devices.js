@@ -108,7 +108,7 @@ function Devices({route, navigation}) {
                 <Offline isConnected={netStatus}/>
             </View>
 
-            {!noData ?<LoadingComponent loading={isLoading}/> :<Text style={{textAlign:'center', fontWeight:'bold', paddingTop:20}}>No devices in application</Text>}
+            {noData &&<Text style={{textAlign:'center', fontWeight:'bold', paddingTop:20}}>No devices in application</Text>}
 
             <SwipeListView
                 style={[{flex:1},globalStyles.list]} 
@@ -122,6 +122,8 @@ function Devices({route, navigation}) {
                 leftOpenValue={80}
                 stopRightSwipe={1}
                 contentContainerStyle={{ paddingBottom: 90 }}
+                onRefresh={()=> retry()}
+                refreshing={isLoading}
             />
         </View>
     );

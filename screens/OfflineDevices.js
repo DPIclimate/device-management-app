@@ -61,7 +61,7 @@ function OfflineDevices({ route, navigation }) {
         else{
             let update = await AsyncAlert("Device already exists",`Device with this ID already exists in this application, would you like to add these updated details to the device?`)
 
-            if (update == 'NO')return
+            if (!update)return
 
             const updatedDevice = updateDetails(selectedDevice)
             success = await updateDevice(updatedDevice)
