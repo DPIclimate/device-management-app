@@ -29,6 +29,7 @@ const gateway = require('../assets/gateway.png')
 
 export default function HomeScreen({navigation}) {
 
+    
     const [welcomeVisable, setWelcVisable] = useState(false);
     const {data, isLoading, error, retry} = useFetchState(`${global.BASE_URL}/applications?field_mask=description`,{type:"ApplicationList", storKey:global.APP_CACHE})
 
@@ -92,7 +93,7 @@ export default function HomeScreen({navigation}) {
                     <Col style={{alignItems:'center'}}>
                         <Icon title={"Manage Devices"} image={manageDev} onPress={() => navigation.navigate("ManageDevices")}/>
                     </Col>
-                    <Col>
+                    <Col style={{alignItems:'center'}}>
                         <Icon title={"Queue"} image={failedUpload} onPress={() => navigation.navigate("OfflineDevices")}/>
                     </Col>
                 </Row>

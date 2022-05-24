@@ -102,9 +102,10 @@ function ScreenStack() {
     </Navigator>
   );
 }
-function ScreenNavigator() {
-    return (
-        <NavigationContainer>
+function ScreenNavigator({linking}) {
+
+  return (
+        <NavigationContainer linking={linking}>
             {ScreenStack()}
         </NavigationContainer>
     );
