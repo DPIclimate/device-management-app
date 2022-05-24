@@ -1,6 +1,5 @@
 import React, { useEffect, useState } from "react"
 import * as Location from 'expo-location';
-import { AsyncAlert } from "./AsyncAlert";
 
 export const getLocation = () =>{
     //Custom hook to get the users location
@@ -10,15 +9,15 @@ export const getLocation = () =>{
     const [error, setError] = useState(null)
 
     useEffect(()=>{
-        
+
         let isMounted = true
-        
+
         const getLoc = async() =>{
-            
-            const status = await getPerms()
+
+            let { status } = await Location.requestForegroundPermissionsAsync();
             if (!status){
                 if (isMounted){
-                    setError('Permission denied')
+                    setError('Prermission denied')
                     setLoading(false)
                 }
             }
@@ -45,17 +44,5 @@ export const getLocation = () =>{
         return () => {isMounted = false}
     },[])
 
-    const getPerms = async() =>{
-        const currentPermissions = await Location.getForegroundPermissionsAsync()
-
-        if (!currentPermissions.granted && currentPermissions.canAskAgain){
-            //Custom permissions alert, cannot access default ios permissions alert as they are controlled by the os.
-            const choice = await AsyncAlert("Device Management App would like to use your location","Allow Device Management App to use your location to see devices nearby?")
-            if (!choice) return false
-        }
-        let { granted } = await Location.requestForegroundPermissionsAsync();
-        return granted
-
-    }
     return {loading, location, error}
 }

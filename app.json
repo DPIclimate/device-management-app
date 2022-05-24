@@ -1,8 +1,8 @@
 {
   "expo": {
-    "name": "deviceManagementApp",
+    "name": "Device Management App",
     "slug": "deviceManagementApp",
-    "version": "2.1.1",
+    "version": "2.1.2",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "splash": {
@@ -18,7 +18,12 @@
     ],
     "ios": {
       "supportsTablet": false,
-      "bundleIdentifier": "com.dpi.deviceManagementApp"
+      "bundleIdentifier": "com.dpi.deviceManagementApp",
+      "infoPlist": {
+        "NSCameraUsageDescription": "Allow Device Management app to use your camera to scan QR codes?",
+        "NSLocationWhenInUseUsageDescription":"Allow Device Management App to use your location to see devices nearby?"
+        
+      }
     },
     "android": {
       "package": "com.dpi.deviceManagementApp",

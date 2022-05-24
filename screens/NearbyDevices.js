@@ -16,8 +16,6 @@ export default function NearbyDevices({route, navigation}) {
   const [searchRadius, setSearchRadius] = useState(1)
   const [isLoading, setLoading] = useState(true)
   const {loading: locLoading, location: userLocation, error: locError} = getLocation()
-
-  console.log(locLoading, locError)
   
   useEffect(() =>{
     
@@ -47,7 +45,7 @@ export default function NearbyDevices({route, navigation}) {
 
     const fromStore = await getFromStore({type:"ApplicationList", storKey:'applicationCache'})
 
-    if (fromStore.fromStore == null) {setErrorMsg("We have not cahced any device data yet. Please come back later");return}
+    if (fromStore.fromStore == null) {setErrorMsg("We have not cached any device data yet. Please come back later");return}
 
     const applications = fromStore?.fromStore
     let devices = applications.map((app)=>app.end_devices)
