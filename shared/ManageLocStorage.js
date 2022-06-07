@@ -23,11 +23,17 @@ const saveDevice = async(device) =>{
     try{
         await AsyncStorage.setItem(global.DEV_STORE,
 	JSON.stringify(currentDevices))
-        return true
+        return {
+            success:true, 
+            error:null
+        }
 
     }catch(error){
         console.log(error)
-        return false
+        return {
+            success:false, 
+            error:error
+        }
     }
 }
 const getFromStore = async(options)=>{

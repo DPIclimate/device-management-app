@@ -17,47 +17,10 @@ const globalStyles = StyleSheet.create({
         fontWeight: 'bold',
         marginBottom: 2,
     },
-    inputWborder:{
-        borderColor:'gray',
-        borderWidth:1,
-        borderRadius:10,
-        marginTop:2,
-        height:40,
-        width:'100%'
-    },
-    inputWborderSmall:{
-        borderColor:'gray',
-        borderWidth:1,
-        borderRadius:10,
-        marginTop:2,
-        height:20,
-        width:'100%'
-    },
-    inputInvalid:{
-        borderColor:'red'
-    },
-    inputWOborder:{
-        marginTop:2,
-        borderRadius:10,
-        height:35
-    },
     cardUpdated: {
         color: 'gray',
         fontSize: 12,
         textAlign: 'right'
-    },
-    blueButton:{
-        paddingVertical: 12,
-        paddingHorizontal: 32,
-        backgroundColor: '#1396ed',
-        borderRadius:25,
-        justifyContent:'center'
-    },
-    blueButtonText:{
-        color:'white',
-        textAlign:'center',
-        fontWeight:'bold',
-        fontSize:15
     },
     redButton:{
         paddingVertical: 12,
@@ -79,10 +42,6 @@ const globalStyles = StyleSheet.create({
     text:{
         fontSize:14
     },
-    text2:{
-        fontSize:15,
-        paddingBottom:5
-    },
     invalidText:{
         color:'red',
         fontSize:14,
@@ -92,17 +51,8 @@ const globalStyles = StyleSheet.create({
         fontSize:23,
         fontWeight:'bold',
     },
-    subTitle:{
-        fontWeight:'bold',
-        fontSize:17
-    },
     contentView:{
         padding:10 
-    },
-    subtitleView:{
-        paddingTop:15,
-        flexDirection:'row', 
-        justifyContent:'space-between',
     },
     qrCode:{
         width:'100%', 

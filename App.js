@@ -8,7 +8,8 @@ const prefix = Linking.makeUrl('/')
 export default function App() {
 
   //Used for deep linking
-  //exp://172.20.10.4:19001/--/lookup/?appid=oai-test-devices&uid=A4RF3C&link=true
+  // exp://172.20.10.4:19001/--/lookup/?appid=oai-test-devices&uid=A4RF3C&link=true
+  // dma://lookup/?appid=oai-test-devices&uid=A4RF3C&link=true
   const [data, setData] = useState(null)
 
   const linking ={
