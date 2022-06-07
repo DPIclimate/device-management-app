@@ -10,7 +10,6 @@ import {
   Devices,
   OfflineDevices
 } from '../screens/index';
-import Camera from '../screens/Camera'
 import SettingsScreen from '../screens/SettingsScreen';
 import MoveDevice from '../screens/MoveDevice';
 import AppList from '../screens/AppList';
@@ -76,11 +75,6 @@ function ScreenStack() {
       options={{title:"Saved Devices"}}
       />
       <Screen
-      name="Camera"
-      component={Camera}
-      options={{title:"Camera"}}
-      />
-      <Screen
       name="SettingsScreen"
       component={SettingsScreen}
       options={{title:"Settings"}}
@@ -108,9 +102,10 @@ function ScreenStack() {
     </Navigator>
   );
 }
-function ScreenNavigator() {
-    return (
-        <NavigationContainer>
+function ScreenNavigator({linking}) {
+
+  return (
+        <NavigationContainer linking={linking}>
             {ScreenStack()}
         </NavigationContainer>
     );

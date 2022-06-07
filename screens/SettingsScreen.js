@@ -8,8 +8,9 @@ import { validateToken } from '../shared';
 import version from '../app.json'
 import {what_is_bearer, why_bearer, how_to_part1, how_to_part2, api_link, about} from '../card_text.js'
 
-function SettingsScreen() {
+function SettingsScreen(params) {
     
+    console.log(params)
     const [token, changeToken] = useState('')
     const [currentToken, changeCurrentToken] = useState()
     const [validating, setValidating] = useState(false)

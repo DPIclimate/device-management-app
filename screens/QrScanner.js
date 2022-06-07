@@ -12,15 +12,6 @@ export default function Scanner({ route, navigation }) {
   useEffect(() => {
     //Requests camera permission from user
     (async () => {
-      const currentPermissions = await BarCodeScanner.getPermissionsAsync()
-
-      if (!currentPermissions.granted && currentPermissions.canAskAgain){
-
-        //Custom permissions alert, cannot access default ios permissions alert as they are controlled by the os.
-        const permissionsAlert = await AsyncAlert("Device Management App would like to use your camera", "Allow Device Management app to use your camera to scan QR codes?")
-        if (!permissionsAlert) {navigation.goBack(); return}
-
-      }
       const { status } = await BarCodeScanner.requestPermissionsAsync();
       setHasPermission(status === 'granted');
     })();

@@ -52,10 +52,17 @@ const ManageDevices = ({route, navigation}) => {
             const status = await checkNetworkStatus()
             setNetStatus(status)
             
+            console.log(route.params)
             if (route.params?.autofill){
                 appIDChange(route.params?.autofill?.appID)
                 uidChange(route.params?.autofill?.uid)
                 setUIDPresent(route.params?.autofill?.uidPresent)
+                setAutoSearch(true)
+            }
+            else if (route.params?.link){
+                appIDChange(route.params?.appid)
+                uidChange(route.params?.uid)
+                setUIDPresent(true)
                 setAutoSearch(true)
             }
         }
