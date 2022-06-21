@@ -5,6 +5,7 @@ import { updateToken } from '../shared/ManageLocStorage';
 import globalStyles from '../styles';
 import { HelpCard, DPI_TAG } from './SettingsScreen';
 import { LoadingComponent } from '../shared';
+import { Button } from '../shared/Button';
 
 const WelcomScreen = (props) => {
 
@@ -43,9 +44,7 @@ const WelcomScreen = (props) => {
             <TextInput value={token} placeholder='e.g NNSXS.ABCDEF.........' style={[globalStyles.inputWborder, invalidToken?globalStyles.inputInvalid:null]} onChangeText={changeToken} autoCorrect={false} autoCapitalize='none'/>
 
             {!validating?
-                <TouchableOpacity style={[globalStyles.blueButton, styles.buttonLocation]} onPress={() => handlePress()} disabled={token.length == 0? true: false}>
-                    <Text style={globalStyles.blueButtonText}>Continue</Text>
-                </TouchableOpacity>
+                <Button buttonStyle={styles.submitButton} textStyle={styles.submitButtonText} onSubmit={() =>handlePress()}>Continue</Button>
                 :
                 <LoadingComponent loading={validating}/>
             }
@@ -74,6 +73,22 @@ const styles = StyleSheet.create({
     buttonLocation:{
         width:'100%',
         marginTop:15
+    },
+    submitButton:{
+        width:'100%',
+        textAlign:'center',
+        marginTop:25,
+        paddingVertical: 12,
+        paddingHorizontal: 32,
+        backgroundColor: '#1396ed',
+        borderRadius:25,
+        justifyContent:'center'
+    },
+    submitButtonText:{
+        color:'white',
+        textAlign:'center',
+        fontWeight:'bold',
+        fontSize:15
     }
 })
 export default WelcomScreen;

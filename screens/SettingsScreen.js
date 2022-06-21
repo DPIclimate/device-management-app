@@ -7,6 +7,7 @@ import { LoadingComponent } from '../shared';
 import { validateToken } from '../shared';
 import version from '../app.json'
 import {what_is_bearer, why_bearer, how_to_part1, how_to_part2, api_link, about} from '../card_text.js'
+import { Button } from '../shared/Button';
 
 function SettingsScreen(params) {
     
@@ -92,12 +93,10 @@ function SettingsScreen(params) {
                     <Text style={[globalStyles.text,styles.text]}>{currentToken}</Text>
 
                     <Text  style={[globalStyles.subTitle, styles.subTitle]}>New TTN Bearer Token</Text>
-                    <TextInput value={token} placeholder='e.g NNSXS.ABCDEF.........' style={[globalStyles.inputWOborder, invalidToken?globalStyles.inputInvalid:null]} onChangeText={changeToken} autoCorrect={false} autoCapitalize='none'/>
+                    <TextInput value={token} placeholder='e.g NNSXS.ABCDEF.........' style={[styles.inputWOborder, invalidToken?globalStyles.inputInvalid:null]} onChangeText={changeToken} autoCorrect={false} autoCapitalize='none'/>
 
                     {!validating?
-                        <Pressable style={[globalStyles.blueButton, styles.buttonLocation]} onPress={handlePress} disabled={token.length == 0? true: false}>
-                            <Text style={globalStyles.blueButtonText}>Update</Text>
-                        </Pressable>
+                        <Button onSubmit={handlePress} disabled={token.length == 0? true: false}>Update</Button>
                         :
                         <LoadingComponent loading={validating}/>
                     }
@@ -157,10 +156,11 @@ const styles = StyleSheet.create({
     text:{
         paddingTop:10
     },
-    buttonLocation:{
-        width:'100%',
-        textAlign:'center',
-        marginTop:10
+    inputWOborder:{
+        borderRadius:10,
+        marginTop:2,
+        height:40,
+        width:'100%'
     }
 })
 export default SettingsScreen;

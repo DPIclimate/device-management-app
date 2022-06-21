@@ -5,7 +5,6 @@ import{View,
 	Text,
 	TextInput,
 	Image,
-	TouchableHighlight,
 	Alert,
     Keyboard,
 	TouchableOpacity,
@@ -15,26 +14,29 @@ import DeviceCard from './DeviceCard';
 import CommCard from './CommCard';
 import LocationCard from './LocationCard';
 import NotesCard from './NotesCard';
-import { checkNetworkStatus, LoadingComponent} from '../shared';
-import { DataContextProvider } from '../shared/DataContextManager';
+import { LoadingComponent} from '../shared';
 import {useFetch} from '../shared/useFetch';
-import { formatTime } from './CommCard';
-
+import { formatTime } from '../shared/FormatTime';
+import { SafeAreaView } from 'react-native-safe-area-context';
+import {Button} from '../shared/Button'
+import { useGetNetStatus } from '../shared/useGetNetStatus';
 
 const ManageDevices = ({route, navigation}) => {
 
-    const [appID, appIDChange] = useState()
-    const [deviceUID, uidChange] = useState()
-    const [uidPresent, setUIDPresent] = useState()
+    const {loading: netLoading, netStatus, error} = useGetNetStatus()
 
-    const [lastSeen, changeLastSeen] = useState('Loading...')
-    const [isLoading, setLoadingState] = useState(false)
+    const [appID, setAppID] = useState()
+    const [devUID, setDevUID] = useState()
+    const [devID, setDevID] = useState()
+
+    const [devData, setDevData] = useState()
+
+    const [lastSeen, setLastSeen] = useState('Loading...')
+    const [isLoading, setLoading] = useState(false)
+
     const [autoSearch, setAutoSearch] = useState(false)
 
-    const [netStatus, setNetStatus] = useState(false)
-
-    const [devData, changeDevData] = useState()
-
+    //for last seen circle
     const greenCircle = require('../assets/greenCircle.png')
     const redCircle  = require('../assets/redCircle.png')
     const orangeCircle = require('../assets/orangeCircle.png')
@@ -42,95 +44,77 @@ const ManageDevices = ({route, navigation}) => {
     const redHollow = require('../assets/redCircle-hollow.png')
     const orangeHollow = require('../assets/orangeCircle-hollow.png')
     const [circleImg, changeCirlce] = useState()
-    const keyboardHight = useKeyboard()
 
+    const keyboardHight = useKeyboard()
     const scrollViewRef = useRef();
 
     useEffect(()=>{
-        async function loaded(){
-            
-            const status = await checkNetworkStatus()
-            setNetStatus(status)
-            
-            console.log(route.params)
-            if (route.params?.autofill){
-                appIDChange(route.params?.autofill?.appID)
-                uidChange(route.params?.autofill?.uid)
-                setUIDPresent(route.params?.autofill?.uidPresent)
-                setAutoSearch(true)
-            }
-            else if (route.params?.link){
-                appIDChange(route.params?.appid)
-                uidChange(route.params?.uid)
-                setUIDPresent(true)
-                setAutoSearch(true)
-            }
+        if (route?.params?.autofill){ 
+            //Data comes from either QR code or another page
+            setAppID(route?.params?.autofill.appID)
+            setDevUID(route?.params?.autofill?.uid)
+            setDevID(route?.params?.autofill?.devID)
+            setAutoSearch(true) //Will hit search button automatically
         }
-        loaded()
     },[route])
-    
+
     useEffect(() =>{
+        //Handle autosearch
         if (autoSearch){
-            handlePress()  
+            handleSearch()  
             setAutoSearch(false)
         }
     },[autoSearch])
 
-    const handlePress = async() =>{
-
-        setLoadingState(true)
-        let data = await useFetch(`${global.BASE_URL}/applications/${appID}/devices?field_mask=attributes,locations,description,name`,{type:"DeviceList", storKey:global.APP_CACHE, appID:appID}, netStatus)
-
-        getData(data)
-        setLoadingState(false)
-    }
-
-    const getData = (data) =>{
-        if (isLoading) return
-
-        let device = undefined
-
-        for (let i in data.end_devices){
-            let dev = data.end_devices[i]
-                       
-            if (dev.attributes?.uid == deviceUID && uidPresent == true){
-                device = dev
-                break;
-            }else if (dev.ids.device_id == route.params?.autofill?.ID){
-                device = dev
-                break;
-            }
+    const handleSearch = async() =>{
+        setLoading(true)
+        const data = await useFetch(`${global.BASE_URL}/applications/${appID}/devices?field_mask=attributes,locations,description,name`,{type:"DeviceList", storKey:global.APP_CACHE, appID:appID}, netStatus)
+        
+        if ('code' in data){
+            Alert.alert("Invalid details", "Invalid details entered")
+            setLoading(false)
+            return
         }
 
+        let device;
+
+        for (const dev of data.end_devices){
+            
+            if (devUID != null && dev.attributes?.uid == devUID || dev.ids.device_id == devID){
+                //If uid present search based on uid, if not search on device id
+                device = dev
+            }
+        }
         if (device == undefined) Alert.alert("No device found")
-        device = createDeviceObj(device)
-        changeDevData(device)
+
+        const devObj = createDeviceObj(device)
+        setDevData(devObj)
+
+        setLoading(false)
     }
+
     const createDeviceObj = (device) =>{
+        //Create device object for device cards to use
 
         if (device == undefined) return
-        const applicationID = device['ids']['application_ids']['application_id']
+        const applicationID = device.ids.application_ids.application_id
         let devUID = null
 
         devUID = device.attributes?.uid
 
-        const devID = device['ids']['device_id']
-        const devEui = device['ids']['dev_eui']
-        const devName = device['name']
-        const dates = formatTime(device['created_at'])
-
+        const devID = device.ids.device_id
+        const devEui = device.ids.dev_eui
+        const devName = device.name
+        const dates = formatTime(device.created_at)
+        const location = device.locations?.user
+        const notes = device.description
         const created = `${dates[2]} ${dates[1]}` 
-
         const ttn_link = `https://au1.cloud.thethings.network/console/applications/${applicationID}/devices/${devID}`
 
-        let location = undefined 
-        device['locations'] != undefined ? location = device['locations']['user'] : location = undefined
-        
-        const notes = device['description']
         const data = {
             "appID":applicationID,
             'uid':devUID,
-            'ID':devID,
+            'devID':devID,
             'name':devName,
             'eui':devEui,
             'creationDate':created,
@@ -166,84 +150,68 @@ const ManageDevices = ({route, navigation}) => {
     }
 
     const LastSeen = () =>{
-        
-            return (
-                <View style={{paddingTop:20}}>
-                    <Text>
-                        <Image style={{width:15, height:15}} source={circleImg} />
-                        <Text style={{fontSize:17}} numberOfLines={1} adjustsFontSizeToFit>{` Last seen: ${lastSeen}`}</Text> 
-                    </Text>
-                </View>
-            )
-    }
-    const SearchButton = () =>{
-
-        
-        if (!devData){
-            return(
-            <TouchableOpacity style={[{width:120},globalStyles.blueButton]} onPress={handlePress}>
-                <Text adjustsFontSizeToFit numberOfLines={1} style={globalStyles.blueButtonText}>Search</Text>
-            </TouchableOpacity>
-            )
-        
-        }else if (devData && netStatus){
-
-            return(
-                <TouchableOpacity style={[{width:140},globalStyles.blueButton]} onPress={handlePress}>
-                    <Text adjustsFontSizeToFit numberOfLines={1} style={globalStyles.blueButtonText}>Refresh</Text>
-                </TouchableOpacity>
-            )
-        }
-        else if (devData && !netStatus){
-            return(
-                <TouchableHighlight style={{borderRadius:50}} acitveOpacity={0.6} underlayColor="#DDDDDD" onPress={() => Alert.alert("No Connection", "This is the last known state of this device")}>
-                    <Image style={{width:50, height:50, borderRadius:50}} source={require('../assets/noConnection.png')}/>
-                </TouchableHighlight>
-            )
-        }
+        //Component for last seen text
+        return (
+            <View style={{paddingTop:20}}>
+                <Text>
+                    <Image style={{width:15, height:15}} source={circleImg} />
+                    <Text style={{fontSize:17}} numberOfLines={1} adjustsFontSizeToFit>{` Last seen: ${lastSeen}`}</Text> 
+                </Text>
+            </View>
+        )
     }
 
     return (
         <ScrollView 
-            style={globalStyles.scrollView} 
-            keyboardDismissMode="interactive" 
-            ref={scrollViewRef}
-            >
-            <View style={styles.contentView}>
-                <View style={{paddingTop:15, flexDirection:'row', justifyContent:'space-between'}}>
-                    <Text style={[globalStyles.title, styles.title]}>Device Lookup</Text>
+        style={[globalStyles.scrollView, globalStyles.contentView]}
+        keyboardDismissMode="interactive" 
+        ref={scrollViewRef}
+        >
+            <SafeAreaView>
+                <View style={globalStyles.headingView}>
+                    <Text style={globalStyles.title}>Device Lookup</Text>
 
                     <TouchableOpacity style={globalStyles.qrButton} onPress={() => navigation.navigate('QrScanner',{screen:'ManageDevices'})}>
                         <Image style={globalStyles.qrCode} source={require('../assets/QR-code-icon.png')}/>
                     </TouchableOpacity>
                 </View>
-                <Text style={[globalStyles.text2, globalStyles.subtitleView]}>Application ID</Text>
-                <TextInput value={appID} placeholder='e.g example-app-id' style={globalStyles.inputWborder} onChangeText={appIDChange} autoCorrect={false} autoCapitalize='none'/>
+
+                <View style={styles.subtitleView}>
+                        <Text style={styles.subHeading}>Application ID</Text>
+                </View>
+                <TextInput value={appID} placeholder='e.g example-app-id' style={globalStyles.inputWborder} onChangeText={setAppID} autoCorrect={false} autoCapitalize='none'/>
                 
 
-                <Text style={[globalStyles.text2, globalStyles.subtitleView]}>Device UID</Text>
-                <TextInput value={deviceUID} placeholder='e.g ABC123 (Max. 6 Characters)' style={globalStyles.inputWborder} onChangeText={(e) => {uidChange(e.toUpperCase()); e.length> 0 ? setUIDPresent(true):setUIDPresent(false)}} autoCorrect={false} autoCapitalize='none'/>
-                <View style={{paddingTop:15, flexDirection:'row', justifyContent:'space-between'}}>
+                <View style={styles.subtitleView}>
+                    <Text style={styles.subHeading}>Device UID</Text>
+                </View>
+                <TextInput value={devUID} placeholder='e.g example-app-id' style={globalStyles.inputWborder} onChangeText={setDevUID} autoCorrect={false} autoCapitalize='none'/>
+
+                <View style={{width:'90%', height:2, backgroundColor:'#128cde', alignSelf:'center', marginTop:30}}/>
+
+                <View style={{paddingBottom:5, flexDirection:'row', justifyContent:'space-between', alignItems:'center'}}>
                     <View style={{flex:1}}>
                         {devData&& <LastSeen/>}
                     </View>
                     <View>
-                        <SearchButton/>        
+                        <Button disabled={appID == null} onSubmit={()=>handleSearch()}>
+                            {devData? <Text>Refresh</Text> : <Text>Search</Text>}
+                        </Button>
                     </View>
                 </View>
                 
-                <DataContextProvider value={devData}>
 
-                    <DeviceCard navigation={navigation}/>
-                    <CommCard changeLastSeen={changeLastSeen} setCircle={setCircle}/>
-                    <LocationCard autoSearch={setAutoSearch}/>  
-                    <NotesCard scrollViewRef={scrollViewRef}/>
-                    
-                </DataContextProvider>
-
+                {devData && //If device data exists, display cards
+                    <>
+                        <DeviceCard devData={devData} autoSearch={setAutoSearch}/>
+                        <CommCard devData={devData} setLastSeen={setLastSeen} setCircle={setCircle}/>
+                        <LocationCard devData={devData} autoSearch={setAutoSearch}/> 
+                        <NotesCard devData={devData}/>
+                    </>
+                }
                 <LoadingComponent loading={isLoading}/>
                 <View style={{width:'100%', height:keyboardHight}}/>
-            </View>
+            </SafeAreaView>
         </ScrollView>
     );
 };
@@ -276,7 +244,14 @@ const styles = StyleSheet.create({
     },
     title:{
         paddingTop:20,
-        alignItems:'flex-end',
+        alignItems:'flex-end',     
+    },
+    subHeading:{
+        fontSize:15,
+        paddingBottom:5
+    },
+    subtitleView:{
+        paddingTop:15
     }
 })
 export default ManageDevices;

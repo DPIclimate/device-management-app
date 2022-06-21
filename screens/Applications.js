@@ -12,12 +12,12 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import {
 	renderItem,
     renderHiddenItem,
-	LoadingComponent,
     Offline,
     getFromStore} from '../shared'
 import { SwipeListView } from 'react-native-swipe-list-view';
 import useFetchState from '../shared/useFetch.js';
 import { useGetNetStatus } from '../shared/useGetNetStatus';
+import { SafeAreaView } from 'react-native-safe-area-context';
 
 function Applications({navigation}) {
 
@@ -142,7 +142,7 @@ function Applications({navigation}) {
         return list
     }
     return (
-        <View style={globalStyles.screen}>
+        <SafeAreaView style={globalStyles.screen}>
             
             {validToken?
             <>  
@@ -197,13 +197,12 @@ function Applications({navigation}) {
             </>
             }
             
-        </View>
+        </SafeAreaView>
     );
 }
 const styles = StyleSheet.create({
     title:{
         padding:10, 
-        paddingTop:25
     },
     redButtonLoc:{
         backgroundColor:'red', 

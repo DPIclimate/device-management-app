@@ -14,12 +14,9 @@ import { Text,
     Platform} from 'react-native';
 import globalStyles from '../styles';
 import {updateDevice, checkNetworkStatus} from '../shared/index'
-import { useDataContext } from '../shared/DataContextManager';
 import { AsyncAlert } from '../shared/AsyncAlert';
 
-function NotesCard({scrollViewRef}) {
-
-    const data = useDataContext()
+function NotesCard({devData}) {
     
     const [text, setText] = useState()
     const [isLoading, setLoadingState] = useState(false)
@@ -27,17 +24,17 @@ function NotesCard({scrollViewRef}) {
     const inputAccessoryViewID = 'uniqueID';
     
     useEffect(() =>{
-        setText(data?.notes)
-    },[data])
+        setText(devData?.notes)
+    },[devData])
 
     const saveDetails = async() =>{
         setLoadingState(true)
         const body = {
             "end_device":{
                 'ids':{
-                    'device_id': data.ID,
+                    'device_id': devData.devID,
                     "application_ids": {
-                        "application_id": data.appID
+                        "application_id": devData.appID
                     }
                 },
                 'description':text
@@ -72,7 +69,7 @@ function NotesCard({scrollViewRef}) {
 
     }
 
-    if (data == undefined) return <View/>
+    if (devData == undefined) return <View/>
     return (
         <>
         

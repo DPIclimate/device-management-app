@@ -21,8 +21,6 @@ import { Overlay } from 'react-native-elements';
 
 const RegisterDevice = ({ route, navigation }) => {
 
-    const ALLOWED_CHARS = new RegExp('^[a-z0-9](?:[-]?[a-z0-9]){2,}$')
-
     const [locEnabled, setLocEnabled] = useState(false);
     const [isLoading, setIsLoading] = useState(false);
 
@@ -51,9 +49,9 @@ const RegisterDevice = ({ route, navigation }) => {
 
     useEffect(()=>{
         
+        //Handles data from qr code scan
         if (route.params?.autofill == undefined) return
             let data = route.params.autofill
-            console.log('in effect', data)
             for (let item in data){
                 
                 switch (item){
@@ -64,7 +62,7 @@ const RegisterDevice = ({ route, navigation }) => {
                         setDevUID(data.uid)
                         break
                     case 'ID':
-                        setDevID(data.ID)
+                        setDevID(data.devID)
                         break
                     case 'dev_eui':
                         handleEUIChange(data.dev_eui)
@@ -90,7 +88,9 @@ const RegisterDevice = ({ route, navigation }) => {
         setDevEUI(modifiedEUI)
     }
     const checkValidity = () =>{
-        if (!ALLOWED_CHARS.test(appID) && appID.length >=3){
+        //Check validity of user inputs and set errors appropriately
+
+        if (!global.ALLOWED_CHARS.test(appID) && appID.length >=3){
             setAppIDErr(ERROR_ENUM.ILLEGAL_CHARS)
         }
         else if (appID.length <3 && appID.length != 0){
@@ -100,7 +100,7 @@ const RegisterDevice = ({ route, navigation }) => {
             setAppIDErr(null)
         }
 
-        if (!ALLOWED_CHARS.test(devID) && devID.length >=3){
+        if (!global.ALLOWED_CHARS.test(devID) && devID.length >=3){
             setDevIDErr(ERROR_ENUM.ILLEGAL_CHARS)
         }
         else if (devID.length <3 && devID.length!=0){
@@ -110,7 +110,7 @@ const RegisterDevice = ({ route, navigation }) => {
             setDevIDErr(null)
         }
         
-        if (!ALLOWED_CHARS.test(devUID) && devUID.length >=3){
+        if (!global.ALLOWED_CHARS.test(devUID) && devUID.length >=3){
             setDevUIDErr(ERROR_ENUM.ILLEGAL_CHARS)
         }
         else if (devUID.length != 6 && devUID.length != 0){
@@ -121,7 +121,7 @@ const RegisterDevice = ({ route, navigation }) => {
         }
 
         //Check len of 23 because eui + dashes
-        if (!ALLOWED_CHARS.test(devEUI) && devEUI.length >=3){
+        if (!global.ALLOWED_CHARS.test(devEUI) && devEUI.length >=3){
             setDevEUIErr(ERROR_ENUM.ILLEGAL_CHARS)
         }
         else if(devEUI.length != 23 && devEUI.length != 0){
@@ -175,7 +175,7 @@ const RegisterDevice = ({ route, navigation }) => {
             devObject.end_device.ids.device_id = devID
             devObject.end_device.ids.application_ids.application_id = appID
             devObject.end_device.attributes.uid = devUID.toUpperCase()
-            devObject.type = 'registerDevice'
+            devObject.type = 'registerDevice' //Type flag for offline device screen
 
             const isOnline = await checkNetworkStatus()
 
@@ -236,8 +236,8 @@ const RegisterDevice = ({ route, navigation }) => {
             <SafeAreaView>
                 <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === "ios" ? "position" : "height"}>
 
-                    <View style={styles.headingView}>
-                        <Text style={[globalStyles.title, styles.titlePosition]}>Register Device</Text>
+                    <View style={globalStyles.headingView}>
+                        <Text style={globalStyles.title}>Register Device</Text>
 
                         <TouchableOpacity style={globalStyles.qrButton} onPress={() => navigation.navigate('QrScanner',{screen:'RegisterDevice'})}>
                             <Image style={globalStyles.qrCode} source={require('../assets/QR-code-icon.png')}/>
@@ -248,14 +248,14 @@ const RegisterDevice = ({ route, navigation }) => {
                         <Text style={styles.subHeading}>Application ID</Text>
                         <Text style={{color:'red'}}>{appIDErr}</Text>
                     </View>
-                    <TextInput value={appID} placeholder='e.g example-app-id' style={[styles.inputWborder, appIDErr&& styles.inputInvalid]} onChangeText={setAppID} autoCorrect={false} autoCapitalize='none'/>
+                    <TextInput value={appID} placeholder='e.g example-app-id' style={[globalStyles.inputWborder, appIDErr&& styles.inputInvalid]} onChangeText={setAppID} autoCorrect={false} autoCapitalize='none'/>
                     
 
                     <View style={styles.subtitleView}>
                         <Text style={styles.subHeading}>Device ID</Text>
                         <Text style={{color:'red'}}>{devIDErr}</Text>
                     </View>
-                    <TextInput value={devID} placeholder='e.g my-device (Min. 3 Characters)' style={[styles.inputWborder, devIDErr&& styles.inputInvalid]} onChangeText={setDevID} autoCorrect={false} autoCapitalize='none'/>
+                    <TextInput value={devID} placeholder='e.g my-device (Min. 3 Characters)' style={[globalStyles.inputWborder, devIDErr&& styles.inputInvalid]} onChangeText={setDevID} autoCorrect={false} autoCapitalize='none'/>
 
                     <View style={styles.subtitleView}>
                         <Text style={styles.subHeading}>Device UID (Optional)</Text>
@@ -265,13 +265,13 @@ const RegisterDevice = ({ route, navigation }) => {
                         </TouchableOpacity>
                     </View>
 
-                    <TextInput value={devUID} placeholder='e.g ABC123 (Max. 6 Characters)' style={[styles.inputWborder, devUIDErr&& styles.inputInvalid]} onChangeText={setDevUID} autoCorrect={false} autoCapitalize='none'/>
+                    <TextInput value={devUID} placeholder='e.g ABC123 (Max. 6 Characters)' style={[globalStyles.inputWborder, devUIDErr&& styles.inputInvalid]} onChangeText={setDevUID} autoCorrect={false} autoCapitalize='none'/>
 
                     <View style={styles.subtitleView}>
                         <Text style={styles.subHeading}>Device EUI (Optional)</Text>
                         <Text style={{color:'red'}}>{devEUIErr}</Text>
                     </View>
-                    <TextInput value={devEUI} style={[styles.inputWborder, devEUIErr&& styles.inputInvalid]} onChangeText={(e) => handleEUIChange(e)} autoCorrect={false} autoCapitalize='none'/>
+                    <TextInput value={devEUI} style={[globalStyles.inputWborder, devEUIErr&& styles.inputInvalid]} onChangeText={(e) => handleEUIChange(e)} autoCorrect={false} autoCapitalize='none'/>
                     
                     <View style={{paddingTop:20, flexDirection:'row', justifyContent:'space-between', alignItems:'center'}}>
                         <Text style={styles.subHeading}>Record Location</Text>
@@ -309,11 +309,6 @@ const styles = StyleSheet.create({
         marginLeft:10,
         marginRight:10
     },
-    headingView:{
-        flexDirection:'row', 
-        alignItems:'center', 
-        justifyContent:'space-between'
-    },
     submitButton:{
         width:'100%',
         textAlign:'center',
@@ -338,14 +333,6 @@ const styles = StyleSheet.create({
         paddingTop:15,
         flexDirection:'row', 
         justifyContent:'space-between',
-    },
-    inputWborder:{
-        borderColor:'gray',
-        borderWidth:1,
-        borderRadius:10,
-        marginTop:2,
-        height:40,
-        width:'100%'
     },
     inputInvalid:{
         borderColor:'red'

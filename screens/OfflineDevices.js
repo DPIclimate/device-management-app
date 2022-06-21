@@ -41,7 +41,7 @@ function OfflineDevices({ route, navigation }) {
         changeSavedDevices(savedDev)
 
         if (savedDev == 0){
-            setError("No Devices in queue")
+            setError("No devices in queue")
         }
 
         setLoading(false)
@@ -189,7 +189,7 @@ function OfflineDevices({ route, navigation }) {
                 case 'move':
                     return (
                         <> 
-                            <Text style={[globalStyles.text, styles.cardText]}>Device ID: {item.ID}</Text>
+                            <Text style={[globalStyles.text, styles.cardText]}>Device ID: {item.devID}</Text>
                             <Text style={[globalStyles.text, styles.cardText]}>Move From: {item.appID}</Text>
                             <Text style={[globalStyles.text, styles.cardText]}>Move To: {item.moveTo}</Text>
                         </>

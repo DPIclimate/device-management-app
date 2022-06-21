@@ -86,30 +86,36 @@ const getEUI = async (appID) =>{
 const updateDevice = async(data) =>{
     console.log('now updating the device')
     let device = {...data}
-    delete device['type']
-    const appID = device['end_device']['ids']['application_ids']['application_id']
-    const deviceID = device['end_device']['ids']['device_id']
+    delete device.type
+    const appID = device.end_device.ids.application_ids.application_id
+    const deviceID = device.end_device.ids.device_id
 
+    console.log(device)
     try{
         const url =  `${global.BASE_URL}/applications/${appID}/devices/${deviceID}`
+        console.log(url)
         const response = await fetch(url,{
             method:"PUT",
             headers:global.headers,
             body:JSON.stringify(device)
         }).then((response) => response.json())
 
+        console.log("response", response)
         if ('code' in response){
             //If key code exists then an error occured
-            throw new Error(response['code'], response['message'], deviceID)
+            throw new Error(response.message)
         }
-        else{
-            Alert.alert('Device Successfully updated')
+        return {
+            success:true,
+            error:null
         }
-        return true
     }
     catch(error){
-        console.log("An error occured, in update", error)
-        return false
+        console.log(`An error occured, in update ${error}`)
+        return {
+            success:false,
+            error:error
+        }
     }
 }
 
@@ -178,36 +184,36 @@ const checkUnique = async(data) =>{ //Checks that a particular device is unique
         error:null
     }
 }
-const updateDetails = (data) =>{
+// const updateDetails = (data) =>{
 
-    console.log('updating details')
-    data = data['end_device']
-    let body = {
-        "end_device":{
-            "ids":{
-                "device_id":data['ids']['device_id'],
-                "application_ids":{
-                    "application_id":data['ids']['application_ids']['application_id']
-                }
-            },
-            "attributes":{
-                "uid":data['attributes']['uid'].toUpperCase()
-            }
-        },
-        "field_mask": {
-          "paths": [
-            "attributes"
-          ]
-        }
-    }
+//     console.log('updating details')
+//     data = data.end_device
+//     let body = {
+//         "end_device":{
+//             "ids":{
+//                 "device_id":data.ids.device_id,
+//                 "application_ids":{
+//                     "application_id":data.ids.application_ids.application_id
+//                 }
+//             },
+//             "attributes":{
+//                 "uid":data.attributes.uid.toUpperCase()
+//             }
+//         },
+//         "field_mask": {
+//           "paths": [
+//             "attributes"
+//           ]
+//         }
+//     }
 
-    if (data['locations'] != undefined){
+//     if (data.locations != undefined){
         
-        body['end_device']['locations'] = data['locations']
-        body['field_mask']['paths'].push('locations')
-    }
-    return body
-}
+//         body.end_device.locations = data.locations
+//         body.field_mask.paths.push('locations')
+//     }
+//     return body
+// }
 const validateToken = async(token) =>{
 
     if (token != undefined){
@@ -246,7 +252,7 @@ const getApplications = async() => {//Request applications from ttn
             headers:global.headers
         }).then((response) => response.json())
 
-        response = response['applications']
+        response = response.applications
         return response
 
     }catch(error){
@@ -270,7 +276,7 @@ const deleteDevice = async(device) =>{
 
         if ('code' in response){
             //If key code exists then an error occured
-            throw new Error(json['code'], json['message'], deviceID)
+            throw new Error(json.code, json.message, deviceID)
         }
         return true
     }catch(error){
@@ -287,7 +293,7 @@ const moveDevice = async(device, moveTo) =>{
     let selectedDevice = null
     for (const i in app?.end_devices){
       const dev = app.end_devices[i]
-      if (dev.ids.device_id == device.ID){
+      if (dev.ids.device_id == device.devID){
         selectedDevice = dev
       }
     }
@@ -304,7 +310,7 @@ const moveDevice = async(device, moveTo) =>{
     
 
     //Register new device
-    let newDevice = Object.assign(newDeviceData()['end_device'],selectedDevice)
+    let newDevice = Object.assign(newDeviceData().end_device,selectedDevice)
     newDevice.ids.application_ids.application_id = moveTo
     newDevice.type = 'move'
 
@@ -325,7 +331,7 @@ export {
     updateDevice,
     validateToken,
     checkUnique,
-    updateDetails,
+    // updateDetails,
     getApplications,
     moveDevice
 }

@@ -4,11 +4,9 @@ import {View,
 	StyleSheet
 } from 'react-native'
 import globalStyles from '../styles';
-
 import {
 	renderItem,
     renderHiddenItem,
-	LoadingComponent,
     Offline,
     getFromStore
 } from '../shared/index.js'
@@ -16,6 +14,7 @@ import { SwipeListView } from 'react-native-swipe-list-view';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import useFetchState from '../shared/useFetch';
 import { useGetNetStatus } from '../shared/useGetNetStatus';
+import { SafeAreaView } from 'react-native-safe-area-context';
 
 
 function Devices({route, navigation}) {
@@ -62,13 +61,13 @@ function Devices({route, navigation}) {
 
         const uid = device.attributes?.uid
         const application_id = device.ids.application_ids.application_id
-        const ID = device.ids.device_id
+        const devID = device.ids.device_id
         const name = device.name
         
         let devData = {
             'appID':application_id,
             'uid':uid,
-            'ID':ID,
+            'devID':devID,
             'name':name,
             'uidPresent':uid ? true:false
         }
@@ -100,7 +99,7 @@ function Devices({route, navigation}) {
 
     }
     return (
-        <View style={globalStyles.screen}>
+        <SafeAreaView style={globalStyles.screen}>
             <Text style={[globalStyles.title,styles.title]}>{route.params.application_id}</Text>
             <Text style={[globalStyles.text, styles.text]}>{route.params.app_description}</Text>
 
@@ -125,12 +124,11 @@ function Devices({route, navigation}) {
                 onRefresh={()=> retry()}
                 refreshing={isLoading}
             />
-        </View>
+        </SafeAreaView>
     );
 }
 const styles = StyleSheet.create({
     title:{
-        paddingTop:25,
         paddingLeft:5,
         paddingRight:5,
         textAlign:'center',
