@@ -38,7 +38,6 @@ export default function HomeScreen({navigation}) {
     
     useLayoutEffect(() => {
         //Settings icon
-        console.log("in effect")
         navigation.setOptions({
             headerRight: () => <SettingsIcon/>,
         });

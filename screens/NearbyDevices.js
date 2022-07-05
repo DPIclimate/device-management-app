@@ -41,8 +41,6 @@ export default function NearbyDevices({route, navigation}) {
   
   async function getData(){
     
-    console.log('getting data...')
-
     const fromStore = await getFromStore({type:"ApplicationList", storKey:'applicationCache'})
 
     if (fromStore.fromStore == null) {setErrorMsg("We have not cached any device data yet. Please come back later");return}
@@ -59,7 +57,6 @@ export default function NearbyDevices({route, navigation}) {
         dev_with_loc.push(dev)
       }
     }
-    console.log('writing data to state')
     setDevs(dev_with_loc)
 
   }
@@ -71,7 +68,6 @@ export default function NearbyDevices({route, navigation}) {
     if (devs == undefined) {console.log('returned with no devs');return }
     if (userLocation == null) {console.log('returned with no location');return}
 
-    console.log('in get distances')
     let devs_dist = devs.map((dev) => {
 
       const lat1 = userLocation?.coords.latitude
@@ -96,8 +92,6 @@ export default function NearbyDevices({route, navigation}) {
       return dev
     })
     
-    console.log('finished calculation, sorting....')
-
     let filtered_devs = []
     devs_dist.forEach((dev)=>{
       //Filter devices for ones that meat the search radius requirement
@@ -110,7 +104,6 @@ export default function NearbyDevices({route, navigation}) {
       return a.loc_difference - b.loc_difference
     })
 
-    console.log('finished sorting')
     setData(filtered_devs)
     
     if (filtered_devs.length == 0){setErrorMsg('No devices nearby')}

@@ -49,7 +49,6 @@ function Applications({navigation}) {
         const {fromStore: favs, error} = await getFromStore({type:'FavList', storKey:global.APP_FAV})
 
         if (netStatus){
-            console.log("Online")
             if (data?.applications == undefined){return}
             const apps = data?.applications
             const appList = apps.map((app) => ({id:app.ids.application_id, isFav:favs.includes(app.ids.application_id), description:app.description}))
@@ -58,7 +57,6 @@ function Applications({navigation}) {
             changeValid(true)
         }
         else{
-            console.log("Offline")
             if (data.length == 0){return}
             let listOfIds = data.map((app) => ({id:app.application_id, isFav:favs.includes(app.application_id), description:app.description}))
             changeData(listOfIds)

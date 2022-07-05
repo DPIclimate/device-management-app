@@ -56,7 +56,6 @@ function LocationCard({devData, autoSearch}) {
 
             if (isConnected){
                 await updateDevice(body)
-                console.log('finshed update')
                 setLoadingState(false)
                 autoSearch(true)
                 

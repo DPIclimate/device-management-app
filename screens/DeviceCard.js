@@ -53,7 +53,6 @@ function DeviceCard({devData, autoSearch}) {
             }
         }
         const {success, error} = await updateDevice(data)
-        console.log(success, error)
         if (success){
             Alert.alert("Update Successful!")
             autoSearch(true)
@@ -63,7 +62,6 @@ function DeviceCard({devData, autoSearch}) {
         }
     }
     const UID_FIELD=() =>{
-        console.log(devData)
         if (!devData.uid){ 
             return(
                 <TouchableOpacity onPress={handlePress}>

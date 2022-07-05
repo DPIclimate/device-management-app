@@ -103,7 +103,6 @@ function OfflineDevices({ route, navigation }) {
                 break;
         }
         
-        console.log("success status", success)
         if (success){
             handleDelete(data, rowMap)
         }
@@ -158,7 +157,7 @@ function OfflineDevices({ route, navigation }) {
     const renderItem = (data, rowMap) => {
 
         const {item, index} = data
-        console.log(item)
+
         const Content = () =>{ //Returns the content of a card to display
 
             switch (item.type){

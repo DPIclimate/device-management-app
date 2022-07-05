@@ -110,7 +110,7 @@ const RegisterDevice = ({ route, navigation }) => {
             setDevIDErr(null)
         }
         
-        if (!global.ALLOWED_CHARS.test(devUID) && devUID.length >=3){
+        if (!global.ALLOWED_CHARS.test(devUID.toLowerCase()) && devUID.length >=3){
             setDevUIDErr(ERROR_ENUM.ILLEGAL_CHARS)
         }
         else if (devUID.length != 6 && devUID.length != 0){
@@ -189,8 +189,7 @@ const RegisterDevice = ({ route, navigation }) => {
                 }
 
                 const {success, error} = await registerDevice(devObject)
-                console.log('in main', `${error}`)
-                
+                                
                 if (!success){
                     Alert.alert("An error occurred", `${error}`)
                     throw new Error(error)
@@ -234,7 +233,7 @@ const RegisterDevice = ({ route, navigation }) => {
     return (
         <ScrollView style={[globalStyles.scrollView, globalStyles.contentView]}>
             <SafeAreaView>
-                <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === "ios" ? "position" : "height"}>
+                <KeyboardAvoidingView behavior={Platform.OS === "ios" ? "position" : "height"}>
 
                     <View style={globalStyles.headingView}>
                         <Text style={globalStyles.title}>Register Device</Text>
