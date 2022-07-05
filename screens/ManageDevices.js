@@ -154,7 +154,7 @@ const ManageDevices = ({route, navigation}) => {
         return (
             <View style={{paddingTop:20}}>
                 <Text>
-                    <Image style={{width:15, height:15}} source={circleImg} />
+                    {circleImg&&<Image style={{width:15, height:15}} source={circleImg} />}
                     <Text style={{fontSize:17}} numberOfLines={1} adjustsFontSizeToFit>{` Last seen: ${lastSeen}`}</Text> 
                 </Text>
             </View>

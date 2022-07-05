@@ -50,7 +50,6 @@ export default function HomeScreen({navigation}) {
         const listener = Dimensions.addEventListener('change', determineAndSetOrientation);
     
         return () => {
-        //   Dimensions.removeEventListener('change', determineAndSetOrientation)
             listener.remove()
         }
       }, []);
@@ -63,10 +62,6 @@ export default function HomeScreen({navigation}) {
 
             if (error == 'User not logged in'){
                 console.log('use not logged in')
-
-                if (Platform.OS == 'android'){
-                    Alert.alert("In Beta", "As this app is still in beta testing some features such as writing to your TTN account may not work. Updates will be coming soon")
-                }
 
                 setWelcVisable(true)
             }

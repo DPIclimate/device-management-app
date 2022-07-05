@@ -1,6 +1,6 @@
 import React,  {useState} from 'react';
 import { Col, Row, Grid } from "react-native-easy-grid";
-import { Text, StyleSheet, Switch, Pressable, View, Image, TouchableHighlight, Alert, ActivityIndicator } from 'react-native';
+import { Text, StyleSheet, Switch, View, Image, TouchableHighlight, Alert, ActivityIndicator, Dimensions } from 'react-native';
 import globalStyles from '../styles';
 import MapView, {Marker, PROVIDER_DEFAULT, Circle, Callout} from 'react-native-maps';
 import * as Location from 'expo-location';
@@ -140,6 +140,7 @@ function LocationCard({devData, autoSearch}) {
         if (isLoading == false){
             return(
                 <>
+                <View>
                 <Grid style={{paddingTop:10, paddingBottom:10}}>
                     {rows}
                 </Grid>
@@ -168,6 +169,7 @@ function LocationCard({devData, autoSearch}) {
                     <View style={{paddingTop:20, flexDirection:'row', justifyContent:'space-between', alignItems:'center'}}>
                         <Text style={{fontSize:15, fontWeight:'bold'}}>Satellite</Text>
                         <Switch onValueChange={toggleSwitch} value={isEnabled}/>
+                    </View>
                     </View>
                 </>)
         }
@@ -209,7 +211,7 @@ function LocationCard({devData, autoSearch}) {
 const styles = StyleSheet.create({
     map: {
         width: '100%',
-        height: 300,
+        height: Dimensions.get("window").height/2,
         borderRadius:15,
         marginTop:7
     },

@@ -10,18 +10,17 @@ import { formatTime } from '../shared/FormatTime';
 
 const RowContent = ({data}) =>{
     return(
-        <Row style={globalStyles.cardRow}>
-            <Col size={1}>
-                <Text>{data.date}</Text>
-                <Text>{data.time}</Text>
+        <Row style={styles.cardRow}>
+            <Col>
+                <Text>{data.date} - {data.time}</Text>
             </Col> 
-            <Col size={1}>
+            <Col>
                 <Text>{data.rssi}</Text>
             </Col>
-            <Col size={1}>
+            <Col>
                 <Text>{data.snr}</Text>
             </Col>
-            <Col size={2}>
+            <Col>
                 <Text numberOfLines={1} adjustsFontSizeToFit>{data.m_type}</Text>
             </Col>
         </Row>
@@ -139,7 +138,7 @@ function CommCard({devData, setLastSeen, setCircle}) {
                         <Col size={1}>
                             <Text style={styles.title}>SNR</Text>
                         </Col>
-                        <Col size={2}>
+                        <Col>
                             <Text style={styles.title}>M_Type</Text>
                         </Col>
                     </Row>
@@ -165,6 +164,9 @@ const styles = StyleSheet.create({
     title:{
         fontWeight:'bold',
         paddingTop:10,
+        paddingBottom:10
+    },
+    cardRow:{
         paddingBottom:10
     }
 })
