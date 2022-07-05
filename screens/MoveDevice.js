@@ -31,7 +31,7 @@ export default function MoveDevice({route, navigation}) {
     {const confirm = await AsyncAlert("Note", 'This feature is currently in beta testing and is not guaranteed to work every time. Proceed at your own risk?')
     if (!confirm) return}
 
-    {const confirm = await AsyncAlert("Are you sure?",`Are you sure you want to move device ${data.ID} from application ${data.appID} to application ${appMove}, this action CAN NOT be undone?`)
+    {const confirm = await AsyncAlert("Are you sure?",`Are you sure you want to move device ${data.devID} from application ${data.appID} to application ${appMove}, this action CAN NOT be undone?`)
     if (!confirm) return}
 
     //TODO - Check device for conflicts in other applications, to ensure higher success rate
@@ -59,7 +59,7 @@ export default function MoveDevice({route, navigation}) {
 
   return (
     <View style={styles.contentView}>
-      <Text style={[globalStyles.title, styles.title]}>Move Device "{data.ID}"</Text>
+      <Text style={[globalStyles.title, styles.title]}>Move Device "{data.devID}"</Text>
       <Text style={styles.sub}>From:</Text>
         <Card>
           <View style={{height:25, justifyContent:'center'}}>

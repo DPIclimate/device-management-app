@@ -33,12 +33,27 @@ export default function HomeScreen({navigation}) {
     const [welcomeVisable, setWelcVisable] = useState(false);
     const {data, isLoading, error, retry} = useFetchState(`${global.BASE_URL}/applications?field_mask=description`,{type:"ApplicationList", storKey:global.APP_CACHE})
 
+    const [orientation, setOrientation] = useState('LANDSCAPE');
+
+    
     useLayoutEffect(() => {
         //Settings icon
         navigation.setOptions({
             headerRight: () => <SettingsIcon/>,
         });
+
     }, [navigation]);
+
+    useEffect(() => {
+
+        determineAndSetOrientation();
+        const listener = Dimensions.addEventListener('change', determineAndSetOrientation);
+    
+        return () => {
+        //   Dimensions.removeEventListener('change', determineAndSetOrientation)
+            listener.remove()
+        }
+      }, []);
 
     useEffect(()=>{
 
@@ -60,6 +75,17 @@ export default function HomeScreen({navigation}) {
         loaded()
 
     },[isLoading])
+
+    const determineAndSetOrientation = () =>{
+        let width = Dimensions.get('window').width;
+        let height = Dimensions.get('window').height;
+    
+        if (width < height) {
+            setOrientation('PORTRAIT');
+          } else {
+            setOrientation('LANDSCAPE');
+          }
+    }
     const SettingsIcon = () =>{
 
         return (
@@ -70,7 +96,7 @@ export default function HomeScreen({navigation}) {
     }
   return (
       <>
-      <ImageBackground source={require("../assets/background.png")} resizeMode='cover' style={{width:'100%'}}>
+      <ImageBackground source={orientation=="PORTRAIT"? require("../assets/background.png"):require("../assets/background-horizontal.png")} resizeMode='cover' style={{width:'100%'}}>
         <ScrollView style={globalStyles.scrollView}>
                 <View style={{paddingTop:20, paddingRight:10, paddingLeft:10}}>
                 <Row>

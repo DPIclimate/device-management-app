@@ -12,7 +12,13 @@ const registerDevice = async(device) =>{
 
     if (device.end_device?.ids?.dev_eui?.length == 0 && device.type != 'move'){
         //If eui was not providered request one from TTN
-        device.end_device.ids.dev_eui = await getEUI(appID)
+        const {eui, error} = await getEUI(appID)
+        if (error){
+            device.end_device.ids.dev_eui = null
+        }
+        else{
+            device.end_device.ids.dev_eui = eui
+        }
     }
 
     delete device.type
@@ -27,16 +33,21 @@ const registerDevice = async(device) =>{
                 headers:global.headers,
                 body:JSON.stringify(device)
             }).then((res) => res.json())
-
+        
         if ('code' in resp){
             //If key code exists then an error occured
             throw new Error(resp.details[0].message_format)
         }
-        return true
+        return {
+            success:true,
+            error:null
+        }
     }
     catch (error){
-        Alert.alert("An error occurred", `${error}`)
-        return false
+        return {
+            success:false,
+            error:error
+        }
     }
 
 } 
@@ -53,74 +64,83 @@ const getEUI = async (appID) =>{
         }).then((response) => response.json())
 
         if ('code' in resp){
+            if (resp.code == 3){
+                throw Error(`Application issued devEUI limit of ${resp.details[0]?.attributes?.dev_eui_limit} reached`)
+            }
             throw Error(resp.message)
         }
-        console.log(resp)
-        return resp['dev_eui']
+
+        return {
+            eui: resp.dev_eui,
+            error:null
+        }
     }
     catch(error){
-        console.log("Error occurred getting EUI")
-        console.log(error)
-        return
+        return {
+            eui:null,
+            error:error
+        }
     }
 }
 
 const updateDevice = async(data) =>{
     console.log('now updating the device')
     let device = {...data}
-    delete device['type']
-    const appID = device['end_device']['ids']['application_ids']['application_id']
-    const deviceID = device['end_device']['ids']['device_id']
+    delete device.type
+    const appID = device.end_device.ids.application_ids.application_id
+    const deviceID = device.end_device.ids.device_id
 
+    console.log(device)
     try{
         const url =  `${global.BASE_URL}/applications/${appID}/devices/${deviceID}`
+        console.log(url)
         const response = await fetch(url,{
             method:"PUT",
             headers:global.headers,
             body:JSON.stringify(device)
         }).then((response) => response.json())
 
+        console.log("response", response)
         if ('code' in response){
             //If key code exists then an error occured
-            throw new Error(response['code'], response['message'], deviceID)
+            throw new Error(response.message)
         }
-        else{
-            Alert.alert('Device Successfully updated')
+        return {
+            success:true,
+            error:null
         }
-        return true
     }
     catch(error){
-        console.log("An error occured, in update", error)
-        return false
+        console.log(`An error occured, in update ${error}`)
+        return {
+            success:false,
+            error:error
+        }
     }
 }
 
 const checkUnique = async(data) =>{ //Checks that a particular device is unique
 
     console.log('checking unique')
-    const deviceEUI = data['end_device']['ids']['dev_eui']
-    const deviceUID = data['end_device']['attributes']['uid']
-    const deviceID = data['end_device']['ids']['device_id']
-    const appID = data['end_device']['ids']['application_ids']['application_id']
+    const deviceEUI = data.end_device.ids.dev_eui
+    const deviceUID = data.end_device.attributes.uid
+    const deviceID = data.end_device.ids.device_id
+    const appID = data.end_device.ids.application_ids.application_id
 
     let url =  `${global.BASE_URL}/applications/${appID}/devices?field_mask=attributes`
     let response = await fetch(url,{
         method:"GET",
         headers:global.headers
     }).then((response) => response.json())
-    .then((response) =>{
-        if ('code' in response) throw new Error(response['code'], response['message'], deviceID)
-        return response
 
-    }).catch((error) =>{ 
-        console.log('this error')
-        setLoadingState(false)
-        return null
-    })
+    if ('code' in response){
+        return{
+            isUnique:false,
+            error:response.message
+        }
+    }
 
-    if (response == null) return null
-
-    const devices = response['end_devices']
+    const devices = response.end_devices
 
     let euiList = devices.map((dev) => dev?.ids?.dev_eui)
     let IDList = devices.map((dev) => dev?.ids?.device_id)
@@ -129,65 +149,71 @@ const checkUnique = async(data) =>{ //Checks that a particular device is unique
     try{
         euiList.forEach((eui)=>{
             if (deviceEUI == eui && eui != undefined){
-                throw new Error('Device EUI already exists')
+                return{
+                    isUnique:false,
+                    error:'Device EUI already exists'
+                }
             }})
        
         uidList.forEach((uid) =>{
             if (deviceUID == uid && uid != undefined){
-
-                console.log("uid already exists")
-                throw new Error('Device UID already exists')
+                return{
+                    isUnique:false,
+                    error:'Device UID already exists'
+                }
             }})
-        
-    }catch(error){
-        Alert.alert(`${error}`)
-        return
-    }
-    try{
+
         IDList.forEach((ID)=>{
             if (deviceID == ID && ID != undefined){
-                console.log("Device ID already exists")
-                throw new Error(ID)
+                return{
+                    isUnique:false,
+                    error:'Device ID already exists'
+                }
             }
         })
-    }
-    catch(error){
-        Alert.alert(`${error}`)
-        return false
-    }
-
-    return true
-}
-const updateDetails = (data) =>{
-
-    console.log('updating details')
-    data = data['end_device']
-    let body = {
-        "end_device":{
-            "ids":{
-                "device_id":data['ids']['device_id'],
-                "application_ids":{
-                    "application_id":data['ids']['application_ids']['application_id']
-                }
-            },
-            "attributes":{
-                "uid":data['attributes']['uid'].toUpperCase()
-            }
-        },
-        "field_mask": {
-          "paths": [
-            "attributes"
-          ]
+        
+    }catch(error){
+        return{
+            isUnique:false,
+            error:error
         }
     }
 
-    if (data['locations'] != undefined){
-        
-        body['end_device']['locations'] = data['locations']
-        body['field_mask']['paths'].push('locations')
+    return {
+        isUnique:true,
+        error:null
     }
-    return body
 }
+// const updateDetails = (data) =>{
+
+//     console.log('updating details')
+//     data = data.end_device
+//     let body = {
+//         "end_device":{
+//             "ids":{
+//                 "device_id":data.ids.device_id,
+//                 "application_ids":{
+//                     "application_id":data.ids.application_ids.application_id
+//                 }
+//             },
+//             "attributes":{
+//                 "uid":data.attributes.uid.toUpperCase()
+//             }
+//         },
+//         "field_mask": {
+//           "paths": [
+//             "attributes"
+//           ]
+//         }
+//     }
+
+//     if (data.locations != undefined){
+        
+//         body.end_device.locations = data.locations
+//         body.field_mask.paths.push('locations')
+//     }
+//     return body
+// }
 const validateToken = async(token) =>{
 
     if (token != undefined){
@@ -226,7 +252,7 @@ const getApplications = async() => {//Request applications from ttn
             headers:global.headers
         }).then((response) => response.json())
 
-        response = response['applications']
+        response = response.applications
         return response
 
     }catch(error){
@@ -250,7 +276,7 @@ const deleteDevice = async(device) =>{
 
         if ('code' in response){
             //If key code exists then an error occured
-            throw new Error(json['code'], json['message'], deviceID)
+            throw new Error(json.code, json.message, deviceID)
         }
         return true
     }catch(error){
@@ -267,7 +293,7 @@ const moveDevice = async(device, moveTo) =>{
     let selectedDevice = null
     for (const i in app?.end_devices){
       const dev = app.end_devices[i]
-      if (dev.ids.device_id == device.ID){
+      if (dev.ids.device_id == device.devID){
         selectedDevice = dev
       }
     }
@@ -284,7 +310,7 @@ const moveDevice = async(device, moveTo) =>{
     
 
     //Register new device
-    let newDevice = Object.assign(newDeviceData()['end_device'],selectedDevice)
+    let newDevice = Object.assign(newDeviceData().end_device,selectedDevice)
     newDevice.ids.application_ids.application_id = moveTo
     newDevice.type = 'move'
 
@@ -305,7 +331,7 @@ export {
     updateDevice,
     validateToken,
     checkUnique,
-    updateDetails,
+    // updateDetails,
     getApplications,
     moveDevice
 }

@@ -20,8 +20,9 @@ export default function Scanner({ route, navigation }) {
   const handleBarCodeScanned = ({ type, data }) => {
     setScanned(true);
     const devData = passData(data)
-    console.log("In qrcode", devData)
-
+    if (!devData){
+      return
+    }
     navigation.navigate(devData.format == 'lora' ? 'RegisterDevice' : route.params.screen,{autofill:devData})
   };
   const passData = (data) =>{
@@ -52,11 +53,13 @@ export default function Scanner({ route, navigation }) {
     catch(error){
       //check if qr is in LoRa Aliacnce format
       try{
-        console.log(data)
         let devData = {
           "app_eui":data.split(':')[2],
           "dev_eui":data.split(':')[3],
           "format":'lora'
+        }
+        if (devData.app_eui == undefined || appData.dev_eui==undefined){
+          throw error("Invalid QR code")
         }
         return devData
 

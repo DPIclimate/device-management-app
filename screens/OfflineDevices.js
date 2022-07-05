@@ -41,33 +41,34 @@ function OfflineDevices({ route, navigation }) {
         changeSavedDevices(savedDev)
 
         if (savedDev == 0){
-            setError("No Devices in queue")
+            setError("No devices in queue")
         }
 
         setLoading(false)
     }
     const handleRegister = async(index) =>{
 
-        let success = false
-
-        const selectedDevice = savedDevices[index]
-
-        const isUnique = await checkUnique(selectedDevice) //Must check that device is a unique device
-        if (isUnique == null) return
-
-        if (isUnique){
-            success = await registerDevice(selectedDevice)
+        try{
+            const selectedDevice = savedDevices[index]
+            const {isUnique, error: reason} = await checkUnique(selectedDevice) // If isUnique is false a reason will be provided
+            
+            if (!isUnique){
+                throw new Error(reason)
+            }
+            
+            const {success, error} = await registerDevice(selectedDevice)
+            
+            if (!success){
+                throw new Error(error)
+            }
+            
+            Alert.alert("Success!", "Device registered successfully")
+            return true
         }
-        else{
-            let update = await AsyncAlert("Device already exists",`Device with this ID already exists in this application, would you like to add these updated details to the device?`)
-
-            if (!update)return
-
-            const updatedDevice = updateDetails(selectedDevice)
-            success = await updateDevice(updatedDevice)
+        catch(error){
+            Alert.alert("An error occurred", `${error}`)
+            console.log(error)
         }
-
-        return success
     }
 
     const handlePress = async(data, rowMap) =>{
@@ -102,7 +103,6 @@ function OfflineDevices({ route, navigation }) {
                 break;
         }
         
-        console.log("success status", success)
         if (success){
             handleDelete(data, rowMap)
         }
@@ -151,13 +151,13 @@ function OfflineDevices({ route, navigation }) {
                         </View>
                     </Card>
                 </TouchableOpacity>
-        </View>        
-    )
+            </View>        
+        )
     }
     const renderItem = (data, rowMap) => {
 
         const {item, index} = data
-        console.log(item)
+
         const Content = () =>{ //Returns the content of a card to display
 
             switch (item.type){
@@ -171,11 +171,11 @@ function OfflineDevices({ route, navigation }) {
                         )
                 case 'locationUpdate':
                     return(
-                            <>
-                                <Text style={[globalStyles.text, styles.cardText]}>Device ID: {item.end_device.ids.device_id}</Text>
-                                <Text style={[globalStyles.text, styles.cardText]}>Longitude: {item.end_device.locations.user.latitude}</Text>
-                                <Text style={[globalStyles.text, styles.cardText]}>Latitude: {item.end_device.locations.user.longitude}</Text>
-                            </>
+                        <>
+                            <Text style={[globalStyles.text, styles.cardText]}>Device ID: {item.end_device.ids.device_id}</Text>
+                            <Text style={[globalStyles.text, styles.cardText]}>Longitude: {item.end_device.locations.user.latitude}</Text>
+                            <Text style={[globalStyles.text, styles.cardText]}>Latitude: {item.end_device.locations.user.longitude}</Text>
+                        </>
                     )
                 case 'descriptionUpdate':
                     return (
@@ -188,9 +188,15 @@ function OfflineDevices({ route, navigation }) {
                 case 'move':
                     return (
                         <> 
-                            <Text style={[globalStyles.text, styles.cardText]}>Device ID: {item.ID}</Text>
+                            <Text style={[globalStyles.text, styles.cardText]}>Device ID: {item.devID}</Text>
                             <Text style={[globalStyles.text, styles.cardText]}>Move From: {item.appID}</Text>
                             <Text style={[globalStyles.text, styles.cardText]}>Move To: {item.moveTo}</Text>
+                        </>
+                    )
+                default:
+                    return(
+                        <>
+                            <Text style={[globalStyles.text, styles.cardText]}>Unknown device</Text>
                         </>
                     )
                 }
@@ -201,6 +207,8 @@ function OfflineDevices({ route, navigation }) {
             if(item.type == 'locationUpdate') return 'Location Update'
             if(item.type == 'descriptionUpdate') return 'Notes Update'
             if(item.type == 'move') return 'Move Device'
+            
+            return 'Unknown'
         }
         return(
             <View>
@@ -235,6 +243,7 @@ function OfflineDevices({ route, navigation }) {
             renderHiddenItem={renderHiddenItem}
             rightOpenValue= {-100}
             />
+
         </View>
     );
 }

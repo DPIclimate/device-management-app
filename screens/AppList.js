@@ -21,13 +21,11 @@ export default function AppList({route, navigation}) {
             if(!rawData) return
 
             const connected = await checkNetworkStatus()
-            console.log(connected)
             if (connected){
                 const appList = rawData.applications.map((app)=>({id:app.ids.application_id}))
                 setData(appList)
             }
             else{
-                console.log(rawData)
                 const appList = rawData.map((app)=>({id:app.application_id}))
                 setData(appList)
             }

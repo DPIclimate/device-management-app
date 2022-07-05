@@ -12,3 +12,4 @@ global.headers = {
     "Content-Type": "application/json"
 }
 global.BASE_URL='https://eu1.cloud.thethings.network/api/v3'
+global.ALLOWED_CHARS = new RegExp('^[a-z0-9](?:[-]?[a-z0-9]){2,}$')

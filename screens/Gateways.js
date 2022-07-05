@@ -4,11 +4,12 @@ import Card from '../shared/Card';
 import useFetchState from '../shared/useFetch.js';
 import globalStyles from '../styles';
 import moment from 'moment';
+import { SafeAreaView } from 'react-native-safe-area-context';
 
 export default function Gateways() {
 
     const {data, isLoading, error, retry} = useFetchState(`${global.BASE_URL}/gateways`)
-    // console.log(isLoading)
+
     const Last_seen = ({item}) =>{
         return(
             <View>
@@ -31,10 +32,10 @@ export default function Gateways() {
     }
 
     return (
-    <View style={globalStyles.screen}>
-        <View style={[{flex:1}, globalStyles.list]}>
+    <SafeAreaView style={globalStyles.screen}>
 
             <FlatList
+            style={globalStyles.list}
             data={data?.gateways}
             renderItem={(item) => renderItem(item)}
             keyExtractor={(item, index) => index.toString()}
@@ -42,8 +43,8 @@ export default function Gateways() {
             refreshing={isLoading}
 
             />
-        </View>
-    </View>
+        {/* </View> */}
+    </SafeAreaView>
   )
 }
 

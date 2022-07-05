@@ -1,13 +1,12 @@
 import React, { useEffect, useState } from 'react';
 import { Col, Row, Grid } from "react-native-easy-grid";
-import { Text, View, ScrollView } from 'react-native';
+import { Text, View, ScrollView, StyleSheet } from 'react-native';
 import globalStyles from '../styles';
 import {Card} from '../shared/index'
-import {useDataContext} from '../shared/DataContextManager'
 import useFetchState from '../shared/useFetch';
-import moment from 'moment';
 import LoadingComponent from '../shared/LoadingComponent';
-import checkNetworkStatus from '../shared/NetworkStatus';
+import { useGetNetStatus } from '../shared/useGetNetStatus';
+import { formatTime } from '../shared/FormatTime';
 
 const RowContent = ({data}) =>{
     return(
@@ -28,37 +27,21 @@ const RowContent = ({data}) =>{
         </Row>
     )
 }
-export const formatTime = (toFormat) =>{
-    const dateUnix = new Date(toFormat);
 
-    const dayMonth = moment(dateUnix).format('DD/MM')
-    const time = moment(dateUnix).format('hh:mm')
-    const dayMonthYear = moment(dateUnix).format('DD/MM/YYYY')
+function CommCard({devData, setLastSeen, setCircle}) {
 
-    return [dayMonth, time, dayMonthYear, dateUnix]
-    
-}
+    const {data: commRawData, isLoading: commLoading, error: commError, retry: commRetry} = useFetchState(`https://au1.cloud.thethings.network/api/v3/ns/applications/${devData?.appID}/devices/${devData?.devID}?field_mask=mac_state.recent_uplinks,pending_mac_state.recent_uplinks,session.started_at,pending_session`, {storKey:global.COMM_CACHE, type:'CommsList', devID:devData?.devID, appID:devData?.appID})
 
-function CommCard({changeLastSeen, setCircle}) {
+    const [commData, setCommData] = useState()
+    const {loading: netLoading, netStatus, error} = useGetNetStatus()
 
-    const devData = useDataContext()
-    
-    const {data: commRawData, isLoading: commLoading, error: commError, retry: commRetry} = useFetchState(`https://au1.cloud.thethings.network/api/v3/ns/applications/${devData?.appID}/devices/${devData?.ID}?field_mask=mac_state.recent_uplinks,pending_mac_state.recent_uplinks,session.started_at,pending_session`, {storKey:global.COMM_CACHE, type:'CommsList', devID:devData?.ID, appID:devData?.appID})
-
-    const [commData, changeCommData] = useState()
-    const [netStatus, setNetStatus] = useState(false)
 
     useEffect(()=>{//When comm data is returned
         async function loaded(){
 
-            const status = await checkNetworkStatus()
-            setNetStatus(status)
-            
-            // console.log('in comm effect', devData, commLoading, commError, commData)
             if (commLoading) return
-            if (commError) {return}
+            if (commError) return
 
-            console.log("here in loaded")
             const recent_uplinks = commRawData?.mac_state?.recent_uplinks
 
             const m_types = recent_uplinks?.map((data) => data.payload?.m_hdr?.m_type).reverse()
@@ -74,7 +57,7 @@ function CommCard({changeLastSeen, setCircle}) {
                 'snrs':snrs,
                 'times':times
             }
-            changeCommData(cData)
+            setCommData(cData)
             calcLastSeen(cData)
         }
         loaded()
@@ -84,20 +67,20 @@ function CommCard({changeLastSeen, setCircle}) {
     const calcLastSeen = (cData) =>{
 
         if (cData?.times != undefined){
-            const recent = new Date(cData['times'][0][3])
+            const recent = new Date(cData.times[0][3])
             const now = new Date()
             const diff = (now - recent)/1000/60
 
             if (diff < 1){
-                changeLastSeen(`<1 min ago`)
+                setLastSeen(`<1 min ago`)
             }else if (diff < 2){
-                changeLastSeen(`${Math.floor(diff)} min ago`)
+                setLastSeen(`${Math.floor(diff)} min ago`)
             }else if (diff < 60){
-                changeLastSeen(`${Math.floor(diff)} mins ago`)
+                setLastSeen(`${Math.floor(diff)} mins ago`)
             }else if (diff < 1440){
-                changeLastSeen(`${Math.floor(diff/60)} hour(s) ago`)
+                setLastSeen(`${Math.floor(diff/60)} hour(s) ago`)
             }else{
-                changeLastSeen(`${Math.floor(diff/60/24)} day(s) ago`)
+                setLastSeen(`${Math.floor(diff/60/24)} day(s) ago`)
             }
 
             if (diff/60 > 12){
@@ -113,28 +96,33 @@ function CommCard({changeLastSeen, setCircle}) {
         else {
             
             if (netStatus){
-                changeLastSeen(`Never`)
+                setLastSeen(`Never`)
             }
             else{
-                changeLastSeen('Unknown')
+                setLastSeen('Unknown')
             }
             netStatus? setCircle('red') : setCircle('red-hollow')
         }
     }
     const Content = () =>{
 
-        
         let rows = []
-        if (commData?.times == undefined) return <Row style={{justifyContent:'center'}}><Text style={{fontWeight:'bold', fontSize:15, paddingTop:20}}>No data to display</Text></Row>
+        if (!commData?.times) {
+            return (
+                <Row style={{justifyContent:'center'}}>
+                    <Text style={{fontWeight:'bold', fontSize:15, paddingTop:20}}>No data to display</Text>
+                </Row>
+            )
+        }
         
         for (let i=0;i<commData?.times?.length;i++){
-            const dateTime = commData['times'][i]
+            const dateTime = commData.times[i]
             const data = {
                 'date':dateTime[0], 
                 'time':dateTime[1],
-                'rssi':commData['rssis'][i],
-                'snr':commData['snrs'][i],
-                'm_type':commData['m_types'][i]
+                'rssi':commData.rssis[i],
+                'snr':commData.snrs[i],
+                'm_type':commData.m_types[i]
             }
             rows.push(<Row key={i}><RowContent data={data}/></Row>)
         }
@@ -143,16 +131,16 @@ function CommCard({changeLastSeen, setCircle}) {
                 <Grid>
                     <Row style={globalStyles.cardRow}>
                         <Col size={1}>
-                            <Text>Time</Text>
+                            <Text style={styles.title}>Time</Text>
                         </Col>
                         <Col size={1}>
-                            <Text>RSSI</Text>
+                            <Text style={styles.title}>RSSI</Text>
                         </Col>
                         <Col size={1}>
-                            <Text>SNR</Text>
+                            <Text style={styles.title}>SNR</Text>
                         </Col>
                         <Col size={2}>
-                            <Text>M_Type</Text>
+                            <Text style={styles.title}>M_Type</Text>
                         </Col>
                     </Row>
                     {rows}
@@ -160,7 +148,7 @@ function CommCard({changeLastSeen, setCircle}) {
             </ScrollView>
         )
     }
-    if (devData == undefined) return <View/>
+    if (!devData) return <View/>
     return(
         // Headers
         <Card>
@@ -173,5 +161,11 @@ function CommCard({changeLastSeen, setCircle}) {
     </Card>
     )
 }
-
+const styles = StyleSheet.create({
+    title:{
+        fontWeight:'bold',
+        paddingTop:10,
+        paddingBottom:10
+    }
+})
 export default CommCard;
