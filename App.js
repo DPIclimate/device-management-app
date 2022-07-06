@@ -8,16 +8,16 @@ const prefix = Linking.makeUrl('/')
 export default function App() {
 
   //Used for deep linking
-  // exp://10.221.26.87:19000/--/lookup/?appid=oai-test-devices&uid=2SBBWH&link=true
-  // dma://lookup/?appid=oai-test-devices&uid=A4RF3C&link=true
+  // exp://10.221.26.87:19000/--/device/?appid=oai-test-devices&uid=2SBBWH&link=true
+  // dma://device/?appid=oai-test-devices&uid=A4RF3C&link=true
   const [data, setData] = useState(null)
 
   const linking ={
     prefixes:[prefix],
     config:{
       screens:{
-        SettingsScreen:'settings',
-        ManageDevices:'lookup'
+        // SettingsScreen:'settings',
+        HomeScreen:'device'
       }
     }
   }

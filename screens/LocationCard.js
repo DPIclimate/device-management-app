@@ -7,6 +7,7 @@ import * as Location from 'expo-location';
 import {updateDevice, checkNetworkStatus, Card, LoadingComponent, saveDevice} from '../shared'
 import {AsyncAlert} from '../shared/AsyncAlert'
 import { Linking } from 'react-native';
+import { MaterialIcons } from '@expo/vector-icons'; 
 
 function LocationCard({devData, autoSearch}) {
     const [isEnabled, setIsEnabled] = useState(true);
@@ -156,11 +157,8 @@ function LocationCard({devData, autoSearch}) {
                         }}>
                             <Marker onCalloutPress={() => getDirections()} coordinate={{latitude: devData.location.latitude, longitude: devData.location.longitude}}>
                                 <Callout>
-                                    <View style={{flexDirection:'row'}}>
-                                        <View style={[globalStyles.blueButton, {flexDirection:'row', justifyContent:'center', alignItems:'center'}]}>
-                                            <Text  adjustsFontSizeToFit numberOfLines={1} style={globalStyles.blueButtonText}>Get Directions    </Text>
-                                            <Image source={require('../assets/navigation.png')} style={{width:15, height:15}}/>
-                                        </View>
+                                    <View style={{backgroundColor:'#128cde', padding:10, borderRadius:50}}>
+                                        <MaterialIcons name="directions-car" size={30} color="white" />
                                     </View>
                                 </Callout>    
                             </Marker>

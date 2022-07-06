@@ -24,6 +24,7 @@ const { Screen, Navigator } = createStackNavigator();
  * @returns 
  */
 function ScreenStack() {
+
   return (
     <Navigator
       initialRouteName="HomeScreen"
@@ -106,7 +107,7 @@ function ScreenNavigator({linking}) {
 
   return (
         <NavigationContainer linking={linking}>
-            {ScreenStack()}
+            {ScreenStack(linking)}
         </NavigationContainer>
     );
 }
