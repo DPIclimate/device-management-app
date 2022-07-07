@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Text, View, StyleSheet, Image, Alert } from 'react-native';
+import { Text, View, StyleSheet, Image, Alert, Linking } from 'react-native';
 import { BarCodeScanner } from 'expo-barcode-scanner';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import globalStyles from '../styles';
@@ -27,6 +27,26 @@ export default function Scanner({ route, navigation }) {
   };
   const passData = (data) =>{
   //called once qr code has been scanned
+    try{
+
+      //Dunno exactly how this work. refer here https://stackoverflow.com/questions/68805342/react-native-get-url-search-params
+      var regex = /[?&]([^=#]+)=([^&#]*)/g,
+        params = {},
+        match;
+          while (match = regex.exec(data)) {
+            params[match[1]] = match[2];
+          }
+
+      return{
+        'format':'custom',
+        'appID':params.appid,
+        'uid':params.uid
+      }
+    }
+    catch(error){
+      console.log(error, "not a url")
+    }
+
     try{
         let result = JSON.parse(data)
         let devData = {

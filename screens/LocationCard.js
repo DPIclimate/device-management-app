@@ -1,12 +1,13 @@
 import React,  {useState} from 'react';
 import { Col, Row, Grid } from "react-native-easy-grid";
-import { Text, StyleSheet, Switch, Pressable, View, Image, TouchableHighlight, Alert, ActivityIndicator } from 'react-native';
+import { Text, StyleSheet, Switch, View, Image, TouchableHighlight, Alert, ActivityIndicator, Dimensions } from 'react-native';
 import globalStyles from '../styles';
 import MapView, {Marker, PROVIDER_DEFAULT, Circle, Callout} from 'react-native-maps';
 import * as Location from 'expo-location';
 import {updateDevice, checkNetworkStatus, Card, LoadingComponent, saveDevice} from '../shared'
 import {AsyncAlert} from '../shared/AsyncAlert'
 import { Linking } from 'react-native';
+import { MaterialIcons } from '@expo/vector-icons'; 
 
 function LocationCard({devData, autoSearch}) {
     const [isEnabled, setIsEnabled] = useState(true);
@@ -140,6 +141,7 @@ function LocationCard({devData, autoSearch}) {
         if (isLoading == false){
             return(
                 <>
+                <View>
                 <Grid style={{paddingTop:10, paddingBottom:10}}>
                     {rows}
                 </Grid>
@@ -155,11 +157,8 @@ function LocationCard({devData, autoSearch}) {
                         }}>
                             <Marker onCalloutPress={() => getDirections()} coordinate={{latitude: devData.location.latitude, longitude: devData.location.longitude}}>
                                 <Callout>
-                                    <View style={{flexDirection:'row'}}>
-                                        <View style={[globalStyles.blueButton, {flexDirection:'row', justifyContent:'center', alignItems:'center'}]}>
-                                            <Text  adjustsFontSizeToFit numberOfLines={1} style={globalStyles.blueButtonText}>Get Directions    </Text>
-                                            <Image source={require('../assets/navigation.png')} style={{width:15, height:15}}/>
-                                        </View>
+                                    <View style={{backgroundColor:'#128cde', padding:10, borderRadius:50}}>
+                                        <MaterialIcons name="directions-car" size={30} color="white" />
                                     </View>
                                 </Callout>    
                             </Marker>
@@ -168,6 +167,7 @@ function LocationCard({devData, autoSearch}) {
                     <View style={{paddingTop:20, flexDirection:'row', justifyContent:'space-between', alignItems:'center'}}>
                         <Text style={{fontSize:15, fontWeight:'bold'}}>Satellite</Text>
                         <Switch onValueChange={toggleSwitch} value={isEnabled}/>
+                    </View>
                     </View>
                 </>)
         }
@@ -209,7 +209,7 @@ function LocationCard({devData, autoSearch}) {
 const styles = StyleSheet.create({
     map: {
         width: '100%',
-        height: 300,
+        height: Dimensions.get("window").height/2,
         borderRadius:15,
         marginTop:7
     },

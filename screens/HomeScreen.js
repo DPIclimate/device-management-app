@@ -17,6 +17,8 @@ import WelcomScreen from './WelcomScreen';
 import useFetchState from '../shared/useFetch.js';
 import { Overlay } from 'react-native-elements';
 import { Col, Row } from "react-native-easy-grid";
+import {useFetch} from '../shared/useFetch';
+
 
 //Images for Icons
 const appList = require('../assets/appList.png')
@@ -27,9 +29,8 @@ const manageDev = require('../assets/manage.png')
 const failedUpload = require('../assets/uploadFailedBlue.png')
 const gateway = require('../assets/gateway.png')
 
-export default function HomeScreen({navigation}) {
+export default function HomeScreen( {route, navigation}) {
 
-    
     const [welcomeVisable, setWelcVisable] = useState(false);
     const {data, isLoading, error, retry} = useFetchState(`${global.BASE_URL}/applications?field_mask=description`,{type:"ApplicationList", storKey:global.APP_CACHE})
 
@@ -50,10 +51,17 @@ export default function HomeScreen({navigation}) {
         const listener = Dimensions.addEventListener('change', determineAndSetOrientation);
     
         return () => {
-        //   Dimensions.removeEventListener('change', determineAndSetOrientation)
             listener.remove()
         }
       }, []);
+
+    useEffect(()=>{
+        //If params passed to this screen, app was entered via a deep link, therefore search for device
+
+        if (route.params?.appid && route.params?.uid){
+            handleSearch()
+        }
+    },[])
 
     useEffect(()=>{
 
@@ -64,10 +72,6 @@ export default function HomeScreen({navigation}) {
             if (error == 'User not logged in'){
                 console.log('use not logged in')
 
-                if (Platform.OS == 'android'){
-                    Alert.alert("In Beta", "As this app is still in beta testing some features such as writing to your TTN account may not work. Updates will be coming soon")
-                }
-
                 setWelcVisable(true)
             }
 
@@ -75,6 +79,37 @@ export default function HomeScreen({navigation}) {
         loaded()
 
     },[isLoading])
+
+    const handleSearch = async() =>{
+        //If device exists take to manage screen, else take to registration screen
+        
+        const data = await useFetch(`${global.BASE_URL}/applications/${route.params.appid}/devices?field_mask=attributes,locations,description,name`,{type:"DeviceList", storKey:global.APP_CACHE, appID:route.params.appid}, true)
+        
+        if ('code' in data){
+            console.log('error')
+           navigation.navigate('RegisterDevice', {autofill:{appID: route.params.appid, uid:route.params.uid}})
+           route.params=null
+           return
+        }
+
+        let device;
+        for (const dev of data.end_devices){
+            
+            if (route.params.uid != null && dev.attributes?.uid == route.params.uid){
+                device = dev
+                console.log('device found')
+            }
+        }
+        if (!device){
+            console.log('no device')
+            navigation.navigate('RegisterDevice',{autofill:{appID: route.params.appid, uid:route.params.uid}})
+            route.params=null
+            return
+        }
+        navigation.navigate('ManageDevices',{autofill:{appID: route.params.appid, uid:route.params.uid}})
+        route.params=null
+
+    }
 
     const determineAndSetOrientation = () =>{
         let width = Dimensions.get('window').width;

@@ -82,7 +82,7 @@ function DeviceCard({devData, autoSearch}) {
     rows.push(<Row key={1} style={styles.cardRow}><RowTemplate title='Application ID' item={<Text >{devData.appID}</Text>}/></Row>)
     rows.push(<Row key={4} style={styles.cardRow}><RowTemplate title='Device EUI' item={<Text>{devData.eui != null? devData.eui:'-'}</Text>}/></Row>)
     rows.push(<Row key={5} style={styles.cardRow}><RowTemplate title='Date Created' item={<Text>{devData.creationDate}</Text>}/></Row>)
-    rows.push(<Row key={6} style={styles.cardRow}><RowTemplate title='TTN link' item={<Text style={{color: 'blue'}} numberOfLines={1} ellipsizeMode='tail' onPress={() => Linking.openURL(devData.ttn_link)}>au1.cloud.thethings.network/api/v3/ns/applications/</Text>}/></Row>)
+    rows.push(<Row key={6} style={styles.cardRow}><RowTemplate title='TTN link' item={<Text style={{color: 'blue'}} numberOfLines={1} ellipsizeMode='head' onPress={() => Linking.openURL(devData.ttn_link)}>{devData.ttn_link}</Text>}/></Row>)
 
     return (
         <Card>

@@ -1,3 +1,4 @@
+from asyncio import constants
 import qrcode
 from PIL import Image
 from PIL import ImageFont
@@ -8,10 +9,10 @@ import string
 import requests
 from pyfiglet import Figlet
 import sys
-import time
 import argparse
 import os
 from dotenv import load_dotenv
+
 load_dotenv()
 
 BASE = "https://eu1.cloud.thethings.network/api/v3/applications"
@@ -20,20 +21,32 @@ headers = {
         "Authorization": os.getenv("TTN_TOKEN")
         }
 
-def generateQR(jsonData, filename):
-
+def generateQR(data):
+    """Generate the qr code
+        Params:
+            data: (string): Data to be placed in qr code
+        returns:
+            img: (any): Image of qr code
+    """
     qr = qrcode.QRCode(
             version=1,
             error_correction=qrcode.constants.ERROR_CORRECT_L,
             )
-    qr.add_data(jsonData)
+    qr.add_data(data)
     qr.make(fit=True)
 
     img = qr.make_image(fill_color="black", back_color="white")
     return img
 
-def makeImage(data, qr_code, filename):
+def makeImage(data, qr_code, filename, version):
+    """Makes image final image
 
+        Params:
+            data: (dict): Data to be written onto qr code
+            qr_code (PilImage): QR code to be pasted onto image
+            filename (string): Filename to save qr code as
+            version: (int): version code of qr code
+    """
     logo = Image.open('dpiLogo.png')	
     logo = logo.resize((1000, 300), Image.ANTIALIAS)
 
@@ -65,10 +78,15 @@ def makeImage(data, qr_code, filename):
     text = "FarmDecisionTECH™"
     draw.text(( x_pos + 120, 310 + y_offset), text, font=font, fill="#000", stroke_width=1)
 
+    draw.text((width-100,height-100), f"v{version}", font=font, fill="#000", stroke_width=1)
     img.save(f"{filename}.png")
 
 def generateUID():
-    #Generates a random UID
+    """Generates a random UID (Unique Identifier)
+
+        returns:
+            uid (string): generated uid
+    """
     uids = [i.strip('\n') for i in open('uids.txt').readlines()]
 
     genUID = ""
@@ -86,8 +104,14 @@ def generateUID():
     return genUID
 
 def verifyApp(appID):
+    """Verify an appID with TTN
 
-    # Verifies application ID with TTN
+        Params:
+            appID (string): appID to be verified
+        returns:
+            valid (bool): returns true if appID is valid
+    
+    """
     sys.stdout.write('Validating...\r')
 
     url = f"{BASE}/{appID}"
@@ -101,8 +125,14 @@ def verifyApp(appID):
     else:
         return True
 
-def getDevice(appID):
+def getDevices(appID):
+    """Get devices from a specific appID
 
+        Params:
+            appID (string): appID to get devices from
+        returns:
+            devices (list): list of devices from appID
+    """
     sys.stdout.write('Getting device information QR Codes...\r')
 
     url = f"{BASE}/{appID}/devices?field_mask=attributes"
@@ -136,29 +166,52 @@ def getDevice(appID):
     return devices
 
 
-def create(appID, dev_uid = None, dev_name = None, dev_eui = None, moveDir = None):
+def create_qr(appID, dev_uid = None, dev_name = None, dev_eui = None, moveDir = None, version=None, app_schema=None, expo=False, ip_port=None):
 
+    """Prepare data and create printable qr code
+
+        Params:
+            appID (string): appID for qr code
+            dev_uid (string): (Optional) uid for device on qr code. If left blank one will be randomly generated
+            dev_name (string): (Optional) name for device on qr code. Only available for qr code v1
+            dev_eui (string): (Optional) eui for device on qr code. Only available on qr code v1
+            moveDir (string): (Optional) Save qr codes to a specific location on machine. If left blank, qr codes are saved to current working directory
+            version (int): (Optional) Specify version of qr code. By default version is 2
+            app_schema (string): (Optional) Specify custom app schema. By default schema is 'dma://'
+            expo (bool): (Optional) Specify whether this qr code it to work for expo app. False by default
+            ip_port (list): (optional) IP and port of expo server [ip, port]
+    """
     dev_uid = generateUID() if dev_uid == None or dev_uid == "" else dev_uid
 
-    data = {
+    qr_data=None
+    text_data={ #Data to generate the text on the QR code
             "application_id":appID,
             "dev_uid":dev_uid,
-            }
+        }
+    if version ==1:
 
-    if dev_name != None and dev_name != "":
-        data['dev_name'] = dev_name
+        if dev_name != None and dev_name != "":
+            text_data['dev_name'] = dev_name
 
-    if dev_eui != None and dev_eui != "":
-        data['dev_eui'] = dev_eui
+        if dev_eui != None and dev_eui != "":
+            text_data['dev_eui'] = dev_eui
 
+        qr_data = json.dumps(text_data)
+        
+    elif version==2:
+        if expo==True: 
+            #If expo true, generate a url to work with the expo app
+            #Format exp://[IP]:[PORT]/--/device/?appid=[appID]&uid=[uid]&link=true
+            qr_data= f'exp://{ip_port[0]}:{ip_port[1]}/--/device/?appid={appID}&uid={dev_uid}&link=true'
+        else:
+            #If false generate qr code with app schema 
+            #Format [schema]://device/?appid=[appID]&uid=[uid]&link=true
+            qr_data = f'${app_schema}://device/?appid={appID}&uid={dev_uid}&link=true'
 
     directory = '.' if moveDir == None else moveDir
-
     filename = f"{directory}/QR_Code-{appID}-{dev_uid}"
-
-    jsonData = json.dumps(data)
-    qr_code = generateQR(jsonData, filename)		
-    makeImage(data, qr_code, filename)
+    qr_code = generateQR(qr_data)		
+    makeImage(text_data, qr_code, filename, version=version)
 
 def getApplications():
 
@@ -182,9 +235,15 @@ def main():
     parser.add_argument("-g", help="Go through every application on TTN", action="store_true")
     parser.add_argument("-s", help="Specify a specific UID")
     parser.add_argument("--all", help="Create a QR code for every device in application (requires -a or -g)", action="store_true")
+    parser.add_argument("-v", help="Specify which version of QR code to generate (Default v2)", default=2)
+    parser.add_argument("-expo", help="Generate QR code for expo app (requires -ip and -port", action="store_true", default=False)
+    parser.add_argument("-ip", help="Specify ip address running expo server to generate expo QR code")
+    parser.add_argument("-port", help="Specify port running expo server to generate expo QR code")
+    parser.add_argument("-schema", help="Specify schema for app, (default dma)", default='dma')
 
     args = vars(parser.parse_args())
 
+    #Validation of command line args
     if args['a'] is None and args['g'] is False:
         parser.error('Invalid use: Please specify either -a or -g')
 
@@ -193,6 +252,12 @@ def main():
 
     if args['t'] is not None and args['all'] is True:
         parser.error("Invalid use: Can only use --all or -t")
+
+    if args['v'] == 1 and args['schema'] != None:
+        parser.error("Schema use is not valid for QR code version 1")
+
+    if args['expo'] == True and (args['ip'] == None or args['port']==None):
+        parser.error("Invalid use: If using -expo, must specify IP address and Port of expo server")
 
     f = Figlet(font='slant')
     print(f.renderText('Create QR Code'))
@@ -233,12 +298,12 @@ def main():
             if not os.path.isdir(f"{path}/{app}"):
                 os.mkdir(f"{path}/{app}")
 
-                devices = getDevice(app)
+                devices = getDevices(app)
 
                 for i, device in enumerate(devices):
                     dash = '-' if i%2 ==0 else '|'
                     sys.stdout.write(f'Creating QR codes for application {app}...{dash}\r')
-                    create(app, device['uid'], moveDir=f"{path}/{app}")
+                    create_qr(app, device['uid'], moveDir=f"{path}/{app}", version=args['v'], app_schema=args['schema'], expo=args['expo'], ip_port=[args['ip'], args['port']])
                 print('')
 
     elif args['t'] != None:
@@ -256,13 +321,13 @@ def main():
             for i in range(num):
                 dash = '-' if i%2 ==0 else '|'
                 sys.stdout.write(f'Creating QR codes for application {app}...{dash}\r')
-                create(app, dev_uid=uid, moveDir=f"{path}/{app}")
+                create_qr(app, dev_uid=uid, moveDir=f"{path}/{app}", version=args['v'], app_schema=args['schema'], expo=args['expo'], ip_port=[args['ip'], args['port']])
 
             print('')
 
 
     else:
-        create(applications[0])
+        create_qr(applications[0], version=args['v'], app_schema=args['schema'], expo=args['expo'], ip_port=[args['ip'], args['port']])
 
 
     print(f"QR code(s) successfully generated")
