@@ -15,7 +15,7 @@ export default function NearbyDevicesMap({route}) {
                 loadingEnabled={true}
                 >
                     {
-                        devData.map((item)=>{
+                        devData?.map((item)=>{
                             return(
                                 <Marker key={item.ids.device_id} onCalloutPress={() => route.handlePress(item)} coordinate={{latitude: item.locations.user.latitude, longitude: item.locations.user.longitude}}>
                                     <Callout>
