@@ -2,7 +2,7 @@
   "expo": {
     "name": "Device Management App",
     "slug": "deviceManagementApp",
-    "version": "2.3.0",
+    "version": "2.3.1",
     "icon": "./assets/icon.png",
     "scheme": "dma",
     "splash": {
@@ -17,7 +17,7 @@
       "**/*"
     ],
     "ios": {
-      "supportsTablet": false,
+      "supportsTablet": true,
       "bundleIdentifier": "com.dpi.deviceManagementApp",
       "infoPlist": {
         "NSCameraUsageDescription": "Allow Device Management app to use your camera to scan QR codes?",
