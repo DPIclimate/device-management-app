@@ -13,7 +13,7 @@ const globalStyles = StyleSheet.create({
         width: '100%'
     },
     contentView:{
-        padding:10 
+        padding:10
     },
     headingView:{
         flexDirection:'row', 
