@@ -23,7 +23,6 @@ import { useGetNetStatus } from '../shared/useGetNetStatus';
 
 const ManageDevices = ({route, navigation}) => {
 
-    console.log(route.params)
     const {loading: netLoading, netStatus, error} = useGetNetStatus()
 
     const [appID, setAppID] = useState()

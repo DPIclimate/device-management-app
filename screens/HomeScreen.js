@@ -18,6 +18,7 @@ import useFetchState from '../shared/useFetch.js';
 import { Overlay } from 'react-native-elements';
 import { Col, Row } from "react-native-easy-grid";
 import {useFetch} from '../shared/useFetch';
+import AsyncStorage from '@react-native-async-storage/async-storage'
 
 
 //Images for Icons
@@ -45,23 +46,22 @@ export default function HomeScreen( {route, navigation}) {
 
     }, [navigation]);
 
-    useEffect(() => {
+    // useEffect(() => {
 
-        determineAndSetOrientation();
-        const listener = Dimensions.addEventListener('change', determineAndSetOrientation);
+    //     determineAndSetOrientation();
+    //     const listener = Dimensions.addEventListener('change', determineAndSetOrientation);
     
-        return () => {
-            listener.remove()
-        }
-      }, []);
+    //     return () => {
+    //         listener.remove()
+    //     }
+    //   }, []);
 
     useEffect(()=>{
         //If params passed to this screen, app was entered via a deep link, therefore search for device
-
         if (route.params?.appid && route.params?.uid){
             handleSearch()
         }
-    },[])
+    },[route])
 
     useEffect(()=>{
 
@@ -121,10 +121,15 @@ export default function HomeScreen( {route, navigation}) {
             setOrientation('LANDSCAPE');
           }
     }
+    const clearData = async() =>{
+        await AsyncStorage.clear()
+        console.log('storage cleared')
+    }
     const SettingsIcon = () =>{
 
         return (
-            <TouchableOpacity onPress={() => navigation.navigate('SettingsScreen')}>
+            // <TouchableOpacity onPress={() => clearData()}> 
+            <TouchableOpacity onPress={() => navigation.navigate('SettingsScreen')}> 
                 <Image source={require('../assets/settingsWhite.png')} style={{width:25, height:25, marginRight:20}}/>
             </TouchableOpacity>
         )
