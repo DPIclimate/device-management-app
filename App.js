@@ -3,20 +3,20 @@ import ScreenNavigator from './routes/ScreenNavigator';
 import * as Linking from 'expo-linking'
 
 
-const prefix = Linking.makeUrl('/')
 
 export default function App() {
+  
+  const prefix = Linking.createURL('/')
 
   //Used for deep linking
   // exp://10.221.26.87:19000/--/device/?appid=oai-test-devices&uid=2SBBWH&link=true
   // dma://device/?appid=oai-test-devices&uid=A4RF3C&link=true
+  
   const [data, setData] = useState(null)
-
   const linking ={
     prefixes:[prefix],
     config:{
       screens:{
-        // SettingsScreen:'settings',
         HomeScreen:'device'
       }
     }
@@ -25,9 +25,11 @@ export default function App() {
 
     async function getInitialURL(){
       const initialURL = await Linking.getInitialURL()
-      if (getInitialURL) setData(Linking.parse(initialURL))
+      console.log('init', initialURL)
+      if (initialURL) setData(Linking.parse(initialURL))
     }
     const listener = Linking.addEventListener('url', handleDeepLink)
+    
     if (!data){
       getInitialURL()
     }
