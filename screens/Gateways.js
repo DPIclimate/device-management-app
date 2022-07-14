@@ -1,10 +1,9 @@
-import { StyleSheet, Text, View, FlatList,TouchableOpacity, ScrollView } from 'react-native'
+import { StyleSheet, Text, View, FlatList,TouchableOpacity, SafeAreaView } from 'react-native'
 import React from 'react'
 import Card from '../shared/Card';
 import useFetchState from '../shared/useFetch.js';
 import globalStyles from '../styles';
 import moment from 'moment';
-import { SafeAreaView } from 'react-native-safe-area-context';
 
 export default function Gateways() {
 

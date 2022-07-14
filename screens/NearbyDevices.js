@@ -1,16 +1,72 @@
-import React, { useState} from 'react'
-import { useWindowDimensions } from 'react-native'
+import React, { useEffect, useState} from 'react'
+import { useWindowDimensions, Dimensions, View } from 'react-native'
 import { TabView, SceneMap, TabBar } from 'react-native-tab-view';
 import { Feather } from '@expo/vector-icons'; 
 import NearbyDevicesList from './NearbyDevicesList';
 import NearbyDevicesMap from './NearbyDevicesMap';
-import {getFromStore } from '../shared'
+import {checkNetworkStatus, getFromStore } from '../shared'
+import { useOrientation } from '../shared/useOrientation';
+import { useFetch } from '../shared/useFetch';
 
 
-export default function NearbyDevices({route, navigation}) {
+export default function NearbyDevices({pageRoute, navigation}) {
   
   const layout = useWindowDimensions();
   const [index, setIndex] = useState(0);
+  const [devData, setDevData] = useState([])
+  const [error, setError] = useState(null)
+  const orientation = useOrientation()
+
+  useEffect(() =>{
+    setData()
+  },[])
+
+  const [routes] = useState([
+    { key: 'devList', title: ''},
+    { key: 'devMap', title:  ''},
+  ]);
+
+  const renderScene = ({ route }) => {
+    switch (route.key) {
+      case 'devList':
+        return (
+            <NearbyDevicesList handlePress={handlePress} devData={devData} error={error}/>
+        )
+      case 'devMap':
+        return <NearbyDevicesMap  handlePress={handlePress} devData={devData}/>;
+      default:
+        return null;
+    }
+  };
+
+  async function setData(){
+
+    const apps = await getFromStore('/api/v3/applications')
+    console.log('apps are ', apps.applications.length)
+    //Get all devices in all applications
+    try{
+
+      const devs = (await Promise.all(apps.applications.map(async(item) => {
+          const fromStore = await getFromStore(`/api/v3/applications/${item.ids.application_id}/devices`)
+
+          //If user has not yet cached this application, try and get it from TTN
+          if (!fromStore){
+            console.log(`Nothing in storage for ${item.ids.application_id}, requesting from TTN`)
+            const req = await useFetch(`${global.BASE_URL}/applications/${item.ids.application_id}/devices`)
+            return req.end_devices
+          }
+
+          return fromStore.end_devices
+        }))).flat()
+
+        const dev_with_loc = devs.filter((item) => item?.locations)    
+        setDevData(dev_with_loc)
+
+    }catch(error){
+      setError("No data in cache, please try again later")
+      setDevData([])
+    }
+  }
 
   const handlePress = (device) =>{
 
@@ -19,7 +75,7 @@ export default function NearbyDevices({route, navigation}) {
     const ID = device.ids.device_id
     const name = device.name
     
-    let devData = {
+    const devData = {
         'appID':application_id,
         'uid':uid,
         'devID':ID,
@@ -29,43 +85,10 @@ export default function NearbyDevices({route, navigation}) {
     navigation.navigate('ManageDevices', {autofill:devData})
   }
 
-  const [routes] = useState([
-    { key: 'first', title: '', handlePress:handlePress, devData:getData() },
-    { key: 'second', title:  '', handlePress:handlePress,  devData:getData()},
-  ]);
-
-  const renderScene = SceneMap({
-    first: NearbyDevicesList,
-    second: NearbyDevicesMap,
-  });
-
-  async function getData(){
-
-    console.log('getting data')
-    const fromStore = await getFromStore({type:"ApplicationList", storKey:'applicationCache'})
-
-    if (fromStore.fromStore == null) {setErrorMsg("We have not cached any device data yet. Please come back later");return}
-
-    const applications = fromStore?.fromStore
-    let devices = applications.map((app)=>app.end_devices)
-    devices = [].concat(...devices)
-
-    let dev_with_loc = []
-    for (const i in devices){
-      const dev = devices[i]
-
-      if (dev?.locations){
-        dev_with_loc.push(dev)
-      }
-    }
-    
-    return dev_with_loc
-  }
-
   const getTabBarIcon = (props) => {
 
     const {route} = props
-      if (route.key === 'first') {
+      if (route.key === 'devList') {
        return <Feather name="list" size={28} color="white" />
 
       } else {
@@ -74,10 +97,9 @@ export default function NearbyDevices({route, navigation}) {
       }
   }
 
-
   return (
     <>
-      <TabView
+     <TabView
         navigationState={{ index, routes }}
         renderScene={renderScene}
         onIndexChange={setIndex}

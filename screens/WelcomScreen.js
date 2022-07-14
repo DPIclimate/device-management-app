@@ -24,7 +24,6 @@ const WelcomScreen = (props) => {
             global.valid_token = true
             await updateToken(token)
 
-            props.retry()
             props.visible(false)
         }
         else{

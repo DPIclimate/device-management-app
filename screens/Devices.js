@@ -1,28 +1,26 @@
 import React, { useEffect, useState } from 'react';
 import {View,
 	Text,
-	StyleSheet
+	StyleSheet,
+    SafeAreaView
 } from 'react-native'
 import globalStyles from '../styles';
 import {
 	renderItem,
     renderHiddenItem,
-    Offline,
-    getFromStore
+    Offline
 } from '../shared/index.js'
 import { SwipeListView } from 'react-native-swipe-list-view';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import useFetchState from '../shared/useFetch';
 import { useGetNetStatus } from '../shared/useGetNetStatus';
-import { SafeAreaView } from 'react-native-safe-area-context';
-
+import { getFavs } from '../shared/ManageLocStorage';
 
 function Devices({route, navigation}) {
 
     const [listData, changeData] = useState([])
-    const [noData, setNoData] = useState(false)
     const {loading:netLoading, netStatus, netError} = useGetNetStatus()
-    const {data, isLoading, error, retry} = useFetchState(`${global.BASE_URL}/applications/${route.params.application_id}/devices?field_mask=attributes,locations,description,name`, {type:'DeviceList', appID:route.params?.application_id, storKey:global.APP_CACHE})
+    const {data, isLoading, error, retry} = useFetchState(`${global.BASE_URL}/applications/${route.params.application_id}/devices?field_mask=attributes,locations,description,name`)
 
     useEffect(()=>{
 
@@ -30,27 +28,22 @@ function Devices({route, navigation}) {
 
             if (isLoading) return
             if(netLoading) return
-            setListData(data)
+            setListData()
         }
         loaded()
     },[isLoading, netLoading])
     
-    const setListData = async(data) =>{
+    const setListData = async() =>{
         if (isLoading) return
         if (error) return
 
-        const {fromStore: favs, error} = await getFromStore({type:'FavList', storKey:global.DEV_FAV})
-        try{
-            const devices = data.end_devices.map((dev) =>({id:dev['ids']['device_id'], isFav:favs.includes(dev['ids']['device_id']), name:dev['name']}))
-            changeData(devices)
-
-        }catch(error){
-            setNoData(true)
-        }
+        const favs= await getFavs(global.DEV_FAV)
+        const devices = data?.end_devices.map((dev) =>({id:dev.ids.device_id, isFav:favs.includes(dev.ids.device_id), name:dev.name}))
+        changeData(devices)
     }
 
     const handlePress = async(item) =>{
-
+        console.log(item)
         let device = null
 
         data.end_devices.forEach((dev)=>{
@@ -80,7 +73,7 @@ function Devices({route, navigation}) {
           }
 
         try{
-            let {fromStore: favs, error} = await getFromStore({type:'FavList', storKey:global.DEV_FAV})
+            let favs = await getFavs(global.DEV_FAV)
 
             if (favs.includes(data.item.id)){
                 favs.splice(favs.indexOf(data.item.id),1)
@@ -107,7 +100,7 @@ function Devices({route, navigation}) {
                 <Offline isConnected={netStatus}/>
             </View>
 
-            {noData &&<Text style={{textAlign:'center', fontWeight:'bold', paddingTop:20}}>No devices in application</Text>}
+            {(!data && !isLoading) &&<Text style={{textAlign:'center', fontWeight:'bold', paddingTop:20}}>No devices in application</Text>}
 
             <SwipeListView
                 style={[{flex:1},globalStyles.list]} 

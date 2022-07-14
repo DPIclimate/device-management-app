@@ -11,38 +11,31 @@ import {registerDevice,
 	Card,
 	LoadingComponent,
 	checkUnique,
-	updateDetails,
-    getFromStore,
-    moveDevice
+    moveDevice,
+    checkNetworkStatus
 } from '../shared'
-import { AsyncAlert } from '../shared/AsyncAlert';
 import { SwipeListView } from 'react-native-swipe-list-view';
-import { useGetNetStatus } from '../shared/useGetNetStatus';
+import { getOfflineDevs } from '../shared/ManageLocStorage';
 
 function OfflineDevices({ route, navigation }) {
 
     const [isLoading, setLoading] = useState(true)
-
     const [savedDevices, changeSavedDevices] = useState([]);
-
     const [reload, setReload] = useState(true)
-    const {loading:netLoading, netStatus, error: netError} = useGetNetStatus()
-    const [displayError, setError] = useState(null)
 
     useEffect (() =>{
-        if (netLoading)return
         getSaved()
-    },[reload, netLoading])
+    },[reload])
 
     const getSaved = async() =>{
 
-        const {fromStore: savedDev, error} = await getFromStore({storKey:global.DEV_STORE, type:'QueueDeviceList'})
+        const savedDev = await getOfflineDevs()
 
         changeSavedDevices(savedDev)
 
-        if (savedDev == 0){
-            setError("No devices in queue")
-        }
+        // if (savedDev == 0){
+        //     setError("No devices in queue")
+        // }
 
         setLoading(false)
     }
@@ -73,6 +66,7 @@ function OfflineDevices({ route, navigation }) {
 
     const handlePress = async(data, rowMap) =>{
 
+        const netStatus = await checkNetworkStatus()
         if (!netStatus) {Alert.alert("No Connection","Please connect to the internet to deploy/update this device");return}
         
         const {item, index} = data
@@ -229,20 +223,20 @@ function OfflineDevices({ route, navigation }) {
     }
     return (
         <View style={globalStyles.screen}>
-            {displayError&&
-                <Text style={{fontWeight:'bold', paddingTop:20, fontSize:15}}>{displayError}</Text>
+            {!savedDevices&&
+                <Text style={{fontWeight:'bold', paddingTop:20, fontSize:15}}>No offline devices to display</Text>
                 }
 
             <LoadingComponent loading={isLoading}/>
 
             <SwipeListView
-            style={[globalStyles.list]} 
-            data={savedDevices}
-            renderItem={renderItem}
-            keyExtractor={(item, index) => index.toString()}
-            renderHiddenItem={renderHiddenItem}
-            rightOpenValue= {-100}
-            />
+                style={[globalStyles.list]} 
+                data={savedDevices}
+                renderItem={renderItem}
+                keyExtractor={(item, index) => index.toString()}
+                renderHiddenItem={renderHiddenItem}
+                rightOpenValue= {-100}
+                />
 
         </View>
     );

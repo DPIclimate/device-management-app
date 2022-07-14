@@ -8,6 +8,7 @@ import{View,
 	Alert,
     Keyboard,
 	TouchableOpacity,
+    SafeAreaView
 	} from 'react-native'
 import globalStyles from '../styles';
 import DeviceCard from './DeviceCard';
@@ -17,13 +18,11 @@ import NotesCard from './NotesCard';
 import { LoadingComponent} from '../shared';
 import {useFetch} from '../shared/useFetch';
 import { formatTime } from '../shared/FormatTime';
-import { SafeAreaView } from 'react-native-safe-area-context';
 import {Button} from '../shared/Button'
 import { useGetNetStatus } from '../shared/useGetNetStatus';
 
 const ManageDevices = ({route, navigation}) => {
 
-    console.log(route.params)
     const {loading: netLoading, netStatus, error} = useGetNetStatus()
 
     const [appID, setAppID] = useState()
@@ -68,29 +67,30 @@ const ManageDevices = ({route, navigation}) => {
     },[autoSearch])
 
     const handleSearch = async() =>{
+
         setLoading(true)
-        const data = await useFetch(`${global.BASE_URL}/applications/${appID}/devices?field_mask=attributes,locations,description,name`,{type:"DeviceList", storKey:global.APP_CACHE, appID:appID}, netStatus)
-        
-        if ('code' in data){
-            Alert.alert("Invalid details", "Invalid details entered")
-            setLoading(false)
-            return
-        }
+        try{
+            const data = await useFetch(`${global.BASE_URL}/applications/${appID}/devices?field_mask=attributes,locations,description,name`)
 
-        let device;
-
-        for (const dev of data.end_devices){
-            
-            if (devUID != null && dev.attributes?.uid == devUID || dev.ids.device_id == devID){
-                //If uid present search based on uid, if not search on device id
-                device = dev
+            let device;    
+            for (const dev of data.end_devices){
+                
+                if (devUID != null && dev.attributes?.uid == devUID || dev.ids.device_id == devID){
+                    //If uid present search based on uid, if not search on device id
+                    device = dev
+                }
             }
+            if (!device) Alert.alert("No device found")
+    
+            const devObj = createDeviceObj(device)
+            setDevData(devObj)
+    
         }
-        if (device == undefined) Alert.alert("No device found")
 
-        const devObj = createDeviceObj(device)
-        setDevData(devObj)
-
+        catch(error){
+            console.log(error)
+            Alert.alert("Invalid details", "Invalid details entered")
+        }
         setLoading(false)
     }
 
@@ -164,7 +164,7 @@ const ManageDevices = ({route, navigation}) => {
 
     return (
         <ScrollView 
-        style={[globalStyles.scrollView, globalStyles.contentView]}
+        style={globalStyles.contentView}
         keyboardDismissMode="interactive" 
         ref={scrollViewRef}
         >

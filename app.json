@@ -2,7 +2,7 @@
   "expo": {
     "name": "Device Management App",
     "slug": "deviceManagementApp",
-    "version": "2.3.1",
+    "version": "2.2.1",
     "icon": "./assets/icon.png",
     "scheme": "dma",
     "splash": {
@@ -26,7 +26,7 @@
     },
     "android": {
       "package": "com.dpi.deviceManagementApp",
-      "versionCode": 6,
+      "versionCode": 8,
       "adaptiveIcon": {
         "foregroundImage": "./assets/icon.png",
         "backgroundColor": "#FFFFFF"
