@@ -1,5 +1,4 @@
 import React, {useLayoutEffect, useState, useEffect} from 'react'
-import '../global.js'
 import { StyleSheet,
 	 Text,
 	 View,
@@ -9,17 +8,17 @@ import { StyleSheet,
      TouchableOpacity,
     Dimensions,
     Pressable,
-    Platform,
-    Alert} from 'react-native'
+} from 'react-native'
 import Card from '../shared/Card'
 import globalStyles from '../styles'
 import WelcomScreen from './WelcomScreen';
-import useFetchState from '../shared/useFetch.js';
 import { Overlay } from 'react-native-elements';
 import { Col, Row } from "react-native-easy-grid";
 import {useFetch} from '../shared/useFetch';
 import AsyncStorage from '@react-native-async-storage/async-storage'
-
+import { useOrientation } from '../shared/useOrientation.tsx'
+import { cacheData } from '../shared/cacheData.js'
+import { cacheComm } from '../shared/cacheComm.js'
 
 //Images for Icons
 const appList = require('../assets/appList.png')
@@ -33,11 +32,8 @@ const gateway = require('../assets/gateway.png')
 export default function HomeScreen( {route, navigation}) {
 
     const [welcomeVisable, setWelcVisable] = useState(false);
-    const {data, isLoading, error, retry} = useFetchState(`${global.BASE_URL}/applications?field_mask=description`,{type:"ApplicationList", storKey:global.APP_CACHE})
+    const orientation = useOrientation()
 
-    const [orientation, setOrientation] = useState('LANDSCAPE');
-
-    
     useLayoutEffect(() => {
         //Settings icon
         navigation.setOptions({
@@ -45,16 +41,6 @@ export default function HomeScreen( {route, navigation}) {
         });
 
     }, [navigation]);
-
-    // useEffect(() => {
-
-    //     determineAndSetOrientation();
-    //     const listener = Dimensions.addEventListener('change', determineAndSetOrientation);
-    
-    //     return () => {
-    //         listener.remove()
-    //     }
-    //   }, []);
 
     useEffect(()=>{
         //If params passed to this screen, app was entered via a deep link, therefore search for device
@@ -66,60 +52,65 @@ export default function HomeScreen( {route, navigation}) {
     useEffect(()=>{
 
         async function loaded(){
+            try{
+                const authToken = await AsyncStorage.getItem(global.AUTH_TOKEN_STOR)
+                if (!global.TTN_TOKEN) throw Error("User not logged in")
 
-            if (isLoading) return
-
-            if (error == 'User not logged in'){
-                console.log('use not logged in')
-
+                global.headers.Authorization = authToken
+                global.TTN_TOKEN = authToken
+        
+            }
+            catch (error){
+                console.log('in error', error)
                 setWelcVisable(true)
             }
-
         }
         loaded()
 
-    },[isLoading])
+    },[])
+
+    useEffect(()=>{
+        async function startCache(){
+
+            await cacheData() //Cache ttn data on app load
+            cacheComm()
+        }
+        startCache()
+
+    },[welcomeVisable])
 
     const handleSearch = async() =>{
         //If device exists take to manage screen, else take to registration screen
         
-        const data = await useFetch(`${global.BASE_URL}/applications/${route.params.appid}/devices?field_mask=attributes,locations,description,name`,{type:"DeviceList", storKey:global.APP_CACHE, appID:route.params.appid}, true)
-        
-        if ('code' in data){
-            console.log('error')
-           navigation.navigate('RegisterDevice', {autofill:{appID: route.params.appid, uid:route.params.uid}})
-           route.params=null
-           return
-        }
-
-        let device;
-        for (const dev of data.end_devices){
+        try{
             
-            if (route.params.uid != null && dev.attributes?.uid == route.params.uid){
-                device = dev
-                console.log('device found')
+            const data = await useFetch(`${global.BASE_URL}/applications/${route.params.appid}/devices?field_mask=attributes,locations,description,name`)
+            
+            let device;
+            for (const dev of data.end_devices){
+                
+                if (route.params.uid != null && dev.attributes?.uid == route.params.uid){
+                    device = dev
+                    console.log('device found')
+                }
             }
+            if (!device){
+                console.log('no device')
+                navigation.navigate('RegisterDevice',{autofill:{appID: route.params.appid, uid:route.params.uid}})
+                route.params=null
+                return
+            }
+            navigation.navigate('ManageDevices',{autofill:{appID: route.params.appid, uid:route.params.uid}})
+            route.params=null
         }
-        if (!device){
-            console.log('no device')
-            navigation.navigate('RegisterDevice',{autofill:{appID: route.params.appid, uid:route.params.uid}})
+        catch(error){
+            console.log(error)
+            navigation.navigate('RegisterDevice', {autofill:{appID: route.params.appid, uid:route.params.uid}})
             route.params=null
             return
         }
-        navigation.navigate('ManageDevices',{autofill:{appID: route.params.appid, uid:route.params.uid}})
-        route.params=null
 
-    }
 
-    const determineAndSetOrientation = () =>{
-        let width = Dimensions.get('window').width;
-        let height = Dimensions.get('window').height;
-    
-        if (width < height) {
-            setOrientation('PORTRAIT');
-          } else {
-            setOrientation('LANDSCAPE');
-          }
     }
     const clearData = async() =>{
         await AsyncStorage.clear()
@@ -173,7 +164,7 @@ export default function HomeScreen( {route, navigation}) {
             </ScrollView>
         </ImageBackground>
         <Overlay isVisible={welcomeVisable} overlayStyle={{borderRadius:10, width:Dimensions.get('window').width - 50, height:Dimensions.get('window').height -100, backgroundColor:'#f3f2f3'}}>
-                <WelcomScreen retry={retry} visible={setWelcVisable} validT/>
+                <WelcomScreen visible={setWelcVisable} validT/>
         </Overlay >
         </>
         

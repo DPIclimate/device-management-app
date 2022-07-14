@@ -1,5 +1,5 @@
 import React, {useEffect, useState} from 'react';
-import { View,Text, ScrollView,StyleSheet ,TextInput, Pressable, Alert, Linking, Image} from 'react-native';
+import { View,Text, ScrollView,StyleSheet ,TextInput, Alert, Linking, Image, Switch} from 'react-native';
 import globalStyles from '../styles';
 import {Card} from '../shared';
 import {updateToken} from '../shared/ManageLocStorage'
@@ -11,7 +11,6 @@ import { Button } from '../shared/Button';
 
 function SettingsScreen(params) {
     
-    console.log(params)
     const [token, changeToken] = useState('')
     const [currentToken, changeCurrentToken] = useState()
     const [validating, setValidating] = useState(false)
@@ -93,7 +92,7 @@ function SettingsScreen(params) {
                     <Text style={[globalStyles.text,styles.text]}>{currentToken}</Text>
 
                     <Text  style={[globalStyles.subTitle, styles.subTitle]}>New TTN Bearer Token</Text>
-                    <TextInput value={token} placeholder='e.g NNSXS.ABCDEF.........' style={[styles.inputWOborder, invalidToken?globalStyles.inputInvalid:null]} onChangeText={changeToken} autoCorrect={false} autoCapitalize='none'/>
+                    <TextInput value={token} placeholder='e.g NNSXS.ABCDEF.........' style={[styles.inputWborder, invalidToken?globalStyles.inputInvalid:null]} onChangeText={changeToken} autoCorrect={false} autoCapitalize='none'/>
 
                     {!validating?
                         <Button onSubmit={handlePress} disabled={token.length == 0? true: false}>Update</Button>
@@ -102,7 +101,6 @@ function SettingsScreen(params) {
                     }
                     {invalidToken? <Text style={globalStyles.invalidText}>Invalid TTN Bearer Token</Text>:<View></View>  }
                 </Card>
-                {/* <AboutCard/> */}
                 <HelpCard/>
                 <Card>
                     <Text style={globalStyles.title}>Found a bug?</Text>
@@ -115,14 +113,6 @@ function SettingsScreen(params) {
             </View>
         </ScrollView>
     );
-}
-const AboutCard = () =>{
-    return(
-        <Card>
-            <Text style={globalStyles.title}>About</Text>
-            <Text style={[globalStyles.text, styles.text]}>{about}</Text>
-        </Card>
-    )
 }
 const HelpCard = () =>{
     return(
@@ -156,8 +146,9 @@ const styles = StyleSheet.create({
     text:{
         paddingTop:10
     },
-    inputWOborder:{
+    inputWborder:{
         borderRadius:10,
+        borderWidth:1,
         marginTop:2,
         height:40,
         width:'100%'

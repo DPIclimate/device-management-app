@@ -15,12 +15,7 @@
     "preview": {
       "distribution": "internal"
     },
-    "production": {},
-    "apk":{
-      "android":{
-        "buildType": "apk"
-      }
-    }
+    "production": {}
   },
   "submit": {
     "production": {
@@ -30,7 +25,6 @@
         "ascAppId": "1604281764"
       },
       "android": {
-        "serviceAccountKeyPath": "./88087898553-339e434bba37.json",
         "track": "internal"
       }
     }

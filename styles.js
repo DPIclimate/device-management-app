@@ -7,12 +7,15 @@ const globalStyles = StyleSheet.create({
         alignItems: 'center',
         justifyContent: 'center',
         width:'100%',
+        marginTop:15,
+        padding:10
     },
     list: {
         padding: 10,
         width: '100%'
     },
     contentView:{
+        paddingTop:20,
         padding:10
     },
     headingView:{

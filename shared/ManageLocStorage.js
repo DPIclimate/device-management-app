@@ -1,5 +1,5 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
-
+import * as Linking from 'expo-linking';
 
 //Functions to manage local storage
 const saveDevice = async(device) =>{
@@ -7,8 +7,7 @@ const saveDevice = async(device) =>{
     let currentDevices = []
     console.log('reading')
     try{
-        let fromStore = await AsyncStorage.getItem(global.DEV_STORE)
-        fromStore = JSON.parse(fromStore)
+        const fromStore = await AsyncStorage.getItem(global.DEV_STORE).then(JSON.parse)
         fromStore != null? currentDevices = [...currentDevices,
 	...fromStore] : currentDevices = []
 
@@ -36,159 +35,55 @@ const saveDevice = async(device) =>{
         }
     }
 }
-const getFromStore = async(options)=>{
 
-    console.log("retrieving from storage")
-    let fromStore = undefined
-    let error = undefined
-
+const getFromStore = async(url)=>{
+    if (!url) return
+    //Return data from storage in format as if it came from TTN API
     try{
-        fromStore = await AsyncStorage.getItem(options.storKey)
-        fromStore = JSON.parse(fromStore)
+        const path=Linking.parse(url).path
+        
+        const fromStore = await AsyncStorage.getItem(path).then(JSON.parse)
+        return fromStore
     }
     catch(error){
-        error = error
-    }
-
-    //Makes sure data is returned in a format same to api request
-    switch (options.type) {
-
-        case 'ApplicationList':
-            //Returns list of applications
-            console.log('getting application list')
-            return {fromStore, error}
-            break;
-        case 'DeviceList':
-            //Returns list of devices in a specific application
-            console.log('Getting dev list')
-            fromStore.forEach((app)=>{
-
-                if (app.application_id == options.appID){
-                    fromStore = {...app}
-                }
-            })
-            return {fromStore, error}
-        case 'FavList':
-            console.log('getting favs')
-            if (error || fromStore == null){
-                fromStore = []
-            }
-            return {fromStore,error}
-            break;
-        case 'QueueDeviceList':
-            //Devices in que
-            if (error || fromStore == null){
-                fromStore = []
-            }
-            return {fromStore, error}
-            break;
-        case 'CommsList':
-            console.log("checking comm list")
-            for (const i in fromStore){
-                const dev = fromStore[i]
-                if (dev.application_id == options.appID && dev.device_id == options.devID){
-                    fromStore = dev.commData
-                    return{fromStore, error}
-                }
-            }
-            return {fromStore, error}
-            break;
-        default:
-            console.log('in default')
-            return {fromStore, error}
-            break;
+        console.log(error)
     }
 }
-const cacheTTNdata = async(app_response) =>{ // Cache TTN data for offline use
-
-    console.log('chaching data')
-
-    let applications = []
+const getOfflineDevs = async()=>{
+    //Returns devices saved offline for online registration
 
     try{
-        const apps = app_response.map((app) => ({id:app['ids']['application_id'],
-	    description:app['description']}))
-
-        for (let app in apps){
-            const id = apps[app].id
-            
-            const url = `${global.BASE_URL}/applications/${id}/devices?field_mask=attributes,locations,description,name`
-            let response = await fetch(url,
-            {
-                method:"GET",
-                headers:global.headers
-            }).then((response) => response.json())
-
-            applications.push(
-                {
-                    'application_id':id,
-                    'description':apps[app].description,
-                    'end_devices': response['end_devices']
-                }
-            )
-        }
-        await cacheCommData(applications)
-        console.log("finished caching",applications.length, "application")
-        
-    }catch(error){
-        console.log(error)
-        console.log("Caching TTN data failed")
+        const store = await AsyncStorage.getItem(global.DEV_STORE).then(JSON.parse)
+        return store
     }
-    try{
-        await AsyncStorage.setItem(global.APP_CACHE,
-	JSON.stringify(applications))
-        console.log('TTN data saved successfully')
-
-    }catch(error){
+    catch(error){
         console.log(error)
-        console.log("Caching TTN data failed")
     }
 }
-const cacheCommData = async(applications) =>{
-    console.log('caching commdata')
+const writeToStorage = async(key, value)=>{
+    //Async method to write a key value pair to storage
+    try{
+        await AsyncStorage.setItem(key, value)
+        return true
+    }
+    catch{
+        console.log(error)
+        return false
+    }
+}
 
-    let devices = applications.map((app)=>{
-        if (app.end_devices != undefined){
-            return app.end_devices
+const getFavs = async(key) => {
+    try{
+        const result = await AsyncStorage.getItem(key).then(JSON.parse)
+        if (result){
+            return result
         }
-    })
-    devices = [].concat(...devices) //Converts 2D array to 1D array
-
-    let devComms = []
-    for (const i in devices){
-
-        const dev = devices[i]
-        if (dev?.ids ==undefined){continue}
-
-        try{
-            const url = `https://au1.cloud.thethings.network/api/v3/ns/applications/${dev.ids.application_ids.application_id}/devices/${dev.ids.device_id}?field_mask=mac_state.recent_uplinks,pending_mac_state.recent_uplinks,session.started_at,pending_session`
-
-            let response = await fetch(url,
-                {
-                    method:'GET',
-                    headers:global.headers
-                }).then((response) => response.json())
-            
-            devComms.push(
-                {
-                    'application_id':dev.ids.application_ids.application_id,
-                    'device_id':dev.ids.device_id,
-                    'commData':response
-                }
-            )
-        }catch(error){
-            console.log('comm cache failed for',dev.ids.device_id, error)
+        else{
+            return []
         }
     }
-    try{
-        // console.log(devComms)
-        await AsyncStorage.setItem(global.COMM_CACHE,
-	JSON.stringify(devComms))
-        console.log('caching comms succeeded')
-
-    }catch(error){
+    catch(error){
         console.log(error)
-        console.log("Caching comms data failed")
     }
 }
 const updateToken = async(token) =>{
@@ -207,26 +102,11 @@ const updateToken = async(token) =>{
     }
     
 }
-
-const setTTNToken = async() =>{
-    
-// Gets bearer token from memory and sets it globaly
-    try{
-        let authToken = await AsyncStorage.getItem(global.AUTH_TOKEN_STOR)
-        global.headers["Authorization"] = authToken
-        global.TTN_TOKEN = authToken
-
-        return authToken
-
-    }
-    catch (error){
-        console.log(error)
-    }
-}
 export {
 	getFromStore,
-	cacheTTNdata,
+	writeToStorage,
 	updateToken,
-	setTTNToken,
 	saveDevice,
+    getFavs,
+    getOfflineDevs
 }

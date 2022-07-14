@@ -9,13 +9,16 @@ import {
     Alert,
     TextInput,
     Pressable,
-    KeyboardAvoidingView, Switch, TouchableOpacity, Dimensions} from 'react-native';
+    KeyboardAvoidingView, 
+    Switch, 
+    TouchableOpacity, 
+    Dimensions,
+    SafeAreaView} from 'react-native';
 import devDataTemplate from '../repositories/devDataTemplate.json';
 import * as Location from 'expo-location';
 import {checkNetworkStatus, registerDevice, LoadingComponent, checkUnique, saveDevice} from '../shared'
 import { AsyncAlert } from '../shared/AsyncAlert';
 import {Button} from '../shared/Button'
-import { SafeAreaView } from 'react-native-safe-area-context';
 import { Overlay } from 'react-native-elements';
 
 
@@ -231,7 +234,7 @@ const RegisterDevice = ({ route, navigation }) => {
     }
     
     return (
-        <ScrollView style={[globalStyles.scrollView, globalStyles.contentView]}>
+        <ScrollView style={globalStyles.contentView}>
             <SafeAreaView>
                 <KeyboardAvoidingView behavior={Platform.OS === "ios" ? "position" : "height"}>
 

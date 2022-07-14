@@ -4,8 +4,9 @@ import { TabView, SceneMap, TabBar } from 'react-native-tab-view';
 import { Feather } from '@expo/vector-icons'; 
 import NearbyDevicesList from './NearbyDevicesList';
 import NearbyDevicesMap from './NearbyDevicesMap';
-import {getFromStore } from '../shared'
+import {checkNetworkStatus, getFromStore } from '../shared'
 import { useOrientation } from '../shared/useOrientation';
+import { useFetch } from '../shared/useFetch';
 
 
 export default function NearbyDevices({pageRoute, navigation}) {
@@ -13,6 +14,7 @@ export default function NearbyDevices({pageRoute, navigation}) {
   const layout = useWindowDimensions();
   const [index, setIndex] = useState(0);
   const [devData, setDevData] = useState([])
+  const [error, setError] = useState(null)
   const orientation = useOrientation()
 
   useEffect(() =>{
@@ -28,7 +30,7 @@ export default function NearbyDevices({pageRoute, navigation}) {
     switch (route.key) {
       case 'devList':
         return (
-            <NearbyDevicesList handlePress={handlePress} devData={devData}/>
+            <NearbyDevicesList handlePress={handlePress} devData={devData} error={error}/>
         )
       case 'devMap':
         return <NearbyDevicesMap  handlePress={handlePress} devData={devData}/>;
@@ -39,25 +41,31 @@ export default function NearbyDevices({pageRoute, navigation}) {
 
   async function setData(){
 
-    console.log('getting data')
-    const fromStore = await getFromStore({type:"ApplicationList", storKey:'applicationCache'})
+    const apps = await getFromStore('/api/v3/applications')
+    console.log('apps are ', apps.applications.length)
+    //Get all devices in all applications
+    try{
 
-    if (fromStore.fromStore == null) {setErrorMsg("We have not cached any device data yet. Please come back later");return}
+      const devs = (await Promise.all(apps.applications.map(async(item) => {
+          const fromStore = await getFromStore(`/api/v3/applications/${item.ids.application_id}/devices`)
 
-    const applications = fromStore?.fromStore
-    let devices = applications.map((app)=>app.end_devices)
-    devices = [].concat(...devices)
+          //If user has not yet cached this application, try and get it from TTN
+          if (!fromStore){
+            console.log(`Nothing in storage for ${item.ids.application_id}, requesting from TTN`)
+            const req = await useFetch(`${global.BASE_URL}/applications/${item.ids.application_id}/devices`)
+            return req.end_devices
+          }
 
-    let dev_with_loc = []
-    for (const i in devices){
-      const dev = devices[i]
+          return fromStore.end_devices
+        }))).flat()
 
-      if (dev?.locations){
-        dev_with_loc.push(dev)
-      }
+        const dev_with_loc = devs.filter((item) => item?.locations)    
+        setDevData(dev_with_loc)
+
+    }catch(error){
+      setError("No data in cache, please try again later")
+      setDevData([])
     }
-    
-    setDevData(dev_with_loc)
   }
 
   const handlePress = (device) =>{
@@ -67,7 +75,7 @@ export default function NearbyDevices({pageRoute, navigation}) {
     const ID = device.ids.device_id
     const name = device.name
     
-    let devData = {
+    const devData = {
         'appID':application_id,
         'uid':uid,
         'devID':ID,

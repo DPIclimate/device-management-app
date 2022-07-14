@@ -1,12 +1,10 @@
 import React, {useEffect, useRef, useState} from 'react'
 import {Text, View, TouchableOpacity, Image, StyleSheet, Dimensions } from 'react-native'
 import { FlatList } from 'react-native-gesture-handler'
-import { Card, getFromStore, LoadingComponent } from '../shared'
+import { Card, LoadingComponent } from '../shared'
 import globalStyles from '../styles';
 import MultiSlider from '@ptomasroos/react-native-multi-slider';
 import { getLocation } from '../shared/getLocation';
-import { useOrientation } from '../shared/useOrientation';
-import { SafeAreaView } from 'react-native-safe-area-context';
 
 export default function NearbyDevicesList({devData, handlePress}) {
     
@@ -41,7 +39,6 @@ export default function NearbyDevicesList({devData, handlePress}) {
       setLoading(true)
   
       if (!devData) {console.log('returned with no devs');return }
-      if (!userLocation) {console.log('returned with no location');return}
 
       const devs_dist = devData.map((dev) => {
   

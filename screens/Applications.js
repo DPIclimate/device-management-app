@@ -5,27 +5,26 @@ import {View,
 	Pressable,
 	StyleSheet,
     TextInput,
-    Image
+    Image,
+    SafeAreaView
 } from 'react-native'
 import globalStyles from '../styles';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import {
 	renderItem,
     renderHiddenItem,
-    Offline,
-    getFromStore} from '../shared'
+    Offline} from '../shared'
 import { SwipeListView } from 'react-native-swipe-list-view';
 import useFetchState from '../shared/useFetch.js';
 import { useGetNetStatus } from '../shared/useGetNetStatus';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { getFavs } from '../shared/ManageLocStorage';
 
 function Applications({navigation}) {
 
     const [listData, changeData] = useState([]);
-    const {data, isLoading, error, retry} = useFetchState(`${global.BASE_URL}/applications?field_mask=description`,{type:"ApplicationList", storKey:global.APP_CACHE})
+    const {data, isLoading, error, retry} = useFetchState(`${global.BASE_URL}/applications?field_mask=description`)
     const {loading:netLoading, netStatus, error: netError} = useGetNetStatus()
 
-    const [validToken, changeValid] = useState(true)
     const [searchText, setSearchText] = useState('')
     const [showSearch, setShow] = useState(false)
 
@@ -34,7 +33,6 @@ function Applications({navigation}) {
         async function loaded(){
 
             if (isLoading) return
-            if(netLoading) return
             setListData(data)
         }
         loaded()
@@ -44,41 +42,20 @@ function Applications({navigation}) {
         //Format data for display
         
         if (isLoading) return
-        if (error != null && error != undefined) {changeValid(false);return}
+        if (error) {return}
 
-        const {fromStore: favs, error} = await getFromStore({type:'FavList', storKey:global.APP_FAV})
+        const favs = await getFavs(global.APP_FAV)
+        if (data?.applications == undefined){return}
+        const appList =  data?.applications.map((app) => ({id:app.ids.application_id, isFav:favs?.includes(app.ids.application_id), description:app.description}))
 
-        if (netStatus){
-            if (data?.applications == undefined){return}
-            const apps = data?.applications
-            const appList = apps.map((app) => ({id:app.ids.application_id, isFav:favs.includes(app.ids.application_id), description:app.description}))
-
-            changeData(appList)
-            changeValid(true)
-        }
-        else{
-            if (data.length == 0){return}
-            let listOfIds = data.map((app) => ({id:app.application_id, isFav:favs.includes(app.application_id), description:app.description}))
-            changeData(listOfIds)
-        }
+        changeData(appList)
     }
 
-    const DataError = () =>{
-        
-        if (listData == null){
-
-            return(
-                <Text style={[globalStyles.text, {justifyContent:'center'}]}>No applications to display</Text>
-            )  
-        }
-        else{
-            return(<View/>)
-        }
-    }
     const handlePress = (item) =>{
 
         navigation.navigate('Devices',{application_id: item.id, app_description: item.description})
     }
+
     const toggleFavourite = async(data, rowMap) =>{
 
         if (rowMap[data.index]) {
@@ -86,7 +63,7 @@ function Applications({navigation}) {
           }
 
         try{
-            let {fromStore: favs, error} = await getFromStore({type:'FavList', storKey:global.APP_FAV})
+            let favs = await getFavs(global.APP_FAV)
 
             if (favs.includes(data.item.id)){
                 favs.splice(favs.indexOf(data.item.id),1)
@@ -141,16 +118,12 @@ function Applications({navigation}) {
     }
     return (
         <SafeAreaView style={globalStyles.screen}>
-            
-            {validToken?
-            <>  
-                
                 {showSearch&& 
                 <View style={{padding:10, width:'100%'}}>
                     <TextInput clearButtonMode="always" autoFocus={true} onSubmitEditing={() => setShow(false)} value={searchText} placeholder='example-app-id' style={[globalStyles.inputWborder]} onChangeText={(e) => {setSearchText(e)}} autoCorrect={false} autoCapitalize='none'/>
                 </View>
 
-            }
+                }
                 <View style={{flexDirection:'row', alignItems:'center'}}>
                     <View style={{paddingRight:50, alignSelf:'flex-end'}}>
                         <Offline isConnected={netStatus}/>
@@ -164,43 +137,30 @@ function Applications({navigation}) {
                 </View>
                 {searchText != '' && <Text>Search: {searchText}</Text>}
 
-                <DataError/>
+                {/* {(!data && !isLoading)&&
+                    <Text>No Applications to display</Text>
+                } */}
 
                 <View style={[{flex:1}, globalStyles.list]}>
-
                     <SwipeListView
-                    data={filteredData()}
-                    renderItem={(item) => renderItem(item, handlePress, 'Applications')}
-                    keyExtractor={(item, index) => index.toString()}
-                    renderHiddenItem={(data, rowMap) => renderHiddenItem(data, rowMap, toggleFavourite)}
-                    leftOpenValue={80}
-                    stopRightSwipe={1}
-                    onRefresh={()=> retry()}
-                    refreshing={isLoading}
-                    />
+                        data={filteredData()}
+                        renderItem={(item) => renderItem(item, handlePress, 'Applications')}
+                        keyExtractor={(item, index) => index.toString()}
+                        renderHiddenItem={(data, rowMap) => renderHiddenItem(data, rowMap, toggleFavourite)}
+                        leftOpenValue={80}
+                        stopRightSwipe={1}
+                        onRefresh={()=> retry()}
+                        refreshing={isLoading}
+                        />
+                        {console.log(isLoading)}
                 </View>
-            </>
-            :
-            <>
-                <View style={{position:'absolute'}}>
-
-                    <Pressable style={[globalStyles.redButton, styles.redButtonLoc]} onPress={()=> navigation.navigate('SettingsScreen')}>
-                        <Text style={{color:'white'}}>Fix Token</Text>
-                    </Pressable>
-
-                    <TouchableOpacity style={{width:300, height:50, paddingTop:10}} onPress={()=> toggleReload()}>
-                        <Text style={globalStyles.redText}>Refresh</Text>
-                    </TouchableOpacity>
-                </View>
-            </>
-            }
-            
         </SafeAreaView>
     );
 }
 const styles = StyleSheet.create({
     title:{
-        padding:10, 
+        paddingTop:10, 
+
     },
     redButtonLoc:{
         backgroundColor:'red', 
