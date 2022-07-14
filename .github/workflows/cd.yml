@@ -12,23 +12,22 @@ jobs:
           uses: actions/checkout@v2
 
         - name: Setup Node.js
-          uses: actions/setup-node@v2
+          uses: actions/setup-node@v1
           with:
-            node-version: 15.x
-
+            node-version: 14.x
 
         - name: Setup Expo
           uses: expo/expo-github-action@v6
           with:
-            eas-version: 0.55.1
             expo-version: 4.x
             token: ${{ secrets.EXPO_SECRET }}
+            expo-cache: true
 
         - name: Install dependencies
-          run: npm i
-
+          run: npm ci
+          
         - name: Build on EAS
-          run: eas build -p ios --non-interactive
+          run: npx eas-cli build -p ios --non-interactive
           
           
     deploy:
@@ -44,12 +43,12 @@ jobs:
         - name: Setup Node.js
           uses: actions/setup-node@v1
           with:
-            node-version: 15.x
+            node-version: 14.x
             
         - name: Setup Expo
           uses: expo/expo-github-action@v6
           with:
-            expo-version: latest
+            expo-version: 4.x
             token: ${{ secrets.EXPO_SECRET }}
             expo-cache: true
 
