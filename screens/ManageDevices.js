@@ -49,6 +49,7 @@ const ManageDevices = ({route, navigation}) => {
     const scrollViewRef = useRef();
 
     useEffect(()=>{
+        console.log(route)
         if (route?.params?.autofill){ 
             //Data comes from either QR code or another page
             setAppID(route?.params?.autofill.appID)

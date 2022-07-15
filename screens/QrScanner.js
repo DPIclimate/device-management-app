@@ -1,9 +1,9 @@
 import React, { useState, useEffect } from 'react';
-import { Text, View, StyleSheet, Image, Alert, Linking } from 'react-native';
+import { Text, View, StyleSheet, Image, Alert } from 'react-native';
 import { BarCodeScanner } from 'expo-barcode-scanner';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import globalStyles from '../styles';
-import { AsyncAlert } from '../shared/AsyncAlert';
+import * as Linking from 'expo-linking'
 
 export default function Scanner({ route, navigation }) {
   const [hasPermission, setHasPermission] = useState(null);
@@ -17,36 +17,29 @@ export default function Scanner({ route, navigation }) {
     })();
   }, []);
 
-  const handleBarCodeScanned = ({ type, data }) => {
+  const handleBarCodeScanned = async({ type, data }) => {
     setScanned(true);
-    const devData = passData(data)
+    const devData = await passData(data)
     if (!devData){
       return
     }
     navigation.navigate(devData.format == 'lora' ? 'RegisterDevice' : route.params.screen,{autofill:devData})
+    await new Promise(resolve => setTimeout(resolve, 3000));
+    setScanned(false)
   };
-  const passData = (data) =>{
+  const passData = async(data) =>{
   //called once qr code has been scanned
-    try{
-
-      //Dunno exactly how this work. refer here https://stackoverflow.com/questions/68805342/react-native-get-url-search-params
-      var regex = /[?&]([^=#]+)=([^&#]*)/g,
-        params = {},
-        match;
-          while (match = regex.exec(data)) {
-            params[match[1]] = match[2];
-          }
+    console.log(data)
+    const canOpen = await Linking.canOpenURL(data)// If can open url then QR code is v2
+    if (canOpen){
+      const url = await Linking.parse(data)
 
       return{
         'format':'custom',
-        'appID':params.appid,
-        'uid':params.uid
+        'appID':url.queryParams.appid,
+        'uid':url.queryParams.uid
       }
     }
-    catch(error){
-      console.log(error, "not a url")
-    }
-
     try{
         let result = JSON.parse(data)
         let devData = {
@@ -55,7 +48,6 @@ export default function Scanner({ route, navigation }) {
         
         //Try and retrieve information from qr code
         for (let key in result){
-
           switch (key) {
               case 'application_id':
                 devData['appID'] = result[key]
@@ -78,7 +70,7 @@ export default function Scanner({ route, navigation }) {
           "dev_eui":data.split(':')[3],
           "format":'lora'
         }
-        if (devData.app_eui == undefined || appData.dev_eui==undefined){
+        if (devData.app_eui == undefined || devData.dev_eui==undefined){
           throw error("Invalid QR code")
         }
         return devData
