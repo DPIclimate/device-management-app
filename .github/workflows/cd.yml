@@ -30,7 +30,7 @@ jobs:
           run: GOOGLE_MAPS_API_KEY=${{secrets.GOOGLE_MAPS_API_KEY}}
         
         - name: Create google service key
-          run: echo ${{GOOGLE_PLAY_KEY}} | base64 -d > ./google-api-key.json
+          run: echo ${{secrets.GOOGLE_PLAY_KEY}} | base64 -d > ./google-api-key.json
 
 #         - name: Build on EAS
 #           run: npx eas-cli build -p android --non-interactive
