@@ -28,8 +28,7 @@
         "ascAppId": "1604281764"
       },
       "android": {
-        "track": "production",
-        "serviceAccountKeyPath":"./google-api-key.json"
+        "track": "production"
       }
     }
   }
