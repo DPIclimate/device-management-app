@@ -119,8 +119,8 @@ export default function HomeScreen( {route, navigation}) {
     const SettingsIcon = () =>{
 
         return (
-            // <TouchableOpacity onPress={() => clearData()}> 
-            <TouchableOpacity onPress={() => navigation.navigate('SettingsScreen')}> 
+            <TouchableOpacity onPress={() => clearData()}> 
+            {/* <TouchableOpacity onPress={() => navigation.navigate('SettingsScreen')}>  */}
                 <Image source={require('../assets/settingsWhite.png')} style={{width:25, height:25, marginRight:20}}/>
             </TouchableOpacity>
         )

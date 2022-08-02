@@ -42,7 +42,6 @@ export default function Gateways() {
             refreshing={isLoading}
 
             />
-        {/* </View> */}
     </SafeAreaView>
   )
 }

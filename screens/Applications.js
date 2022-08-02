@@ -6,7 +6,8 @@ import {View,
 	StyleSheet,
     TextInput,
     Image,
-    SafeAreaView
+    SafeAreaView,
+    Alert
 } from 'react-native'
 import globalStyles from '../styles';
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -18,6 +19,7 @@ import { SwipeListView } from 'react-native-swipe-list-view';
 import useFetchState from '../shared/useFetch.js';
 import { useGetNetStatus } from '../shared/useGetNetStatus';
 import { getFavs } from '../shared/ManageLocStorage';
+import {getLocation} from '../shared/getLocation'
 
 function Applications({navigation}) {
 
@@ -27,6 +29,9 @@ function Applications({navigation}) {
 
     const [searchText, setSearchText] = useState('')
     const [showSearch, setShow] = useState(false)
+
+    const {loading: locLoading, location: userLocation, error: locError} = getLocation()//Get user location
+
 
     useEffect(()=>{
 

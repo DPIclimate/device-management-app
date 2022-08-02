@@ -5,6 +5,7 @@ import MapView, {Marker, PROVIDER_DEFAULT, Callout} from 'react-native-maps';
 export default function NearbyDevicesMap({devData, handlePress}) {
 
     return(
+
             <MapView style={styles.map}
                 mapType={'satellite'}
                 provider={PROVIDER_DEFAULT}
@@ -33,8 +34,18 @@ export default function NearbyDevicesMap({devData, handlePress}) {
 }
 
 const styles = StyleSheet.create({
+    page: {
+      flex: 1,
+      justifyContent: 'center',
+      alignItems: 'center',
+      backgroundColor: '#F5FCFF'
+    },
+    container: {
+      height: 300,
+      width: 300,
+      backgroundColor: 'tomato'
+    },
     map: {
-        width: '100%',
-        height: '100%',
+      flex: 1
     }
 })

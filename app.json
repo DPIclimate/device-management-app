@@ -30,10 +30,15 @@
       "adaptiveIcon": {
         "foregroundImage": "./assets/icon.png",
         "backgroundColor": "#FFFFFF"
-      }
+      },
+      "config": {
+        "googleMaps":{
+          "apiKey": ""
+          }
+        }
     },
     "web": {
       "favicon": "./assets/favicon.png"
-    }
+    }  
   }
 }

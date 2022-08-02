@@ -8,6 +8,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage'
 SplashScreen.preventAutoHideAsync();
 
 export default function App() {
+  
   //Used for deep linking
   // exp://10.221.26.87:19000/--/device/?appid=oai-test-devices&uid=2SBBWH&link=true
   // dma://device/?appid=oai-test-devices&uid=A4RF3C&link=true

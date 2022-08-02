@@ -1,10 +1,10 @@
 import React, { useEffect, useState} from 'react'
-import { useWindowDimensions, Dimensions, View } from 'react-native'
+import { useWindowDimensions, Dimensions, View, Platform } from 'react-native'
 import { TabView, SceneMap, TabBar } from 'react-native-tab-view';
 import { Feather } from '@expo/vector-icons'; 
 import NearbyDevicesList from './NearbyDevicesList';
 import NearbyDevicesMap from './NearbyDevicesMap';
-import {checkNetworkStatus, getFromStore } from '../shared'
+import { getFromStore } from '../shared'
 import { useOrientation } from '../shared/useOrientation';
 import { useFetch } from '../shared/useFetch';
 
@@ -105,6 +105,7 @@ export default function NearbyDevices({pageRoute, navigation}) {
         onIndexChange={setIndex}
         initialLayout={{ width: layout.width }}
         tabBarPosition={'bottom'}
+        swipeEnabled={Platform.OS == "android"? false: true}
         renderTabBar={props =>
           <TabBar
           {...props}
