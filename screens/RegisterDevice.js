@@ -174,7 +174,10 @@ const RegisterDevice = ({ route, navigation }) => {
             } 
 
             //Add device details to object
-            devObject.end_device.ids.dev_eui = devEUI
+            devObject.end_device.join_server_address=`${global.COMM_SERVER}.cloud.thethings.network`
+            devObject.end_device.network_server_address=`${global.COMM_SERVER}.cloud.thethings.network`
+            devObject.end_device.application_server_address=`${global.COMM_SERVER}.cloud.thethings.network`
+            devObject.end_device.ids.dev_eui = devEUI.replaceAll('-','')
             devObject.end_device.ids.device_id = devID
             devObject.end_device.ids.application_ids.application_id = appID
             devObject.end_device.attributes.uid = devUID.toUpperCase()
