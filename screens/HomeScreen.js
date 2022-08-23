@@ -47,6 +47,7 @@ export default function HomeScreen( {route, navigation}) {
         if (route.params?.appid && route.params?.uid){
             handleSearch()
         }
+        
     },[route])
 
     useEffect(()=>{
@@ -72,8 +73,14 @@ export default function HomeScreen( {route, navigation}) {
     useEffect(()=>{
         async function startCache(){
 
-            await cacheData() //Cache ttn data on app load
-            cacheComm()
+            try{
+
+                await cacheData() //Cache ttn data on app load
+                await cacheComm()
+            }
+            catch(error){
+                console.log(`Caching error - ${error}`)
+            }
         }
         startCache()
 
@@ -109,18 +116,12 @@ export default function HomeScreen( {route, navigation}) {
             route.params=null
             return
         }
-
-
     }
-    const clearData = async() =>{
-        await AsyncStorage.clear()
-        console.log('storage cleared')
-    }
+
     const SettingsIcon = () =>{
 
         return (
-            <TouchableOpacity onPress={() => clearData()}> 
-            {/* <TouchableOpacity onPress={() => navigation.navigate('SettingsScreen')}>  */}
+            <TouchableOpacity onPress={() => navigation.navigate('SettingsScreen')}> 
                 <Image source={require('../assets/settingsWhite.png')} style={{width:25, height:25, marginRight:20}}/>
             </TouchableOpacity>
         )

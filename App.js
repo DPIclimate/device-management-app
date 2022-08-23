@@ -73,11 +73,33 @@ export default function App() {
   }
 
   const loadUserSettings = async()=>{
-      
-    const authToken = await AsyncStorage.getItem(global.AUTH_TOKEN_STOR)
-    global.headers.Authorization = authToken
-    global.TTN_TOKEN = authToken
-  
+    
+    try{
+      const authToken = await AsyncStorage.getItem(global.AUTH_TOKEN_STOR)
+      global.headers.Authorization = authToken
+      global.TTN_TOKEN = authToken
+    }
+    catch(error){
+      console.log(error)
+    }
+    
+    try{
+      const server=await AsyncStorage.getItem(global.SERVER_STOR)
+      global.TTN_SERVER=server
+      global.BASE_URL=`https://${server}.cloud.thethings.network/api/v3`
+    }
+    catch(error){
+      console.log(error)
+    }
+
+    try{
+      const server=await AsyncStorage.getItem(global.COMM_SERVER_STOR)
+      global.COMM_SERVER=server
+      global.COMM_URL=`https://${server}.cloud.thethings.network/api/v3/ns`
+    }
+    catch(error){
+      console.log(error)
+    }
   }
 
   if (!appIsReady) {

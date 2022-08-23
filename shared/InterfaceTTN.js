@@ -36,6 +36,7 @@ const registerDevice = async(device) =>{
         
         if ('code' in resp){
             //If key code exists then an error occured
+            console.log(resp)
             throw new Error(resp.details[0].message_format)
         }
         return {
@@ -184,36 +185,6 @@ const checkUnique = async(data) =>{ //Checks that a particular device is unique
         error:null
     }
 }
-// const updateDetails = (data) =>{
-
-//     console.log('updating details')
-//     data = data.end_device
-//     let body = {
-//         "end_device":{
-//             "ids":{
-//                 "device_id":data.ids.device_id,
-//                 "application_ids":{
-//                     "application_id":data.ids.application_ids.application_id
-//                 }
-//             },
-//             "attributes":{
-//                 "uid":data.attributes.uid.toUpperCase()
-//             }
-//         },
-//         "field_mask": {
-//           "paths": [
-//             "attributes"
-//           ]
-//         }
-//     }
-
-//     if (data.locations != undefined){
-        
-//         body.end_device.locations = data.locations
-//         body.field_mask.paths.push('locations')
-//     }
-//     return body
-// }
 const validateToken = async(token) =>{
 
     if (token != undefined){
@@ -221,24 +192,29 @@ const validateToken = async(token) =>{
         token = `Bearer ${token}`
     }
 
-    headers = token == undefined? global.headers : {"Authorization":token}
+    try{
+        const req = await fetch(`${global.BASE_URL}/applications`, {
+            method:"GET",
+            headers:{
+                "Authorization":token
+            }
+        })
+        req_json=await req.json()
 
-    let req = await fetch(`https://eu1.cloud.thethings.network/api/v3/applications`, {
-        method:"GET",
-        headers:headers
-    }).then((response) => response.json())
-    
-    if (req == undefined || 'code' in req){
-        console.log("TTN Token is invalid")
-        return false
+        if (req.status != 200 || 'code' in req_json){
+            throw Error("TTN token invalid")
+        }
+        else{
+            console.log("TTN Token is valid")
+
+            global.headers["Authorization"] = token
+            global.TTN_TOKEN = token
+            return true
+        }
     }
-    else{
-        console.log("TTN Token is valid")
-
-        global.headers["Authorization"] = token
-        global.TTN_TOKEN = token
-
-        return true
+    catch(error){
+        console.log(error)
+        return false
     }
 }
 const getApplications = async() => {//Request applications from ttn
@@ -285,7 +261,7 @@ const deleteDevice = async(device) =>{
     }
     
 }  
-const moveDevice = async(device, moveTo) =>{
+const moveDevice = async(device, moveTo) =>{ //Not currently in use
 
     //Get current device object
     const app = await useFetch(`${global.BASE_URL}/applications/${device.appID}/devices?field_mask=attributes,locations,description`, {type:'DeviceList', appID:device.appID, storKey:global.APP_CACHE}, true)
@@ -331,7 +307,6 @@ export {
     updateDevice,
     validateToken,
     checkUnique,
-    // updateDetails,
     getApplications,
     moveDevice
 }

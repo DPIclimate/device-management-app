@@ -102,11 +102,33 @@ const updateToken = async(token) =>{
     }
     
 }
+
+const updateServer = async(server)=>{
+
+    try{
+        await AsyncStorage.setItem(global.SERVER_STOR, server)
+    }
+    catch(error){
+        console.log(error)
+    }
+}
+
+const updateCommServer = async(server)=>{
+    try{
+        await AsyncStorage.setItem(global.COMM_SERVER_STOR, server)
+    }
+    catch(error){
+        console.log(error)
+    }
+}
+
 export {
 	getFromStore,
 	writeToStorage,
 	updateToken,
 	saveDevice,
     getFavs,
-    getOfflineDevs
+    getOfflineDevs,
+    updateServer,
+    updateCommServer
 }

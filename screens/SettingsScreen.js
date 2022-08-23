@@ -1,8 +1,8 @@
 import React, {useEffect, useState} from 'react';
-import { View,Text, ScrollView,StyleSheet ,TextInput, Alert, Linking, Image, Switch} from 'react-native';
+import { View,Text, ScrollView,StyleSheet ,TextInput, Alert, Linking, Image, TouchableOpacity} from 'react-native';
 import globalStyles from '../styles';
 import {Card} from '../shared';
-import {updateToken} from '../shared/ManageLocStorage'
+import {updateCommServer, updateServer, updateToken} from '../shared/ManageLocStorage'
 import { LoadingComponent } from '../shared';
 import { validateToken } from '../shared';
 import version from '../app.json'
@@ -19,6 +19,7 @@ function SettingsScreen(params) {
     useEffect(() =>{
         getCurrentToken()
     },[])
+
 
     const getCurrentToken = () =>{
         
@@ -101,6 +102,8 @@ function SettingsScreen(params) {
                     }
                     {invalidToken? <Text style={globalStyles.invalidText}>Invalid TTN Bearer Token</Text>:<View></View>  }
                 </Card>
+
+                <TTN_SERVER/>
                 <HelpCard/>
                 <Card>
                     <Text style={globalStyles.title}>Found a bug?</Text>
@@ -137,11 +140,69 @@ const DPI_TAG = () =>{
         </View>
     )
 }
+const TTN_SERVER = ()=>{
+    const [server, setServer] = useState(global.TTN_SERVER)
+    const [commServer, setCommServer] = useState(global.COMM_SERVER)
+
+    const servers ={
+        EU_1:'eu1',
+        AU_1:'au1',
+        NAM_1:'nam1'
+    }
+    const onServerChange = (serv)=>{
+        global.TTN_SERVER=serv
+        global.BASE_URL=`https://${serv}.cloud.thethings.network/api/v3`
+        updateServer(serv)
+        setServer(serv)
+    }
+
+    const onCommServerChange=(serv)=>{
+        global.COMM_SERVER=serv
+        global.COMM_URL=`https://${serv}.cloud.thethings.network/api/v3/ns`
+        updateCommServer(serv)
+        setCommServer(serv)
+    }
+    return (
+        <Card>
+            <Text style={globalStyles.title}>TTN Server</Text>
+
+            <Text style={styles.subTitle}>Applications/Devices</Text>
+            <View style={{flexDirection:'row', alignItems:'center', justifyContent:'center'}}>
+                <TouchableOpacity style={[styles.serverButton, {backgroundColor: server == servers.EU_1 ? '#c2c2c2': '#f2f2f2'}]} onPress={() => onServerChange(servers.EU_1)}>
+                    <Text style={styles.buttonText}>EU</Text>
+                </TouchableOpacity>
+                    
+                <TouchableOpacity style={[styles.serverButton, {backgroundColor: server == servers.AU_1 ? '#c2c2c2': '#f2f2f2'}]} onPress={() => onServerChange(servers.AU_1)}>
+                    <Text style={styles.buttonText}>AU</Text>
+                </TouchableOpacity>
+
+                <TouchableOpacity style={[styles.serverButton, {backgroundColor: server == servers.NAM_1 ? '#c2c2c2': '#f2f2f2'}]} onPress={() => onServerChange(servers.NAM_1)}>
+                    <Text style={styles.buttonText}>NAM</Text>
+                </TouchableOpacity>
+            </View>
+            <Text style={styles.subTitle}>Device communications</Text>
+            <View style={{flexDirection:'row', alignItems:'center', justifyContent:'center'}}>
+                <TouchableOpacity style={[styles.serverButton, {backgroundColor: commServer == servers.EU_1 ? '#c2c2c2': '#f2f2f2'}]} onPress={() => onCommServerChange(servers.EU_1)}>
+                    <Text style={styles.buttonText}>EU</Text>
+                </TouchableOpacity>
+                    
+                <TouchableOpacity style={[styles.serverButton, {backgroundColor: commServer== servers.AU_1 ? '#c2c2c2': '#f2f2f2'}]} onPress={() => onCommServerChange(servers.AU_1)}>
+                    <Text style={styles.buttonText}>AU</Text>
+                </TouchableOpacity>
+
+                <TouchableOpacity style={[styles.serverButton, {backgroundColor: commServer== servers.NAM_1 ? '#c2c2c2': '#f2f2f2'}]} onPress={() => onCommServerChange(servers.NAM_1)}>
+                    <Text style={styles.buttonText}>NAM</Text>
+                </TouchableOpacity>
+            </View>
+        </Card>
+    )
+}
 
 const styles = StyleSheet.create({
 
     subTitle:{
         paddingTop:20,
+        fontWeight:'bold'
     },
     text:{
         paddingTop:10
@@ -151,8 +212,23 @@ const styles = StyleSheet.create({
         borderWidth:1,
         marginTop:2,
         height:40,
+        padding:5,
         width:'100%'
+    },
+    serverButton:{
+        padding:10,
+        flex:1,
+        borderColor:'#dadada',
+        borderWidth:1,
+        alignItems:'center',
+        margin:5,
+        borderRadius:5
+    },
+    buttonText:{
+        width:'100%',
+        height:20,
+        textAlign:'center'
     }
 })
 export default SettingsScreen;
-export {HelpCard, DPI_TAG}
+export {HelpCard, DPI_TAG, TTN_SERVER}

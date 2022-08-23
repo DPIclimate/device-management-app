@@ -3,7 +3,7 @@ import { View, Text, StyleSheet, TextInput, ScrollView, TouchableOpacity } from 
 import { validateToken } from '../shared';
 import { updateToken } from '../shared/ManageLocStorage';
 import globalStyles from '../styles';
-import { HelpCard, DPI_TAG } from './SettingsScreen';
+import { HelpCard, DPI_TAG, TTN_SERVER } from './SettingsScreen';
 import { LoadingComponent } from '../shared';
 import { Button } from '../shared/Button';
 
@@ -51,6 +51,9 @@ const WelcomScreen = (props) => {
             {invalidToken?
             <Text style={globalStyles.invalidText}>Invalid TTN Bearer Token</Text>:<View/> }
 
+            <View style={{width:'100%', paddingTop:10}}>
+                <TTN_SERVER/>
+            </View>
             <View style={{paddingTop:10}}>
                 <HelpCard/>
             </View>

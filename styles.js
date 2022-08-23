@@ -58,6 +58,10 @@ const globalStyles = StyleSheet.create({
         marginTop:2,
         height:40,
         width:'100%'
+    },
+    invalidText:{
+        color:'red',
+        paddingTop:10
     }
   });
   

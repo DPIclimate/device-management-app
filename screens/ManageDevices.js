@@ -111,7 +111,7 @@ const ManageDevices = ({route, navigation}) => {
         const location = device.locations?.user
         const notes = device.description
         const created = `${dates[2]} ${dates[1]}` 
-        const ttn_link = `https://au1.cloud.thethings.network/console/applications/${applicationID}/devices/${devID}`
+        const ttn_link = `https://${global.COMM_SERVER}.cloud.thethings.network/console/applications/${applicationID}/devices/${devID}`
 
         const data = {
             "appID":applicationID,

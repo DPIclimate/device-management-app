@@ -29,7 +29,7 @@ const RowContent = ({data}) =>{
 
 function CommCard({devData, setLastSeen, setCircle}) {
 
-    const {data: commRawData, isLoading: commLoading, error: commError, retry: commRetry} = useFetchState(`https://au1.cloud.thethings.network/api/v3/ns/applications/${devData?.appID}/devices/${devData?.devID}?field_mask=mac_state.recent_uplinks,pending_mac_state.recent_uplinks,session.started_at,pending_session`, {storKey:global.COMM_CACHE, type:'CommsList', devID:devData?.devID, appID:devData?.appID})
+    const {data: commRawData, isLoading: commLoading, error: commError, retry: commRetry} = useFetchState(`${global.COMM_URL}/applications/${devData?.appID}/devices/${devData?.devID}?field_mask=mac_state.recent_uplinks,pending_mac_state.recent_uplinks,session.started_at,pending_session`)
 
     const [commData, setCommData] = useState()
     const {loading: netLoading, netStatus, error} = useGetNetStatus()
