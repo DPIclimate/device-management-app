@@ -1,5 +1,7 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import * as Linking from 'expo-linking';
+import { Region } from 'react-native-maps';
+import { Store_Tokens } from '../types/CustomTypes';
 
 //Functions to manage local storage
 const saveDevice = async(device) =>{
@@ -66,15 +68,20 @@ const writeToStorage = async(key, value)=>{
         await AsyncStorage.setItem(key, value)
         return true
     }
-    catch{
+    catch(error){
         console.log(error)
         return false
     }
 }
 
-const getFavs = async(key) => {
+export const getFavs = async(key:string):Promise<JSON[]> => {
+    /*
+        Get users' favourites under specified key
+
+    */
+   
     try{
-        const result = await AsyncStorage.getItem(key).then(JSON.parse)
+        const result:JSON[] = await AsyncStorage.getItem(key).then(JSON.parse)
         if (result){
             return result
         }
@@ -86,49 +93,57 @@ const getFavs = async(key) => {
         console.log(error)
     }
 }
-const updateToken = async(token) =>{
+export const write_token_to_storage = async(token:string):Promise<void> =>{
     
-    let tmpToken = token.replace('Bearer ','') //Does not matter whether user includes the word Bearer or not
-    let bToken = `Bearer ${tmpToken}`
+    /*
+        Write users ttn token to storage
+
+    */
+
+    const tmpToken = token.replace('Bearer ','') //Does not matter whether user includes the word Bearer or not
+    const bToken = `Bearer ${tmpToken}`
 
     try{
         await AsyncStorage.setItem(global.AUTH_TOKEN_STOR, bToken)
-        global.headers["Authorization"] = bToken
-        global.TTN_TOKEN = bToken
 
     }
     catch(error){
-        console.log(error)
+        console.log("Error in writing token to storage", error)
     }
     
 }
 
-const updateServer = async(server)=>{
-
+export const write_app_server_to_storage = async(server:string):Promise<void>=>{
+    /*
+        Write a server selection to phone storage
+    */
     try{
-        await AsyncStorage.setItem(global.SERVER_STOR, server)
+        await AsyncStorage.setItem(Store_Tokens.APPLICATION_SERVER, server)
     }
     catch(error){
-        console.log(error)
+        console.log("Error in writing app server to storage", error)
     }
 }
+export const write_comm_server_to_storage = async(server:string):Promise<void>=>{
+    /*
+        Write a server selection to phone storage
+    */
 
-const updateCommServer = async(server)=>{
     try{
-        await AsyncStorage.setItem(global.COMM_SERVER_STOR, server)
+        await AsyncStorage.setItem(Store_Tokens.COMMUNICATION_SERVER, server)
     }
     catch(error){
-        console.log(error)
+        console.log("Error in writing comm server to storage error")
     }
 }
 
 export {
 	getFromStore,
 	writeToStorage,
-	updateToken,
+	// updateToken,
 	saveDevice,
-    getFavs,
+    // getFavs,
     getOfflineDevs,
-    updateServer,
-    updateCommServer
+    // updateServer,
+    // updateCommServer
 }

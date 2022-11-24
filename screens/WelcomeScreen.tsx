@@ -1,34 +1,42 @@
-import React, { useState } from 'react';
+import React, { useContext, useState } from 'react';
 import { View, Text, StyleSheet, TextInput, ScrollView, TouchableOpacity } from 'react-native';
 import { validateToken } from '../shared';
-import { updateToken } from '../shared/ManageLocStorage';
+import { updateToken, write_token_to_storage } from '../shared/functions/ManageLocStorage';
 import globalStyles from '../styles';
 import { HelpCard, DPI_TAG, TTN_SERVER } from './SettingsScreen';
 import { LoadingComponent } from '../shared';
 import { Button } from '../shared/Button';
+import { GlobalContext } from '../shared/context/GlobalContext';
+import { Reducer_Actions } from '../shared/types/CustomTypes';
+import { TTN_Server_Card } from '../shared/components/TTN_Server_Card';
 
-const WelcomScreen = (props) => {
+export const WelcomeScreen = (props):JSX.Element => {
 
+    const [state, dispatch]=useContext(GlobalContext)
+    
     const [token, changeToken] = useState('')
     const [invalidToken, setInvalid] = useState(false)
     const [validating, setValidating] = useState(false)
 
     const handlePress = async() =>{
-        console.log('pressed')
         setValidating(true)
 
-        const validToken = await validateToken(token)
+        const verify_url=`${state.application_server}/api/v3/applications`
+        const token_valid = await validateToken(token, verify_url)
 
-        if (validToken){
+        if (token_valid){
             console.log('token is valid')
-            global.valid_token = true
-            await updateToken(token)
+
+            dispatch({type:Reducer_Actions.SET_AUTH_TOKEN, payload:token})
+            dispatch({type:Reducer_Actions.SET_TOKEN_VALID, payload:true})
+            write_token_to_storage(token)
 
             props.visible(false)
         }
         else{
             setInvalid(true)
             setValidating(false)
+            dispatch({type:Reducer_Actions.SET_TOKEN_VALID, payload:false})
         }
     }
 
@@ -38,7 +46,7 @@ const WelcomScreen = (props) => {
         <View style={[globalStyles.screen, {padding:5}]}>
             <Text style={[globalStyles.title, styles.title]}>Welcome! </Text>
             
-            <Text style={[globalStyles.text,styles.text]}>To get started please enter your TTN Bearer Token in the space below</Text>
+            <Text style={styles.text}>To get started please enter your TTN Bearer Token in the space below</Text>
 
             <TextInput value={token} placeholder='e.g NNSXS.ABCDEF.........' style={[globalStyles.inputWborder, invalidToken?globalStyles.inputInvalid:null]} onChangeText={changeToken} autoCorrect={false} autoCapitalize='none'/>
 
@@ -52,7 +60,7 @@ const WelcomScreen = (props) => {
             <Text style={globalStyles.invalidText}>Invalid TTN Bearer Token</Text>:<View/> }
 
             <View style={{width:'100%', paddingTop:10}}>
-                <TTN_SERVER/>
+                <TTN_Server_Card/>
             </View>
             <View style={{paddingTop:10}}>
                 <HelpCard/>
@@ -93,4 +101,3 @@ const styles = StyleSheet.create({
         fontSize:15
     }
 })
-export default WelcomScreen;

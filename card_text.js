@@ -1,6 +1,4 @@
 //Text to appear on cards in settings and welcome screens
-
-export const about = `Lorem ipsum dolor sit amet, consectetur adipiscing elit. Suspendisse eget volutpat tortor. Aenean placerat urna in eros mollis auctor. Donec finibus auctor mauris, vitae tincidunt lorem pulvinar ut. Nam iaculis, massa id rutrum efficitur, lacus enim porttitor nisi, vitae tincidunt libero orci a odio. In felis mauris, porta id quam eget, porttitor pulvinar erat. Nam ac tincidunt felis, id varius elit. Fusce non gravida sem. Cras finibus lorem ut tortor sollicitudin pretium. Vivamus pulvinar enim quis scelerisque accumsan. z`
 export const what_is_bearer = `A bearer token is an an alphanumeric string that is issued by a server for the purpose of authentication.`
 export const why_bearer = `You need a bearer token so that the app can authenticate with The Things Network (TTN) Application Program Interface (API). If a bearer token is not provided then it is not possible to retrieve, store and edit information about applications and devices on your TTN instance. This token is stored locally on your phone and is not sent anywhere other then to TTN for the purpose of authentication.`
 export const how_to_part1 = `On TTN go to `

@@ -1,13 +1,16 @@
 import React from 'react';
-import {View, Text, TouchableOpacity, Image} from 'react-native'
-import Card from './Card';
-import globalStyles from '../styles';
+import {View, Text, TouchableOpacity, Image, ListRenderItemInfo} from 'react-native'
+import Card from '../Card';
+import globalStyles from '../../styles';
+import { Application, Device } from '../types/CustomTypes';
+import { RowMap } from 'react-native-swipe-list-view';
 
 
-const renderItem = ({ item }, handlePress, screen) => {
+export const renderItem = ({ item }:ListRenderItemInfo<Application|Device>, handlePress:(item:Application)=>void, screen:string):JSX.Element => {
 
     const id = item.id
     const name = item?.name
+
     return(
         <View>
             <Card>
@@ -15,14 +18,14 @@ const renderItem = ({ item }, handlePress, screen) => {
                     <Text numberOfLines={1} ellipsizeMode='tail' style={[globalStyles.text, {flex:1}]}>{id}</Text>
                     {screen !='Applications'&&<Text style={{fontStyle:'italic', fontSize:12, flex:1}} numberOfLines={1} ellipsizeMode='tail'>     {name}</Text>}
 
-                    {item.isFav? <Image source={require('../assets/favBlue.png')} style={{height:20, width:20, marginRight:20}}/>:<View style={{height:20, width:20, marginRight:20}}/>}
-                    <Image source={screen == "Applications" ? require('../assets/arrow.png') : require('../assets/arrowBlue.png')} style={{height:20, width:20}}/>
+                    {item.isFav? <Image source={require('../../assets/favBlue.png')} style={{height:20, width:20, marginRight:20}}/>:<View style={{height:20, width:20, marginRight:20}}/>}
+                    <Image source={screen == "Applications" ? require('../../assets/arrow.png') : require('../../assets/arrowBlue.png')} style={{height:20, width:20}}/>
                 </TouchableOpacity>
             </Card>
         </View>
     )
 };
-const renderHiddenItem = (data, rowMap, toggleFavorite)=>{
+export const renderHiddenItem = (data:ListRenderItemInfo<Application>, rowMap:RowMap<Application>, toggleFavorite:(data: any, rowMap: any) => Promise<void>):JSX.Element=>{
 
     let id = data.item.id
     const isFavourite = data.item.isFav
@@ -42,7 +45,3 @@ const renderHiddenItem = (data, rowMap, toggleFavorite)=>{
     )
 
 }
-
-
-export default renderItem;
-export {renderHiddenItem};

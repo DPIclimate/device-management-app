@@ -3,12 +3,8 @@ import {StyleSheet } from 'react-native';
 
 const globalStyles = StyleSheet.create({
     screen: {
-        flex: 1,
-        alignItems: 'center',
-        justifyContent: 'center',
-        width:'100%',
-        marginTop:15,
-        padding:10
+        margin:5,
+        height:'100%'
     },
     list: {
         padding: 10,

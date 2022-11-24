@@ -1,6 +1,6 @@
 import checkNetworkStatus from './NetworkStatus';
 import * as Linking from 'expo-linking';
-import { writeToStorage } from './ManageLocStorage';
+import { writeToStorage } from './functions/ManageLocStorage';
 import { checkError } from './checkError';
 
 export const cacheData = async() =>{

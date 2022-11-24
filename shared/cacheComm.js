@@ -1,8 +1,8 @@
 import checkNetworkStatus from './NetworkStatus';
 import * as Linking from 'expo-linking';
-import { writeToStorage } from './ManageLocStorage';
+import { writeToStorage } from './functions/ManageLocStorage';
 import { checkError } from './checkError';
-import { getFromStore } from './ManageLocStorage';
+import { getFromStore } from './functions/ManageLocStorage';
 
 export const cacheComm = async() =>{
     console.log('caching commdata')
@@ -10,7 +10,7 @@ export const cacheComm = async() =>{
     const netStatus = await checkNetworkStatus()
 	if (netStatus){
 
-        if (global.TTN_TOKEN == null) {console.log("User not logged in");return}
+        if (global.TTN_TOKEN == null) {return}
 
         const apps = await getFromStore('/api/v3/applications')        
         if (apps==null) throw Error("No applications in storage")

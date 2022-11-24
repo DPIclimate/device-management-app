@@ -15,7 +15,7 @@ import {registerDevice,
     checkNetworkStatus
 } from '../shared'
 import { SwipeListView } from 'react-native-swipe-list-view';
-import { getOfflineDevs } from '../shared/ManageLocStorage';
+import { getOfflineDevs } from '../shared/functions/ManageLocStorage';
 
 function OfflineDevices({ route, navigation }) {
 

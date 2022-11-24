@@ -1,5 +1,5 @@
 export {default as Card} from './Card'
-export {default as renderItem, renderHiddenItem} from './ListComponents'
+export {default as renderItem, renderHiddenItem} from './components/ListComponents'
 export {default as LoadingComponent} from './LoadingComponent'
 export {default as checkNetworkStatus} from './NetworkStatus'
 
@@ -11,7 +11,7 @@ export {
     checkUnique, 
     updateDetails,
     moveDevice
-} from './InterfaceTTN'
+} from './functions/InterfaceTTN'
 
 export {
     saveDevice, 
@@ -19,6 +19,6 @@ export {
     updateToken, 
     setTTNToken, 
     getFromStore
-} from './ManageLocStorage'
+} from './functions/ManageLocStorage'
 
 export {Offline} from './OfflineIcon'

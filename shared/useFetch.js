@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { checkError } from './checkError';
-import { cacheTTNdata, getFromStore, setTTNToken } from './ManageLocStorage';
+import { cacheTTNdata, getFromStore, setTTNToken } from './functions/ManageLocStorage';
 import checkNetworkStatus from './NetworkStatus';
 
 
@@ -31,19 +31,28 @@ export const useFetchState = (url, options) =>{
 				
 				try{
 					console.log("Requesting url", url)
-					if (global.TTN_TOKEN == null) throw Error("User not logged in")
-					if (url.includes(undefined)) throw Error(`Invalid URL`)
+					if (global.TTN_TOKEN == null) throw Error(403)
+					if (url.includes(undefined)) throw Error(404)
 
 					console.log('fetching')
+					console.log(global.headers)
 					const resp = await fetch(url, { 
 						signal: abortCont.signal,
 						headers:global.headers,
 						method:'GET'
-					}).then((res)=>res.json())
-
-					setData(resp);
-					setIsLoading(false);
-					setError(null);
+					})
+					
+					if (resp.status != 200){
+						setError(resp.status)
+						setIsLoading(false)
+						setData(null)
+					}
+					else{	
+						const content = await resp.json()
+						setData(content);
+						setIsLoading(false);
+						setError(null);
+					}
 
 				}catch(err){
 					if (err.name === 'AbortError') {
@@ -61,7 +70,7 @@ export const useFetchState = (url, options) =>{
 				const fromStore = await getFromStore(url)
 				setData(fromStore)
 				setIsLoading(false)
-				setError(error)
+				setError(null)
 			}
 		}
 		fetchData()

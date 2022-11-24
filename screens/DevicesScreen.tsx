@@ -14,9 +14,9 @@ import { SwipeListView } from 'react-native-swipe-list-view';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import useFetchState from '../shared/useFetch';
 import { useGetNetStatus } from '../shared/useGetNetStatus';
-import { getFavs } from '../shared/ManageLocStorage';
+import { getFavs } from '../shared/functions/ManageLocStorage';
 
-function Devices({route, navigation}) {
+export default function DevicesScreen({route, navigation}) {
 
     const [listData, changeData] = useState([])
     const {loading:netLoading, netStatus, netError} = useGetNetStatus()
@@ -102,6 +102,16 @@ function Devices({route, navigation}) {
 
             {(!data && !isLoading) &&<Text style={{textAlign:'center', fontWeight:'bold', paddingTop:20}}>No devices in application</Text>}
 
+            <View style={{paddingTop:10}}>
+                {(!data && !isLoading && !error)&&
+                    <Text>No Devices to display</Text>
+                }
+
+                {error&&
+                    <Text>Error: {error}</Text>
+                }
+            </View>
+
             <SwipeListView
                 style={[{flex:1},globalStyles.list]} 
                 data={listData.sort((a,b)=>{
@@ -133,4 +143,3 @@ const styles = StyleSheet.create({
         paddingBottom:10
     }
 })
-export default Devices;

@@ -2,7 +2,7 @@ import React, {useEffect, useState} from 'react';
 import { View,Text, ScrollView,StyleSheet ,TextInput, Alert, Linking, Image, TouchableOpacity} from 'react-native';
 import globalStyles from '../styles';
 import {Card} from '../shared';
-import {updateCommServer, updateServer, updateToken} from '../shared/ManageLocStorage'
+import {updateCommServer, updateServer, updateToken} from '../shared/functions/ManageLocStorage'
 import { LoadingComponent } from '../shared';
 import { validateToken } from '../shared';
 import version from '../app.json'
@@ -67,7 +67,7 @@ function SettingsScreen(params) {
 
         const validToken = await validateToken(token)
         console.log('in settings', validToken)
-
+        
         if (validToken){
             setInvalid(false)
             await updateToken(token)
@@ -141,6 +141,7 @@ const DPI_TAG = () =>{
     )
 }
 const TTN_SERVER = ()=>{
+    
     const [server, setServer] = useState(global.TTN_SERVER)
     const [commServer, setCommServer] = useState(global.COMM_SERVER)
 

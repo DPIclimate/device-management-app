@@ -6,8 +6,8 @@ import {
   RegisterDevice,
   QrScanner,
   ManageDevices,
-  Applications,
-  Devices,
+  ApplicationsScreen,
+  DevicesScreen,
   OfflineDevices
 } from '../screens/index';
 import SettingsScreen from '../screens/SettingsScreen';
@@ -19,10 +19,6 @@ import Gateways from '../screens/Gateways';
 
 const { Screen, Navigator } = createStackNavigator();
 
-/**
- * Navigation stack for all main screens
- * @returns 
- */
 function ScreenStack() {
 
   return (
@@ -46,13 +42,13 @@ function ScreenStack() {
         options={{title: "Home"}}
         />
       <Screen
-        name='Applications'
-        component={Applications}
+        name='ApplicationsScreen'
+        component={ApplicationsScreen}
         options={{ title: 'Browse Applications'}}
       />
       <Screen
-        name='Devices'
-        component={Devices}
+        name='DevicesScreen'
+        component={DevicesScreen}
         options={{ title: 'Browse Devices'}}
       />
       <Screen
