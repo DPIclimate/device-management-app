@@ -1,6 +1,6 @@
 import { StyleSheet, Text, View, FlatList,TouchableOpacity, SafeAreaView } from 'react-native'
 import React from 'react'
-import Card from '../shared/Card';
+import Card from '../shared/components/Card';
 import useFetchState from '../shared/useFetch.js';
 import globalStyles from '../styles';
 import moment from 'moment';

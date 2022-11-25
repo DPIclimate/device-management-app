@@ -1,21 +1,18 @@
 import React from 'react';
 import { NavigationContainer } from '@react-navigation/native';
 import { createStackNavigator } from '@react-navigation/stack';
-
-import {
-  RegisterDevice,
-  QrScanner,
-  ManageDevices,
-  ApplicationsScreen,
-  DevicesScreen,
-  OfflineDevices
-} from '../screens/index';
 import SettingsScreen from '../screens/SettingsScreen';
 import MoveDevice from '../screens/MoveDevice';
 import AppList from '../screens/AppList';
 import NearbyDevices from '../screens/NearbyDevices'
 import HomeScreen from '../screens/HomeScreen';
 import Gateways from '../screens/Gateways';
+import ApplicationsScreen from '../screens/ApplicationsScreen';
+import DevicesScreen from '../screens/DevicesScreen';
+import RegisterDevice from '../screens/RegisterDevice';
+import QrScanner from '../screens/QrScanner';
+import { ManageDeviceScreen } from '../screens/ManageDeviceScreen';
+import OfflineDevices from '../screens/OfflineDevices';
 
 const { Screen, Navigator } = createStackNavigator();
 
@@ -62,9 +59,9 @@ function ScreenStack() {
         options={{title:"Scan QR code"}}
       />
       <Screen
-        name="ManageDevices"
-        component={ManageDevices}
-        options={{title:"Lookup Devices"}}
+        name="ManageDeviceScreen"
+        component={ManageDeviceScreen}
+        options={{title:"Manage Device"}}
         />
       <Screen
       name="OfflineDevices"
@@ -103,7 +100,7 @@ function ScreenNavigator({linking}) {
 
   return (
         <NavigationContainer linking={linking}>
-            {ScreenStack(linking)}
+            {ScreenStack()}
         </NavigationContainer>
     );
 }

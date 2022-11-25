@@ -55,6 +55,14 @@ const globalStyles = StyleSheet.create({
         height:40,
         width:'100%'
     },
+    inputInvalid:{
+        borderColor:'red',
+        borderWidth:1,
+        borderRadius:10,
+        marginTop:2,
+        height:40,
+        width:'100%'
+    },
     invalidText:{
         color:'red',
         paddingTop:10

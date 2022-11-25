@@ -74,7 +74,7 @@ const writeToStorage = async(key, value)=>{
     }
 }
 
-export const getFavs = async(key:string):Promise<JSON[]> => {
+export const getFavs = async(key:string):Promise<any> => {
     /*
         Get users' favourites under specified key
 

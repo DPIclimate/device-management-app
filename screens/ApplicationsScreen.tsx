@@ -1,58 +1,60 @@
 import React, { useContext, useEffect, useState } from "react";
-import { View, Text, StyleSheet, TextInput, Image, Dimensions, Pressable } from "react-native";
+import { View, Text, StyleSheet, TextInput, Image, Dimensions, Pressable, ListRenderItemInfo } from "react-native";
 import globalStyles from "../styles";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import { renderItem, renderHiddenItem, Offline } from "../shared";
-import { SwipeListView } from "react-native-swipe-list-view";
+import { renderHiddenItem, renderItem } from "../shared/components/ListComponents";
+import { RowMap, SwipeListView } from "react-native-swipe-list-view";
 import { getFavs } from "../shared/functions/ManageLocStorage";
 import { useFetch } from "../shared/hooks/useFetch";
 import { GlobalContext } from "../shared/context/GlobalContext";
 import { Application, Store_Tokens } from "../shared/types/CustomTypes";
 import { APIApplicationsResponse } from "../shared/types/APIResponseTypes";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { ConvertToApp } from "../shared/functions/ConvertFromAPI";
+import SearchIcon from "../shared/components/SearchIcon";
+import SearchBox from "../shared/components/SearchBox";
 
 export default function ApplicationsScreen({ navigation }): JSX.Element {
     const [state, dispatch] = useContext(GlobalContext);
     const insets = useSafeAreaInsets();
 
     const [listData, changeData] = useState<Application[]>([]);
-    const { data, isLoading, error, retry } = useFetch(`${state.application_server}/api/v3/applications?field=description`);
+    const { response, isLoading, error, retry } = useFetch(`${state.application_server}/api/v3/applications?field=description`);
 
     const [searchText, setSearchText] = useState<string>("");
     const [showSearch, setShow] = useState<boolean>(false);
 
     useEffect(() => {
         async function loaded() {
+
             if (isLoading) return;
-            setListData(data);
+            if (error) return;
+
+            //Data is guaranteed to be of type APIApplicationsResponse as we requested /applications in the useFetch hook
+            const data = response as APIApplicationsResponse[]
+            setListData(data)
         }
         loaded();
     }, [isLoading]);
 
-    const setListData = async (data: APIApplicationsResponse): Promise<void> => {
+    const setListData = async (data: APIApplicationsResponse[]): Promise<void> => {
         /*
             Formats data to display in flatlist
 
         */
 
-        if (isLoading) return;
-        if (error) return;
-
-        const favs: JSON[] = await getFavs(Store_Tokens.FAV_APPLICATIONS);
-        //TODO - fix ts error
-        const appList: Application[] = data.applications.map((app) => ({
-            id: app.ids.application_id,
-            isFav: favs.includes(app.ids.application_id),
-        }));
-
+        const favs = await getFavs(Store_Tokens.FAV_APPLICATIONS);
+        const appList: Application[] = data.map((app) => (ConvertToApp(app, favs.includes(app.ids.application_id))));
         changeData(appList);
     };
 
     const handlePress = (item: Application): void => {
-        navigation.navigate("DevicesScreen", { application_id: item.id, app_description: item.description });
+        navigation.navigate("DevicesScreen", { application:item });
     };
-    const x =handlePress
-    const toggleFavourite = async (data, rowMap): Promise<void> => {
+
+    const toggleFavourite = async (data, rowMap:RowMap<Application>): Promise<void> => {
+
+        //TODO - enforce types on data variable
         if (rowMap[data.index]) {
             rowMap[data.index].closeRow();
         }
@@ -112,7 +114,7 @@ export default function ApplicationsScreen({ navigation }): JSX.Element {
             {searchText != "" && !showSearch && <Text style={styles.searchText}>Search: {searchText}</Text>}
 
             <View style={{ paddingTop: 10 }}>
-                {!data && !isLoading && !error && <Text>No Applications to display</Text>}
+                {!response && !isLoading && !error && <Text>No Applications to display</Text>}
 
                 {error && <Text>An error occurred: {error}</Text>}
             </View>
@@ -127,34 +129,15 @@ export default function ApplicationsScreen({ navigation }): JSX.Element {
                 onRefresh={() => retry()}
                 refreshing={isLoading}
                 contentContainerStyle={{
-                    paddingBottom: insets.bottom,
+                    paddingBottom: insets.bottom+10,
                     paddingRight: insets.right,
                     paddingLeft: insets.left,
                     paddingTop: showSearch ? 70 : 0,
                 }}
             />
-
-            <View style={styles.searchBoxView}>
-                {showSearch && (
-                    <TextInput
-                        clearButtonMode="always"
-                        autoFocus={true}
-                        onSubmitEditing={() => setShow(false)}
-                        value={searchText}
-                        placeholder="example-app-id"
-                        style={styles.searchBox}
-                        onChangeText={(e) => {
-                            setSearchText(e);
-                        }}
-                        autoCorrect={false}
-                        autoCapitalize="none"
-                    />
-                )}
-            </View>
-
-            <Pressable style={[styles.searchIcon, { bottom: insets.bottom, right: 10 }]} onPress={(prev) => setShow((prev) => !prev)}>
-                <Image source={require("../assets/search.png")} style={{ width: 40, height: 40 }} />
-            </Pressable>
+            <SearchBox showSearch={showSearch} searchText={searchText} setSearchText={setSearchText} setShow={setShow}/>
+            
+            <SearchIcon setShow={setShow}/>
         </View>
     );
 }
@@ -166,31 +149,6 @@ const styles = StyleSheet.create({
     offlineIcon: {
         justifyContent: "flex-end",
         alignItems: "flex-end",
-    },
-    searchIcon: {
-        position: "absolute",
-        backgroundColor: "white",
-        borderRadius: 50,
-        padding: 10,
-        borderWidth: 1,
-        borderColor: "#e6e6e6",
-    },
-    searchBoxView: {
-        position: "absolute",
-        top: 10,
-        width: "100%",
-        backgroundColor: "white",
-        borderRadius: 50,
-    },
-    searchBox: {
-        backgroundColor: "white",
-        margin: 10,
-        borderRadius: 25,
-        borderWidth: 1,
-        height: 50,
-        width: "95%",
-        padding: 10,
-        alignSelf: "center",
     },
     searchText: {
         fontWeight: "bold",

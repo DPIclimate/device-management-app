@@ -1,7 +1,7 @@
 import React, { useContext, useState } from 'react';
 import { View, Text, StyleSheet, TextInput, ScrollView, TouchableOpacity } from 'react-native';
 import { validateToken } from '../shared';
-import { updateToken, write_token_to_storage } from '../shared/functions/ManageLocStorage';
+import { write_token_to_storage } from '../shared/functions/ManageLocStorage';
 import globalStyles from '../styles';
 import { HelpCard, DPI_TAG, TTN_SERVER } from './SettingsScreen';
 import { LoadingComponent } from '../shared';
@@ -27,7 +27,10 @@ export const WelcomeScreen = (props):JSX.Element => {
         if (token_valid){
             console.log('token is valid')
 
-            dispatch({type:Reducer_Actions.SET_AUTH_TOKEN, payload:token})
+            const tmpToken = token.replace('Bearer ','') //Does not matter whether user includes the word Bearer or not
+            const bToken = `Bearer ${tmpToken}`
+
+            dispatch({type:Reducer_Actions.SET_AUTH_TOKEN, payload:bToken})
             dispatch({type:Reducer_Actions.SET_TOKEN_VALID, payload:true})
             write_token_to_storage(token)
 

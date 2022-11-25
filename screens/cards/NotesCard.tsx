@@ -1,5 +1,5 @@
 import React, { useState,useEffect } from 'react';
-import {Card, saveDevice} from '../shared';
+import {Card, saveDevice} from '../../shared';
 import { Grid } from "react-native-easy-grid";
 import { Text,
 	View,
@@ -12,11 +12,11 @@ import { Text,
 	Alert,
 	InputAccessoryView, 
     Platform} from 'react-native';
-import globalStyles from '../styles';
-import {updateDevice, checkNetworkStatus} from '../shared/index'
-import { AsyncAlert } from '../shared/AsyncAlert';
+import globalStyles from '../../styles';
+import {updateDevice, checkNetworkStatus} from '../../shared/index'
+import { AsyncAlert } from '../../shared/AsyncAlert';
 
-function NotesCard({devData}) {
+function NotesCard({device}) {
     
     const [text, setText] = useState()
     const [isLoading, setLoadingState] = useState(false)
@@ -24,17 +24,17 @@ function NotesCard({devData}) {
     const inputAccessoryViewID = 'uniqueID';
     
     useEffect(() =>{
-        setText(devData?.notes)
-    },[devData])
+        setText(device?.notes)
+    },[device])
 
     const saveDetails = async() =>{
         setLoadingState(true)
         const body = {
             "end_device":{
                 'ids':{
-                    'device_id': devData.devID,
+                    'device_id': device.devID,
                     "application_ids": {
-                        "application_id": devData.appID
+                        "application_id": device.appID
                     }
                 },
                 'description':text
@@ -69,7 +69,7 @@ function NotesCard({devData}) {
 
     }
 
-    if (devData == undefined) return <View/>
+    if (device == undefined) return <View/>
     return (
         <>
         

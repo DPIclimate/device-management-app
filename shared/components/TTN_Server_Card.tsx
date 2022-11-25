@@ -1,7 +1,7 @@
 import React, { useContext, useState } from "react";
 import { TouchableOpacity, Text, View, StyleSheet } from "react-native";
 import globalStyles from "../../styles";
-import Card from "../Card";
+import Card from "./Card";
 import { GlobalContext } from "../context/GlobalContext";
 import { write_app_server_to_storage, write_comm_server_to_storage } from "../functions/ManageLocStorage";
 import { Reducer_Actions, Regions } from "../types/CustomTypes";

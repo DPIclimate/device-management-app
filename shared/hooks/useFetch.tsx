@@ -1,12 +1,12 @@
 import { useContext, useEffect, useState } from 'react';
 import { GlobalContext } from '../context/GlobalContext';
 import { getFromStore } from '../functions/ManageLocStorage';
-import { APIApplicationsResponse, APIDeviceResponse, APIGatewayResponse } from '../types/APIResponseTypes';
+import { APIApplicationsResponse, APICommResponse, APIDeviceResponse, APIGatewayResponse } from '../types/APIResponseTypes';
 // import { checkError } from './checkError';
 import { useNetworkStatus } from './useNetworkStatus';
 
-export interface useFetchResponse{
-	data:APIApplicationsResponse|APIDeviceResponse|APIGatewayResponse,
+interface useFetchResponse{
+	response:APIApplicationsResponse[]|APIDeviceResponse[]|APIGatewayResponse[]|APICommResponse, //Response type depends on endpoint given to useFetch 
 	isLoading:boolean,
 	error:number|null,
 	retry():void
@@ -14,7 +14,7 @@ export interface useFetchResponse{
 
 export const useFetch = (url:string):useFetchResponse =>{
 
-	const [data, setData] = useState<APIApplicationsResponse|APIDeviceResponse|APIGatewayResponse>(null);
+	const [response, set_response] = useState<APIApplicationsResponse[]|APIDeviceResponse[]|APIGatewayResponse[]|APICommResponse>(null);
 	const [isLoading, setIsLoading] = useState<boolean>(true);
 	const [error, setError] = useState<number|null>(null);
 	const [refetch, setRefetch] = useState<boolean>(false)
@@ -25,7 +25,7 @@ export const useFetch = (url:string):useFetchResponse =>{
 		console.log('retry hit')
 		setIsLoading(true)
 		setError(null)
-		setData(null)
+		set_response(null)
 		setRefetch(prev => !prev)
 	}
 
@@ -48,16 +48,34 @@ export const useFetch = (url:string):useFetchResponse =>{
 						method:'GET'
 					})
 
-					if (resp.status != 200){
-						setError(resp.status)
-						setIsLoading(false)
-						setData(null)
-					}
-					else{	
-						const content:JSON = await resp.json()
-						setData(content);
+					if (resp.status === 200){
+						const json:any = await resp.json();
+						if (!json) return
+
+						//Find out what type of response it is
+						if ('end_devices' in json){
+							//Is a device response
+							const data:APIDeviceResponse[]=json.end_devices
+							set_response(data)
+						}
+						else if ('applications' in json){
+							//Is an applications response
+							const data:APIApplicationsResponse[]=json.applications
+							set_response(data)
+						}
+						else if ('mac_state' in json){
+							//Is a device communications response
+							const data:APICommResponse=json
+							set_response(data)
+						}
+
 						setIsLoading(false);
 						setError(null);
+						
+					}else{
+						setError(resp.status)
+						setIsLoading(false)
+						set_response(null)
 					}
 
 				}catch(err){
@@ -75,7 +93,7 @@ export const useFetch = (url:string):useFetchResponse =>{
 				console.log('in offline')
 				//Get offline version of request
 				const fromStore = await getFromStore(url)
-				setData(fromStore)
+				set_response(fromStore)
 				setIsLoading(false)
 				setError(null)
 			}
@@ -84,7 +102,7 @@ export const useFetch = (url:string):useFetchResponse =>{
 		return () => abortCont.abort();
 	}, [url, refetch]);
 
-	return { data, isLoading, error, retry };
+	return { response, isLoading, error, retry };
 };
 // export const useFetch = async(url) =>{
 // 	//Use fetch method that returns the results depending on internet connection

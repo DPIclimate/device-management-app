@@ -1,145 +1,193 @@
-import React, { useEffect, useState } from 'react';
-import {View,
-	Text,
-	StyleSheet,
-    SafeAreaView
-} from 'react-native'
-import globalStyles from '../styles';
-import {
-	renderItem,
-    renderHiddenItem,
-    Offline
-} from '../shared/index.js'
-import { SwipeListView } from 'react-native-swipe-list-view';
-import AsyncStorage from '@react-native-async-storage/async-storage';
-import useFetchState from '../shared/useFetch';
-import { useGetNetStatus } from '../shared/useGetNetStatus';
-import { getFavs } from '../shared/functions/ManageLocStorage';
+import React, { useContext, useEffect, useLayoutEffect, useState } from "react";
+import { View, Text, StyleSheet } from "react-native";
+import globalStyles from "../styles";
+import { RowMap, SwipeListView } from "react-native-swipe-list-view";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import { getFavs } from "../shared/functions/ManageLocStorage";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { GlobalContext } from "../shared/context/GlobalContext";
+import { Device, Store_Tokens } from "../shared/types/CustomTypes";
+import { useFetch } from "../shared/hooks/useFetch";
+import { renderHiddenItem, renderItem } from "../shared/components/ListComponents";
+import { APIDeviceResponse } from "../shared/types/APIResponseTypes";
+import { ConvertToDevice } from "../shared/functions/ConvertFromAPI";
+import SearchBox from "../shared/components/SearchBox";
+import SearchIcon from "../shared/components/SearchIcon";
 
-export default function DevicesScreen({route, navigation}) {
+export default function DevicesScreen({ route, navigation }) {
 
-    const [listData, changeData] = useState([])
-    const {loading:netLoading, netStatus, netError} = useGetNetStatus()
-    const {data, isLoading, error, retry} = useFetchState(`${global.BASE_URL}/applications/${route.params.application_id}/devices?field_mask=attributes,locations,description,name`)
+    const [state, dispatch] = useContext(GlobalContext);
+    const insets = useSafeAreaInsets();
 
-    useEffect(()=>{
+    const [listData, changeData] = useState<Device[]>([]);
+    const { response, isLoading, error, retry } = useFetch(
+        `${state.application_server}/api/v3/applications/${route.params.application.id}/devices?field_mask=attributes,locations,description,name,attributes`
+    );
 
-        async function loaded(){
-
-            if (isLoading) return
-            if(netLoading) return
-            setListData()
-        }
-        loaded()
-    },[isLoading, netLoading])
+    const [searchText, setSearchText] = useState<string>("");
+    const [showSearch, setShow] = useState<boolean>(false);
     
-    const setListData = async() =>{
-        if (isLoading) return
-        if (error) return
+    useLayoutEffect(() => {
+        //Settings icon
+        navigation.setOptions({
+            title:route.params.application.id
+        });
+    }, [navigation]);
+    
+    useEffect(() => {
+        async function loaded() {
+            if (isLoading) return;
+            if (error) return;
 
-        const favs= await getFavs(global.DEV_FAV)
-        const devices = data?.end_devices.map((dev) =>({id:dev.ids.device_id, isFav:favs.includes(dev.ids.device_id), name:dev.name}))
-        changeData(devices)
-    }
-
-    const handlePress = async(item) =>{
-        console.log(item)
-        let device = null
-
-        data.end_devices.forEach((dev)=>{
-            if (dev.ids.device_id == item.id){
-                device = dev
-            }
-        })
-
-        const uid = device.attributes?.uid
-        const application_id = device.ids.application_ids.application_id
-        const devID = device.ids.device_id
-        const name = device.name
-        
-        let devData = {
-            'appID':application_id,
-            'uid':uid,
-            'devID':devID,
-            'name':name,
-            'uidPresent':uid ? true:false
+            //Response is guaranteed to be of type APIDeviceResponse as we requested /devices endpoint in useFetch hook
+            const data: APIDeviceResponse[] = response as APIDeviceResponse[];
+            setListData(data);
         }
-        navigation.navigate('ManageDevices', {autofill:devData})
-    }
+        loaded();
+    }, [isLoading]);
 
-    const toggleFavourite = async(data, rowMap) =>{
+    const setListData = async (data: APIDeviceResponse[]) => {
+        /*
+            Create list data, need to find users favourite devices
+
+        */
+
+        const favs = await getFavs(Store_Tokens.FAV_DEVICES);
+        const devices: Device[] = data.map((dev:APIDeviceResponse) => (ConvertToDevice(dev, favs.includes(dev.ids.device_id))));
+        changeData(devices);
+    };
+
+    const handlePress = async (item:Device) => {
+        navigation.navigate("ManageDeviceScreen", { device: item });
+    };
+
+    const toggleFavourite = async (data, rowMap: RowMap<Device>): Promise<void> => {
+        //TODO - Share function with applications
         if (rowMap[data.index]) {
             rowMap[data.index].closeRow();
-          }
-
-        try{
-            let favs = await getFavs(global.DEV_FAV)
-
-            if (favs.includes(data.item.id)){
-                favs.splice(favs.indexOf(data.item.id),1)
-            }
-            else{
-                favs.push(data.item.id)
-            }
-
-            await AsyncStorage.setItem(global.DEV_FAV, JSON.stringify(favs))
-        }
-        catch(error){
-            console.log(error)
         }
 
-        changeData(listData.map(item => item.id == data.item.id? {...item, isFav:!item.isFav}:item))
+        try {
+            const favs = await getFavs(Store_Tokens.FAV_DEVICES);
 
-    }
+            if (favs.includes(data.item.id)) {
+                favs.splice(favs.indexOf(data.item.id), 1);
+            } else {
+                favs.push(data.item.id);
+            }
+
+            await AsyncStorage.setItem(Store_Tokens.FAV_DEVICES, JSON.stringify(favs));
+        } catch (error) {
+            console.log(error);
+        }
+
+        changeData(listData.map((item) => (item.id == data.item.id ? { ...item, isFav: !item.isFav } : item)));
+    };
+
+    const filteredData = (): Device[] => {
+        let list = listData;
+        if (searchText != "") {
+            //Regex support
+            if (searchText.includes("regex: ")) {
+                list = list.filter((app) => {
+                    try {
+                        //Convert user text to regular expression
+                        const pattern = searchText.replace("regex: ", "");
+                        const match = pattern.match(new RegExp("^/(.*?)/([gimy]*)$"));
+                        const regex = new RegExp(match[1], match[2]);
+
+                        const result = app.id.match(regex);
+                        if (result) return true;
+                    } catch (e) {
+                        return false;
+                    }
+                });
+            } else {
+                list = list.filter((app) => {
+                    return app.id.includes(searchText);
+                });
+            }
+        }
+        list = list.sort((a, b) => {
+            return a.isFav === b.isFav ? a.id > b.id : a.isFav ? -1 : 1;
+        });
+        return list;
+    };
+
     return (
-        <SafeAreaView style={globalStyles.screen}>
-            <Text style={[globalStyles.title,styles.title]}>{route.params.application_id}</Text>
-            <Text style={[globalStyles.text, styles.text]}>{route.params.app_description}</Text>
+        <View style={globalStyles.screen}>
+            {/* <View style={styles.offlineIcon}>
+                    <Offline isConnected={false} />
+                </View> */}
 
-            <View style={{position:'absolute', right:0, top:5, margin:10}}>
-                <Offline isConnected={netStatus}/>
-            </View>
+            {searchText != "" && !showSearch && <Text style={styles.searchText}>Search: {searchText}</Text>}
 
-            {(!data && !isLoading) &&<Text style={{textAlign:'center', fontWeight:'bold', paddingTop:20}}>No devices in application</Text>}
+            <View style={{ paddingTop: 10 }}>
+                {!response && !isLoading && !error && <Text>No Devices to display</Text>}
 
-            <View style={{paddingTop:10}}>
-                {(!data && !isLoading && !error)&&
-                    <Text>No Devices to display</Text>
-                }
-
-                {error&&
-                    <Text>Error: {error}</Text>
-                }
+                {error && <Text>An error occurred: {error}</Text>}
             </View>
 
             <SwipeListView
-                style={[{flex:1},globalStyles.list]} 
-                data={listData.sort((a,b)=>{
-                    return (a.isFav === b.isFav) ? a.id > b.id : a.isFav ? -1 : 1
-
-                })}
-                renderItem={(item) => renderItem(item, handlePress, 'Devices')}
+                data={filteredData()}
+                renderItem={(item) => renderItem(item, handlePress, "Devices")}
                 keyExtractor={(item, index) => index.toString()}
                 renderHiddenItem={(data, rowMap) => renderHiddenItem(data, rowMap, toggleFavourite)}
                 leftOpenValue={80}
                 stopRightSwipe={1}
-                contentContainerStyle={{ paddingBottom: 90 }}
-                onRefresh={()=> retry()}
+                onRefresh={() => retry()}
                 refreshing={isLoading}
+                contentContainerStyle={{
+                    paddingBottom: insets.bottom + 10,
+                    paddingRight: insets.right,
+                    paddingLeft: insets.left,
+                    paddingTop: showSearch ? 70 : 0,
+                }}
             />
-        </SafeAreaView>
+
+            <SearchBox showSearch={showSearch} searchText={searchText} setSearchText={setSearchText} setShow={setShow}/>
+            
+            <SearchIcon setShow={setShow}/>
+        </View>
     );
 }
 const styles = StyleSheet.create({
-    title:{
-        paddingLeft:5,
-        paddingRight:5,
-        textAlign:'center',
-        width:'75%'
+    title: {
+        paddingTop: 10,
     },
-    text:{
-        textAlign:'center',
-        padding:5,
-        paddingBottom:10
-    }
-})
+    offlineIcon: {
+        justifyContent: "flex-end",
+        alignItems: "flex-end",
+    },
+    searchIcon: {
+        position: "absolute",
+        backgroundColor: "white",
+        borderRadius: 50,
+        padding: 10,
+        borderWidth: 1,
+        borderColor: "#e6e6e6",
+    },
+    searchBoxView: {
+        position: "absolute",
+        top: 10,
+        width: "100%",
+        backgroundColor: "white",
+        borderRadius: 50,
+    },
+    searchBox: {
+        backgroundColor: "white",
+        margin: 10,
+        borderRadius: 25,
+        borderWidth: 1,
+        height: 50,
+        width: "95%",
+        padding: 10,
+        alignSelf: "center",
+    },
+    searchText: {
+        fontWeight: "bold",
+        alignSelf: "center",
+        marginTop: 10,
+        fontSize: 15,
+    },
+});

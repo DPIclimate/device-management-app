@@ -1,6 +1,6 @@
 import React, { useLayoutEffect, useState, useEffect, useContext } from "react";
 import { StyleSheet, Text, View, Image, ScrollView, ImageBackground, TouchableOpacity, Dimensions, Pressable } from "react-native";
-import Card from "../shared/Card";
+import Card from "../shared/components/Card";
 import globalStyles from "../styles";
 import { WelcomeScreen } from "./WelcomeScreen";
 import { Overlay } from "react-native-elements";
@@ -25,7 +25,6 @@ const gateway = require("../assets/gateway.png");
 export default function HomeScreen({ route, navigation }): JSX.Element {
 
     const [state, dispatch] = useContext(GlobalContext);
-    // const { network_status } = useNetworkStatus();
     
     const orientation = useOrientation();
     const insets = useSafeAreaInsets();
@@ -155,7 +154,7 @@ export default function HomeScreen({ route, navigation }): JSX.Element {
                                 <Icon
                                     title={"Scan QR Code"}
                                     image={scanQR}
-                                    onPress={() => navigation.navigate("QrScanner", { screen: "ManageDevices" })}
+                                    onPress={() => navigation.navigate("QrScanner", { screen: "ManageDeviceScreen" })}
                                 />
                             </Col>
                             <Col style={{ alignItems: "center" }}>
@@ -163,18 +162,13 @@ export default function HomeScreen({ route, navigation }): JSX.Element {
                             </Col>
                         </Row>
                         <Row>
-                            <Col style={{ alignItems: "center" }}>
-                                <Icon title={"Manage Devices"} image={manageDev} onPress={() => navigation.navigate("ManageDevices")} />
-                            </Col>
+                            
                             <Col style={{ alignItems: "center" }}>
                                 <Icon title={"Queue"} image={failedUpload} onPress={() => navigation.navigate("OfflineDevices")} />
                             </Col>
-                        </Row>
-                        <Row>
                             <Col style={{ alignItems: "center" }}>
                                 <Icon title={"Gateways"} image={gateway} onPress={() => navigation.navigate("Gateways")} />
                             </Col>
-                            <Col></Col>
                         </Row>
                     </View>
                 </ScrollView>

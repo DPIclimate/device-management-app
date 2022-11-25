@@ -1,4 +1,4 @@
-export {default as Card} from './Card'
+export {default as Card} from './components/Card'
 export {default as renderItem, renderHiddenItem} from './components/ListComponents'
 export {default as LoadingComponent} from './LoadingComponent'
 export {default as checkNetworkStatus} from './NetworkStatus'

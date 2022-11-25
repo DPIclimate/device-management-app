@@ -9,7 +9,7 @@ import {AsyncAlert} from '../shared/AsyncAlert'
 import { Linking } from 'react-native';
 import { MaterialIcons } from '@expo/vector-icons'; 
 
-function LocationCard({devData, autoSearch}) {
+function LocationCard({device}) {
     const [isEnabled, setIsEnabled] = useState(true);
     const [mapType, setMapType] = useState('satellite')
     const [isLoading, setLoadingState] = useState(false)
@@ -31,9 +31,9 @@ function LocationCard({devData, autoSearch}) {
             const body = {
                 "end_device":{
                     'ids':{
-                        'device_id': devData.devID,
+                        'device_id': device.devID,
                         "application_ids": {
-                            "application_id": devData.appID
+                            "application_id": device.appID
                         }
                     },
                     "locations":{
@@ -84,11 +84,11 @@ function LocationCard({devData, autoSearch}) {
     const getDirections = async() =>{
         
         // Redirect user to apple or google maps for directions
-        const lat = devData.location.latitude
-        const lng = devData.location.longitude
+        const lat = device.location.latitude
+        const lng = device.location.longitude
         const scheme = Platform.select({ ios: 'maps:0,0?q=', android: 'geo:0,0?q=' });
         const latLng = `${lat},${lng}`;
-        const label = devData.name? devData.name : devData.devID;
+        const label = device.name? device.name : device.devID;
         const url = Platform.select({
           ios: `${scheme}${label}@${latLng}`,
           android: `${scheme}${latLng}(${label})`
@@ -128,8 +128,8 @@ function LocationCard({devData, autoSearch}) {
     }
     
     const AccuracyCircle = () =>{
-        if (devData.location.accuracy != undefined){
-            return <Circle center={{latitude: devData.location.latitude, longitude: devData.location.longitude}} radius={devData.location.accuracy} strokeWidth={1} strokeColor='red'/>
+        if (device.location.accuracy != undefined){
+            return <Circle center={{latitude: device.location.latitude, longitude: device.location.longitude}} radius={device.location.accuracy} strokeWidth={1} strokeColor='red'/>
         }
         else{
             return null
@@ -150,12 +150,12 @@ function LocationCard({devData, autoSearch}) {
                         provider={PROVIDER_DEFAULT}
                         showsUserLocation={true}
                         region={{
-                            latitude: devData.location.latitude,
-                            longitude: devData.location.longitude,
+                            latitude: device.location.latitude,
+                            longitude: device.location.longitude,
                             latitudeDelta: 0.002,
                             longitudeDelta: 0.003,
                         }}>
-                            <Marker onCalloutPress={() => getDirections()} coordinate={{latitude: devData.location.latitude, longitude: devData.location.longitude}}>
+                            <Marker onCalloutPress={() => getDirections()} coordinate={{latitude: device.location.latitude, longitude: device.location.longitude}}>
                                 <Callout>
                                     <View style={{backgroundColor:'#128cde', padding:10, borderRadius:50}}>
                                         <MaterialIcons name="directions-car" size={30} color="white" />
@@ -177,11 +177,11 @@ function LocationCard({devData, autoSearch}) {
     }
 
     let rows=[]
-    if (devData.location != undefined){
-        rows.push(<Row key={1} style={styles.cardRow}><RowTemplate title={'Latitude'} data={devData.location?.latitude}/></Row>)
-        rows.push(<Row key={2} style={styles.cardRow}><RowTemplate title={'Longitude'} data={devData.location?.longitude}/></Row>)
-        rows.push(<Row key={3} style={styles.cardRow}><RowTemplate title={'Altitude (m)'} data={devData.location?.altitude != undefined? devData.location?.altitude: "-"}/></Row>)
-        rows.push(<Row key={4} style={styles.cardRow}><RowTemplate title={'Accuracy (m)'} data={devData.location?.accuracy != undefined? devData.location?.accuracy: "-"}/></Row>)
+    if (device.location != undefined){
+        rows.push(<Row key={1} style={styles.cardRow}><RowTemplate title={'Latitude'} data={device.location?.latitude}/></Row>)
+        rows.push(<Row key={2} style={styles.cardRow}><RowTemplate title={'Longitude'} data={device.location?.longitude}/></Row>)
+        rows.push(<Row key={3} style={styles.cardRow}><RowTemplate title={'Altitude (m)'} data={device.location?.altitude != undefined? device.location?.altitude: "-"}/></Row>)
+        rows.push(<Row key={4} style={styles.cardRow}><RowTemplate title={'Accuracy (m)'} data={device.location?.accuracy != undefined? device.location?.accuracy: "-"}/></Row>)
     }else{
         return (
         <Card>
