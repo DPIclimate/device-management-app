@@ -1,7 +1,7 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import * as Linking from 'expo-linking';
 import { Region } from 'react-native-maps';
-import { Store_Tokens } from '../types/CustomTypes';
+import { Device, DeviceUpdateRequest, Store_Tokens } from '../types/CustomTypes';
 
 //Functions to manage local storage
 const saveDevice = async(device) =>{
@@ -36,6 +36,30 @@ const saveDevice = async(device) =>{
             error:error
         }
     }
+}
+export const save_update_to_storage=async(updateRequest:DeviceUpdateRequest):Promise<void>=>{
+
+    /*
+        Store a device update request, this device will now appear in the queue menu of the app
+    */
+
+    try{
+        const in_storage=await AsyncStorage.getItem(Store_Tokens.DEVICE_UPDATES).then(JSON.parse)
+        
+        let devices:DeviceUpdateRequest[]=[]
+        if (in_storage){
+            devices=[...in_storage]
+        }
+
+        devices.push(updateRequest)
+
+        await AsyncStorage.setItem(Store_Tokens.DEVICE_UPDATES, JSON.stringify(devices))
+    }
+    catch(error){
+        console.log(error)
+    }
+
+    console.log("Save successful")
 }
 
 const getFromStore = async(url)=>{

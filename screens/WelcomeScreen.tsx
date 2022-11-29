@@ -7,7 +7,7 @@ import { HelpCard, DPI_TAG, TTN_SERVER } from './SettingsScreen';
 import { LoadingComponent } from '../shared';
 import { Button } from '../shared/Button';
 import { GlobalContext } from '../shared/context/GlobalContext';
-import { Reducer_Actions } from '../shared/types/CustomTypes';
+import { GlobalState_Actions } from '../shared/types/CustomTypes';
 import { TTN_Server_Card } from '../shared/components/TTN_Server_Card';
 
 export const WelcomeScreen = (props):JSX.Element => {
@@ -30,8 +30,8 @@ export const WelcomeScreen = (props):JSX.Element => {
             const tmpToken = token.replace('Bearer ','') //Does not matter whether user includes the word Bearer or not
             const bToken = `Bearer ${tmpToken}`
 
-            dispatch({type:Reducer_Actions.SET_AUTH_TOKEN, payload:bToken})
-            dispatch({type:Reducer_Actions.SET_TOKEN_VALID, payload:true})
+            dispatch({type:GlobalState_Actions.SET_AUTH_TOKEN, payload:bToken})
+            dispatch({type:GlobalState_Actions.SET_TOKEN_VALID, payload:true})
             write_token_to_storage(token)
 
             props.visible(false)
@@ -39,7 +39,7 @@ export const WelcomeScreen = (props):JSX.Element => {
         else{
             setInvalid(true)
             setValidating(false)
-            dispatch({type:Reducer_Actions.SET_TOKEN_VALID, payload:false})
+            dispatch({type:GlobalState_Actions.SET_TOKEN_VALID, payload:false})
         }
     }
 

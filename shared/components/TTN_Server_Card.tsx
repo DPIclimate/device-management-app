@@ -4,7 +4,7 @@ import globalStyles from "../../styles";
 import Card from "./Card";
 import { GlobalContext } from "../context/GlobalContext";
 import { write_app_server_to_storage, write_comm_server_to_storage } from "../functions/ManageLocStorage";
-import { Reducer_Actions, Regions } from "../types/CustomTypes";
+import { GlobalState_Actions, Regions } from "../types/CustomTypes";
 
 export const TTN_Server_Card = (): JSX.Element => {
     const [state, dispatch] = useContext(GlobalContext);
@@ -14,12 +14,12 @@ export const TTN_Server_Card = (): JSX.Element => {
 
     const onAppServerChange = (serv: string): void => {
         set_selected_app_server(serv)
-        dispatch({ type: Reducer_Actions.SET_APPLICATION_SERVER, payload: serv });
+        dispatch({ type: GlobalState_Actions.SET_APPLICATION_SERVER, payload: serv });
         write_app_server_to_storage(serv);
     };
 
     const onCommServerChange = (serv:string): void => {
-        dispatch({ type: Reducer_Actions.SET_COMMUNICATION_SERVER, payload: serv });
+        dispatch({ type: GlobalState_Actions.SET_COMMUNICATION_SERVER, payload: serv });
         write_comm_server_to_storage(serv);
         set_selected_comm_server(serv);
     };

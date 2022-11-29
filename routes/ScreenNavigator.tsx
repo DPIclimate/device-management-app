@@ -4,15 +4,15 @@ import { createStackNavigator } from '@react-navigation/stack';
 import SettingsScreen from '../screens/SettingsScreen';
 import MoveDevice from '../screens/MoveDevice';
 import AppList from '../screens/AppList';
-import NearbyDevices from '../screens/NearbyDevices'
 import HomeScreen from '../screens/HomeScreen';
 import Gateways from '../screens/Gateways';
 import ApplicationsScreen from '../screens/ApplicationsScreen';
 import DevicesScreen from '../screens/DevicesScreen';
-import RegisterDevice from '../screens/RegisterDevice';
 import QrScanner from '../screens/QrScanner';
 import { ManageDeviceScreen } from '../screens/ManageDeviceScreen';
 import OfflineDevices from '../screens/OfflineDevices';
+import { RegisterDeviceScreen } from '../screens/RegisterDeviceScreen';
+import { NearbyDevicesScreen } from '../screens/NearbyDevicesScreen';
 
 const { Screen, Navigator } = createStackNavigator();
 
@@ -50,7 +50,7 @@ function ScreenStack() {
       />
       <Screen
         name='RegisterDevice'
-        component={RegisterDevice}
+        component={RegisterDeviceScreen}
         options={{ title: 'Register Device'}}
       />
       <Screen
@@ -85,7 +85,7 @@ function ScreenStack() {
       />
       <Screen
         name="NearbyDevices"
-        component={NearbyDevices}
+        component={NearbyDevicesScreen}
         options={{ title: 'Nearby Devices' }}
       />
       <Screen

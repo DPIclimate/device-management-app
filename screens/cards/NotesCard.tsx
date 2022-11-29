@@ -1,111 +1,140 @@
-import React, { useState,useEffect } from 'react';
-import {Card, saveDevice} from '../../shared';
+import React, { useState, useEffect, useContext } from "react";
+import { Card, saveDevice } from "../../shared";
 import { Grid } from "react-native-easy-grid";
-import { Text,
-	View,
-	TouchableHighlight,
-	Image,
-	Button,
-	ActivityIndicator,
-	TextInput,
-	StyleSheet,
-	Alert,
-	InputAccessoryView, 
-    Platform} from 'react-native';
-import globalStyles from '../../styles';
-import {updateDevice, checkNetworkStatus} from '../../shared/index'
-import { AsyncAlert } from '../../shared/AsyncAlert';
+import {
+    Text,
+    View,
+    TouchableHighlight,
+    Image,
+    Button,
+    ActivityIndicator,
+    TextInput,
+    StyleSheet,
+    Alert,
+    InputAccessoryView,
+    Platform,
+} from "react-native";
+import globalStyles from "../../styles";
+import { updateDevice, checkNetworkStatus } from "../../shared/index";
+import { AsyncAlert } from "../../shared/AsyncAlert";
+import { GlobalContext } from "../../shared/context/GlobalContext";
+import { ManageDeviceContext } from "../../shared/context/ManageDeviceContext";
+import { useKeyboardHeight } from "../../shared/hooks/useKeyboardHeight";
+import { TouchableOpacity } from "react-native-gesture-handler";
+import { DeviceUpdateRequest } from "../../shared/types/CustomTypes";
+import { TTN_Actions, update_ttn_device } from "../../shared/functions/InterfaceTTN";
+import { save_update_to_storage } from "../../shared/functions/ManageLocStorage";
+import { LoadingComponent } from "../../shared/components/LoadingComponent";
 
-function NotesCard({device}) {
-    
-    const [text, setText] = useState()
-    const [isLoading, setLoadingState] = useState(false)
+export function NotesCard():JSX.Element {
+    const [state, dispatch] = useContext(GlobalContext);
+    const { device_state, set_device_state, device_comm_data } = useContext(ManageDeviceContext);
 
-    const inputAccessoryViewID = 'uniqueID';
-    
-    useEffect(() =>{
-        setText(device?.notes)
-    },[device])
+    const [text, setText] = useState<string>(device_state.description);
 
-    const saveDetails = async() =>{
+    const inputAccessoryViewID = "notesKeyboard";
+    const [isLoading, setLoadingState] = useState<boolean>(false)
+
+    const saveNotes = async():Promise<void> => {
+        console.log("Saving notes")
         setLoadingState(true)
-        const body = {
-            "end_device":{
-                'ids':{
-                    'device_id': device.devID,
-                    "application_ids": {
-                        "application_id": device.appID
-                    }
-                },
-                'description':text
+
+        const updateRequest:DeviceUpdateRequest={
+            device:{
+                ...device_state,
+                description:text
             },
-            "field_mask": {
-              "paths": [
-                "description"
-              ]
-            },
-            'type':'descriptionUpdate'
+            action:TTN_Actions.UPDATE_DESCRIPTION
         }
 
-        const isConnected = await checkNetworkStatus()
-        if (isConnected){
-            await updateDevice(body)
-            
+        set_device_state(updateRequest.device)
+
+        if(state.network_status){
+            const {status, status_text} = await update_ttn_device(updateRequest, state.application_server, state.ttn_auth_token)
+
+                if (status==0){
+                    Alert.alert("Update Failed", `An error occurred while trying to update the notes. Error: ${status_text}`)
+                }
+                else if (status!=200){
+                    Alert.alert("Update Failed", `HTTP error occurred, Error: ${status_text}`)
+                }
         }
         else{
-            const choice = await AsyncAlert("No Internet Connection", "Would you like to save this note for when you are back online?")
-
-            if (!choice) {setLoadingState(false);return}
-
-            const success = await saveDevice(body)
-            if (success){
-                Alert.alert("Note saved", "This note has been successfully saved")
-            }
-            else{
-                Alert.alert("Failed", "Saving note failed")
-            }
+            console.log("Saving to storage")
+            save_update_to_storage(updateRequest)  
         }
         setLoadingState(false)
-
-    }
-
-    if (device == undefined) return <View/>
+    };
     return (
         <>
-        
             <Card>
-                <View style={{flexDirection:'row', justifyContent:'space-between', alignItems:'center'}}>
-                    <Text style={globalStyles.cardTitle}>Notes</Text>
+                <View
+                    style={{
+                        flexDirection: "row",
+                        justifyContent: "space-between",
+                        alignItems: "center",
+                    }}
+                >
+                    <Text style={styles.cardTitle}>Notes</Text>
+                    <TouchableHighlight
+                        disabled={isLoading}
+                        underlayColor="#DDDDDD"
+                        onPress={() => saveNotes()}
+                    >
+                        {isLoading ?
+                            <LoadingComponent isLoading={isLoading}/>
+                            :
+                            <Text style={{color:'#007AFF'}}>Save</Text>
+                        }
+                    </TouchableHighlight>
+                </View>
 
-                    {isLoading ? 
-                        <ActivityIndicator size="small"/> :
-                        <TouchableHighlight acitveOpacity={0.6} underlayColor="#DDDDDD" onPress={() => saveDetails()}>
-                            <Image style={{width:35, height:35, padding:5}} source={require('../assets/saveIcon.png')}/>
-                        </TouchableHighlight>
-                    }
-                    </View>
+                <View style={styles.separatorLine} />
+
                 <Grid>
-                        <TextInput inputAccessoryViewID={inputAccessoryViewID} multiline={true} value={text} placeholder='Add some text here' style={styles.input} onChangeText={setText} autoCorrect={true} autoCapitalize='sentences'/>
+                    <TextInput
+                        onSubmitEditing={saveNotes}
+                        inputAccessoryViewID={inputAccessoryViewID}
+                        multiline={true}
+                        value={text}
+                        placeholder="Add some text here"
+                        onChangeText={setText}
+                        autoCorrect={true}
+                        autoCapitalize="sentences"
+                    />
                 </Grid>
             </Card>
 
-            {Platform.OS =='ios'&&<InputAccessoryView nativeID={inputAccessoryViewID}>
-                <View style={{alignItems:'flex-end', justifyContent:'center', paddingRight:10, height:35, backgroundColor:'white'}}>
-                    <Button title="dismiss"/>
-                </View>
-            </InputAccessoryView>}
+            {Platform.OS == "ios" && (
+                <InputAccessoryView nativeID={inputAccessoryViewID}>
+                    <View style={{ alignItems: "flex-end", justifyContent: "center", paddingRight: 10, height: 35, backgroundColor: "white" }}>
+                        <TouchableOpacity onPress={() => saveNotes()}>
+                            <Text style={{color:'#007AFF'}}>dismiss</Text>
+                        </TouchableOpacity>
+                    </View>
+                </InputAccessoryView>
+            )}
         </>
-
     );
 }
 
 const styles = StyleSheet.create({
-    input:{
-        borderColor:'white',
-        borderWidth:1,
-        marginTop:2,
-        width:'100%'
+    separatorLine: {
+        width: "80%",
+        height: 2,
+        backgroundColor: "#128cde",
+        alignSelf: "flex-start",
+        marginBottom: 10,
     },
-})
-
-export default NotesCard;
+    updateLocationImg: {
+        width: 35,
+        height: 35,
+        padding: 10,
+    },
+    cardTitle: {
+        fontWeight: "bold",
+        fontSize: 17,
+        marginTop: 10,
+        marginBottom: 10,
+    },
+});

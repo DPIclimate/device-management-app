@@ -1,9 +1,11 @@
-import { useContext } from "react";
-import { Alert } from "react-native";
-import { GlobalContext } from "../context/GlobalContext";
-import { GlobalState } from "../types/CustomTypes";
-import { useFetch } from "../useFetch";
+import { APIDeviceResponse } from "../types/APIResponseTypes";
+import { Device, DeviceUpdateRequest, GlobalState, HTTP_Response } from "../types/CustomTypes";
+import { ConvertFromDevice } from "./ConvertToAPI";
 
+export const TTN_Actions={
+    UPDATE_LOCATION:'locations',
+    UPDATE_DESCRIPTION:'description'
+}
 //Functions used to interface with TTN
 
 const registerDevice = async (device) => {
@@ -112,6 +114,51 @@ const updateDevice = async (data) => {
         };
     }
 };
+
+export const update_ttn_device=async(request:DeviceUpdateRequest, server:string, ttn_auth_token:string):Promise<HTTP_Response>=>{
+    /*
+        Updating device on TTN according to the TTN_Action passed to this function
+    */
+
+    const api_device:APIDeviceResponse=ConvertFromDevice(request.device)
+    const body={
+        end_device:{
+            ...api_device
+        },
+        field_mask:{
+            paths:[
+                request.action
+            ]
+        }
+    }
+    try{
+        const resp:Response=await fetch(`${server}/api/v3/applications/${request.device.applications_id}/devices/${request.device.id}`,{
+            method:"PUT",
+            headers:{
+                "Authorization":ttn_auth_token
+            },
+            body:JSON.stringify(body)
+        })
+        
+        const json=await resp.json()
+        console.log(json)
+        return{
+            status:resp.status,
+            status_text:resp.statusText
+        }
+
+    }
+    catch(error){
+        console.log("Error updating device", error)
+        
+        //Return status 0 to let parent function know error is not an http error
+        return {
+            status:0,
+            status_text:error
+        }
+    }
+
+}
 
 const checkUnique = async (data) => {
     //Checks that a particular device is unique

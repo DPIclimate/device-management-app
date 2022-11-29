@@ -15,12 +15,13 @@ export function ConvertToDevice(APIDevice: APIDeviceResponse, isFav: boolean): D
         created_at: APIDevice.created_at,
         updated_at: APIDevice.updated_at,
         uid: APIDevice.attributes?.uid,
-        location: {
+        description:APIDevice.description,
+        location: APIDevice.locations? {
             latitude: APIDevice.locations?.user.latitude,
             longitude: APIDevice.locations?.user.longitude,
             altitude: APIDevice.locations?.user.altitude,
             source: APIDevice.locations?.user.source,
-        },
+        }:null,
         isFav: isFav,
     };
 }

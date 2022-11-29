@@ -1,6 +1,7 @@
 export interface Device {
     id: string;
     name: string;
+    description:string|null;
     applications_id: string;
     dev_eui: string;
     join_eui: string;
@@ -49,6 +50,20 @@ export interface GlobalState {
     network_status: boolean;
 }
 
+export interface HTTP_Response{
+    status:number,
+    status_text:string
+}
+
+export interface DeviceUpdateRequest{
+    /*
+        Used to request an update for a device, this can be executed immediately or stored for later execution
+        */
+
+    device:Device,
+    action:string
+}
+
 //TTN server regions
 export enum Regions {
     AU1 = "https://au1.cloud.thethings.network",
@@ -57,6 +72,7 @@ export enum Regions {
 }
 
 export enum Store_Tokens {
+    DEVICE_UPDATES="devUpdates",
     DEVICES = "devices",
     AUTH_TOKEN = "authToken",
     FAV_APPLICATIONS = "appFavs",
@@ -65,7 +81,7 @@ export enum Store_Tokens {
     COMMUNICATION_SERVER = "commServer",
 }
 
-export enum Reducer_Actions {
+export enum GlobalState_Actions {
     SET_AUTH_TOKEN = "setAuthToken",
     SET_TOKEN_VALID = "setTokenValid",
     SET_APPLICATION_SERVER = "setAppServer",

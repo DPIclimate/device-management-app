@@ -24,6 +24,10 @@ export default function ApplicationsScreen({ navigation }): JSX.Element {
     const [searchText, setSearchText] = useState<string>("");
     const [showSearch, setShow] = useState<boolean>(false);
 
+    //TODO - Fix loading bug when app hasnt check network status yet
+
+    //TODO - Change the way favourites are done, instead of isFav being device attirbute, have list of favourites and compare with devices
+    
     useEffect(() => {
         async function loaded() {
 

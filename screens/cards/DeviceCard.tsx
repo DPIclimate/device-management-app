@@ -1,15 +1,12 @@
 import React, { useContext } from "react";
-import { Col, Row, Grid } from "react-native-easy-grid";
-import { Text, Linking, View, Image, StyleSheet, Alert } from "react-native";
-import { TouchableOpacity } from "react-native-gesture-handler";
-import { Card, updateDevice } from "../../shared";
-import { AsyncAlertPrompt } from "../../shared/AsyncAlertPrompt";
-import globalStyles from "../../styles";
-import { Device } from "../../shared/types/CustomTypes";
+import { Col, Row} from "react-native-easy-grid";
+import { Text, View, StyleSheet } from "react-native";
+import { Card} from "../../shared";
 import { ManageDeviceContext } from "../../shared/context/ManageDeviceContext";
 
-export function DeviceCard() {
-    const {reducer:[device_state, device_dispatch], device_comm_data} = useContext(ManageDeviceContext);
+export function DeviceCard():JSX.Element {
+
+    const {device_state, set_device_state, device_comm_data} = useContext(ManageDeviceContext);
 
     //Change UID
     // const handlePress = async () => {
@@ -77,7 +74,7 @@ export function DeviceCard() {
 
             <View style={styles.separatorLine} />
 
-            {Object.keys(device_state).map((key: string): JSX.Element => {
+            {Object.keys(device_state)?.map((key: string): JSX.Element => {
                 if (key == "location") {
                     return;
                 } else if (key == "description") {
@@ -86,14 +83,14 @@ export function DeviceCard() {
                     return;
                 }
                 return (
-                        <Row style={styles.cardRow} key={key}>
-                            <Col size={1}>
-                                <Text>{mappings[key]}</Text>
-                            </Col>
-                            <Col size={2}>
-                                <Text selectable={true}>{device_state[key] == null ? "-" : device_state[key]}</Text>
-                            </Col>
-                        </Row>
+                    <Row style={styles.cardRow} key={key}>
+                        <Col size={1}>
+                            <Text style={styles.devTitle}>{mappings[key]}</Text>
+                        </Col>
+                        <Col size={2}>
+                            <Text selectable={true}>{device_state[key] == null ? "-" : device_state[key]}</Text>
+                        </Col>
+                    </Row>
                 );
             })}
         </Card>
@@ -104,14 +101,14 @@ const styles = StyleSheet.create({
     cardTitle: {
         fontWeight: "bold",
         fontSize: 17,
-        marginTop:10,
-        marginBottom:10
+        marginTop: 10,
+        marginBottom: 10,
     },
-    separatorLine:{ 
-        width: "80%", 
-        height: 2, 
-        backgroundColor: "#128cde", 
-        alignSelf: "flex-start", 
+    separatorLine: {
+        width: "80%",
+        height: 2,
+        backgroundColor: "#128cde",
+        alignSelf: "flex-start",
     },
     image: {
         width: 20,
@@ -122,4 +119,8 @@ const styles = StyleSheet.create({
         alignItems: "center",
         justifyContent: "center",
     },
+    devTitle:{
+        fontWeight:'bold',
+        marginRight:10
+    }
 });

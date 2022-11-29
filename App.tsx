@@ -5,7 +5,7 @@ import * as SplashScreen from "expo-splash-screen";
 import "./global.js";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { GlobalContextProvider } from "./shared/context/GlobalContext";
-import { GlobalState, Reducer_Actions, Regions, Store_Tokens } from "./shared/types/CustomTypes";
+import { GlobalState, GlobalState_Actions, Regions, Store_Tokens } from "./shared/types/CustomTypes";
 import { validateToken } from "./shared";
 import { useNetworkStatus } from "./shared/hooks/useNetworkStatus";
 
@@ -26,31 +26,31 @@ export default function App() {
 
     const reducer = (state, action) => {
         switch (action.type) {
-            case Reducer_Actions.SET_AUTH_TOKEN:
+            case GlobalState_Actions.SET_AUTH_TOKEN:
                 return {
                     ...state,
                     ttn_auth_token: action.payload,
                 };
-            case Reducer_Actions.SET_TOKEN_VALID:
+            case GlobalState_Actions.SET_TOKEN_VALID:
                 return {
                     ...state,
                     ttn_isValid_token: action.payload,
                 };
-            case Reducer_Actions.SET_APPLICATION_SERVER:
+            case GlobalState_Actions.SET_APPLICATION_SERVER:
                 if (!action.payload) return state; //If null, maintain default values from initial state
 
                 return {
                     ...state,
                     application_server: action.payload,
                 };
-            case Reducer_Actions.SET_COMMUNICATION_SERVER:
+            case GlobalState_Actions.SET_COMMUNICATION_SERVER:
                 if (!action.payload) return state;
 
                 return {
                     ...state,
                     communication_server: action.payload,
                 };
-            case Reducer_Actions.SET_NETWORK_STATUS:
+            case GlobalState_Actions.SET_NETWORK_STATUS:
                 return {
                     ...state,
                     network_status: action.payload,
@@ -121,23 +121,23 @@ export default function App() {
     const loadUserSettings = async () => {
         try {
             const server = await AsyncStorage.getItem(Store_Tokens.APPLICATION_SERVER);
-            dispatch({ type: Reducer_Actions.SET_APPLICATION_SERVER, payload: server });
+            dispatch({ type: GlobalState_Actions.SET_APPLICATION_SERVER, payload: server });
         } catch (error) {
             console.log(error);
         }
 
         try {
             const server = await AsyncStorage.getItem(Store_Tokens.COMMUNICATION_SERVER);
-            dispatch({ type: Reducer_Actions.SET_COMMUNICATION_SERVER, payload: server });
+            dispatch({ type: GlobalState_Actions.SET_COMMUNICATION_SERVER, payload: server });
         } catch (error) {
             console.log(error);
         }
         try {
             const authToken = await AsyncStorage.getItem(Store_Tokens.AUTH_TOKEN);
-            dispatch({ type: Reducer_Actions.SET_AUTH_TOKEN, payload: authToken });
+            dispatch({ type: GlobalState_Actions.SET_AUTH_TOKEN, payload: authToken });
 
             const token_is_valid = await validateToken(authToken, state.application_server);
-            dispatch({ type: Reducer_Actions.SET_TOKEN_VALID, payload: token_is_valid });
+            dispatch({ type: GlobalState_Actions.SET_TOKEN_VALID, payload: token_is_valid });
         } catch (error) {
             console.log(error);
         }

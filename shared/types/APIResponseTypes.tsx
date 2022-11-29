@@ -19,8 +19,8 @@ export interface APIDeviceResponse {
     };
     created_at: string;
     updated_at: string;
-    name: string;
-    description: string;
+    name: string|null;
+    description:string|null;
     locations: {
         user: {
             latitude: number;

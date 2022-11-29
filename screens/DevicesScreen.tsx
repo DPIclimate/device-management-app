@@ -21,7 +21,7 @@ export default function DevicesScreen({ route, navigation }) {
 
     const [listData, changeData] = useState<Device[]>([]);
     const { response, isLoading, error, retry } = useFetch(
-        `${state.application_server}/api/v3/applications/${route.params.application.id}/devices?field_mask=attributes,locations,description,name,attributes`
+        `${state.application_server}/api/v3/applications/${route.params.application.id}/devices?field_mask=attributes,locations,description,name`
     );
 
     const [searchText, setSearchText] = useState<string>("");
