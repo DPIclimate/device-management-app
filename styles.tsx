@@ -3,7 +3,7 @@ import {StyleSheet } from 'react-native';
 
 const globalStyles = StyleSheet.create({
     screen: {
-        margin:5,
+        margin:10,
         height:'100%'
     },
     list: {

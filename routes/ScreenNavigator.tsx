@@ -1,18 +1,15 @@
 import React from 'react';
 import { NavigationContainer } from '@react-navigation/native';
 import { createStackNavigator } from '@react-navigation/stack';
-import SettingsScreen from '../screens/SettingsScreen';
-import MoveDevice from '../screens/MoveDevice';
-import AppList from '../screens/AppList';
 import HomeScreen from '../screens/HomeScreen';
-import Gateways from '../screens/Gateways';
+import GatewaysScreen from '../screens/GatewaysScreen';
 import ApplicationsScreen from '../screens/ApplicationsScreen';
 import DevicesScreen from '../screens/DevicesScreen';
 import QrScanner from '../screens/QrScanner';
 import { ManageDeviceScreen } from '../screens/ManageDeviceScreen';
-import OfflineDevices from '../screens/OfflineDevices';
-import { RegisterDeviceScreen } from '../screens/RegisterDeviceScreen';
 import { NearbyDevicesScreen } from '../screens/NearbyDevicesScreen';
+import { SettingsScreen } from '../screens/SettingsScreen';
+import { OfflineDevicesScreen } from '../screens/OfflineDevicesScreen';
 
 const { Screen, Navigator } = createStackNavigator();
 
@@ -49,11 +46,6 @@ function ScreenStack() {
         options={{ title: 'Browse Devices'}}
       />
       <Screen
-        name='RegisterDevice'
-        component={RegisterDeviceScreen}
-        options={{ title: 'Register Device'}}
-      />
-      <Screen
         name="QrScanner"
         component={QrScanner}
         options={{title:"Scan QR code"}}
@@ -65,7 +57,7 @@ function ScreenStack() {
         />
       <Screen
       name="OfflineDevices"
-      component={OfflineDevices}
+      component={OfflineDevicesScreen}
       options={{title:"Saved Devices"}}
       />
       <Screen
@@ -74,23 +66,13 @@ function ScreenStack() {
       options={{title:"Settings"}}
       />
       <Screen
-      name="MoveDevice"
-      component={MoveDevice}
-      options={{title:"Move Device"}}
-      />
-      <Screen
-      name="AppList"
-      component={AppList}
-      options={{title:"App List"}}
-      />
-      <Screen
         name="NearbyDevices"
         component={NearbyDevicesScreen}
         options={{ title: 'Nearby Devices' }}
       />
       <Screen
         name="Gateways"
-        component={Gateways}
+        component={GatewaysScreen}
         options={{title: 'Gateways'}}
         />
     </Navigator>

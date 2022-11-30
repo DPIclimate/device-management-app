@@ -1,30 +1,23 @@
-import React, { useState, useEffect, useContext } from "react";
-import { Card, saveDevice } from "../../shared";
+import React, { useState, useContext } from "react";
 import { Grid } from "react-native-easy-grid";
 import {
     Text,
     View,
     TouchableHighlight,
-    Image,
-    Button,
-    ActivityIndicator,
     TextInput,
     StyleSheet,
     Alert,
     InputAccessoryView,
     Platform,
 } from "react-native";
-import globalStyles from "../../styles";
-import { updateDevice, checkNetworkStatus } from "../../shared/index";
-import { AsyncAlert } from "../../shared/AsyncAlert";
 import { GlobalContext } from "../../shared/context/GlobalContext";
 import { ManageDeviceContext } from "../../shared/context/ManageDeviceContext";
-import { useKeyboardHeight } from "../../shared/hooks/useKeyboardHeight";
 import { TouchableOpacity } from "react-native-gesture-handler";
 import { DeviceUpdateRequest } from "../../shared/types/CustomTypes";
 import { TTN_Actions, update_ttn_device } from "../../shared/functions/InterfaceTTN";
 import { save_update_to_storage } from "../../shared/functions/ManageLocStorage";
 import { LoadingComponent } from "../../shared/components/LoadingComponent";
+import Card from "../../shared/components/Card";
 
 export function NotesCard():JSX.Element {
     const [state, dispatch] = useContext(GlobalContext);

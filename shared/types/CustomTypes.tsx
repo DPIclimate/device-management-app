@@ -34,16 +34,8 @@ export interface CommMessage {
     time: string;
 }
 
-export interface Gateway {
-    id: string;
-    eui: string;
-    updated_at: string;
-    created_at: string;
-}
-
 export interface GlobalState {
     ttn_auth_token: string;
-    ttn_isValid_token: boolean;
     ttn_allowed_chars: RegExp;
     application_server: Regions;
     communication_server: Regions;

@@ -1,5 +1,5 @@
 import React, { useContext, useEffect, useState } from "react";
-import { View, Text, StyleSheet, TextInput, Image, Dimensions, Pressable, ListRenderItemInfo } from "react-native";
+import { View, Text, StyleSheet} from "react-native";
 import globalStyles from "../styles";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { renderHiddenItem, renderItem } from "../shared/components/ListComponents";
@@ -27,6 +27,7 @@ export default function ApplicationsScreen({ navigation }): JSX.Element {
     //TODO - Fix loading bug when app hasnt check network status yet
 
     //TODO - Change the way favourites are done, instead of isFav being device attirbute, have list of favourites and compare with devices
+    //TODO - add content type header to all requests
     
     useEffect(() => {
         async function loaded() {

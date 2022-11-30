@@ -1,6 +1,7 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import * as Linking from 'expo-linking';
 import { Region } from 'react-native-maps';
+import { APIApplicationsResponse, APICommResponse, APIDeviceResponse, APIGatewayResponse } from '../types/APIResponseTypes';
 import { Device, DeviceUpdateRequest, Store_Tokens } from '../types/CustomTypes';
 
 //Functions to manage local storage
@@ -62,14 +63,16 @@ export const save_update_to_storage=async(updateRequest:DeviceUpdateRequest):Pro
     console.log("Save successful")
 }
 
-const getFromStore = async(url)=>{
-    if (!url) return
-    //Return data from storage in format as if it came from TTN API
+export const get_req_from_storage = async(key:string):Promise<APIApplicationsResponse[]|APIDeviceResponse[]|APIDeviceResponse|APIGatewayResponse[]|APICommResponse|null>=>{
+
+    /*
+        return a stored request from storage. key=url path
+    */
+   
+    if (!key) return
     try{
-        const path=Linking.parse(url).path
-        
-        const fromStore = await AsyncStorage.getItem(path).then(JSON.parse)
-        return fromStore
+        const response = await AsyncStorage.getItem(key).then(JSON.parse)
+        return response
     }
     catch(error){
         console.log(error)
@@ -86,15 +89,16 @@ const getOfflineDevs = async()=>{
         console.log(error)
     }
 }
-const writeToStorage = async(key, value)=>{
-    //Async method to write a key value pair to storage
+export const writeToStorage = async(key:string, value:string):Promise<void>=>{
+    /*
+        Write a key value pair to storage
+    */
+
     try{
         await AsyncStorage.setItem(key, value)
-        return true
     }
     catch(error){
         console.log(error)
-        return false
     }
 }
 
@@ -128,7 +132,7 @@ export const write_token_to_storage = async(token:string):Promise<void> =>{
     const bToken = `Bearer ${tmpToken}`
 
     try{
-        await AsyncStorage.setItem(global.AUTH_TOKEN_STOR, bToken)
+        await AsyncStorage.setItem(Store_Tokens.AUTH_TOKEN, bToken)
 
     }
     catch(error){
@@ -162,8 +166,6 @@ export const write_comm_server_to_storage = async(server:string):Promise<void>=>
 }
 
 export {
-	getFromStore,
-	writeToStorage,
 	// updateToken,
 	saveDevice,
     // getFavs,

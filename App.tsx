@@ -2,12 +2,10 @@ import React, { useEffect, useState, useCallback, useReducer } from "react";
 import ScreenNavigator from "./routes/ScreenNavigator";
 import * as Linking from "expo-linking";
 import * as SplashScreen from "expo-splash-screen";
-import "./global.js";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { GlobalContextProvider } from "./shared/context/GlobalContext";
 import { GlobalState, GlobalState_Actions, Regions, Store_Tokens } from "./shared/types/CustomTypes";
-import { validateToken } from "./shared";
-import { useNetworkStatus } from "./shared/hooks/useNetworkStatus";
+import { validateToken } from "./shared/functions/InterfaceTTN";
 
 SplashScreen.preventAutoHideAsync();
 
@@ -17,7 +15,6 @@ export default function App() {
     // dma://device/?appid=oai-test-devices&uid=A4RF3C&link=true
     const initialState: GlobalState = {
         ttn_auth_token: null,
-        ttn_isValid_token: false,
         ttn_allowed_chars: new RegExp("^[a-z0-9](?:[-]?[a-z0-9]){2,}$"),
         application_server: Regions.EU1,
         communication_server: Regions.EU1,
@@ -136,8 +133,6 @@ export default function App() {
             const authToken = await AsyncStorage.getItem(Store_Tokens.AUTH_TOKEN);
             dispatch({ type: GlobalState_Actions.SET_AUTH_TOKEN, payload: authToken });
 
-            const token_is_valid = await validateToken(authToken, state.application_server);
-            dispatch({ type: GlobalState_Actions.SET_TOKEN_VALID, payload: token_is_valid });
         } catch (error) {
             console.log(error);
         }

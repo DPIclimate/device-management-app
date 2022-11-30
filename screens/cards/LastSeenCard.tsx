@@ -15,6 +15,9 @@ const circles = {
 };
 
 export default function LastSeenCard() {
+
+    //TODO - Fix incorrect image showing
+    
     const {device_state, set_device_state, device_comm_data} = useContext(ManageDeviceContext);
 
     const [state, dispatch] = useContext(GlobalContext);
@@ -38,7 +41,6 @@ export default function LastSeenCard() {
             const now = new Date();
             const diff = (now.getTime() - recent.getTime()) / 1000 / 60;
 
-            console.log(diff);
             if (diff < 1) {
                 setLastSeenText(`<1 min ago`);
             } else if (diff < 2) {

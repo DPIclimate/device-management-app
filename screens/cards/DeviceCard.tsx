@@ -1,13 +1,13 @@
 import React, { useContext } from "react";
 import { Col, Row} from "react-native-easy-grid";
 import { Text, View, StyleSheet } from "react-native";
-import { Card} from "../../shared";
 import { ManageDeviceContext } from "../../shared/context/ManageDeviceContext";
+import Card from "../../shared/components/Card";
 
 export function DeviceCard():JSX.Element {
 
     const {device_state, set_device_state, device_comm_data} = useContext(ManageDeviceContext);
-
+    //TODO
     //Change UID
     // const handlePress = async () => {
     //     const newUID = (await AsyncAlertPrompt("Enter new UID")).toLowerCase();

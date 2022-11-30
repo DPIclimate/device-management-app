@@ -17,12 +17,14 @@ const Card = (props) => {
             shadowColor: '#ccc',
             shadowOpacity: 0.3,
             shadowRadius: 2,
-            marginVertical: 8,
-            marginHorizontal: 4,
+            marginVertical: 5,
+            marginHorizontal: 5,
         },
         cardInner: {
-            marginVertical: 10,
-            marginHorizontal: 18,
+            paddingLeft:20,
+            paddingRight:20,
+            paddingTop:10,
+            paddingBottom:10
         }
     });
     

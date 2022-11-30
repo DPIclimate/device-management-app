@@ -1,11 +1,11 @@
-import { APIDeviceResponse } from "../types/APIResponseTypes";
-import { Device, DeviceUpdateRequest, GlobalState, HTTP_Response } from "../types/CustomTypes";
+import { APIApplicationsResponse, APIDeviceResponse } from "../types/APIResponseTypes";
+import { Device, DeviceUpdateRequest, GlobalState, HTTP_Response, Regions } from "../types/CustomTypes";
 import { ConvertFromDevice } from "./ConvertToAPI";
 
-export const TTN_Actions={
-    UPDATE_LOCATION:'locations',
-    UPDATE_DESCRIPTION:'description'
-}
+export const TTN_Actions = {
+    UPDATE_LOCATION: "locations",
+    UPDATE_DESCRIPTION: "description",
+};
 //Functions used to interface with TTN
 
 const registerDevice = async (device) => {
@@ -115,50 +115,45 @@ const updateDevice = async (data) => {
     }
 };
 
-export const update_ttn_device=async(request:DeviceUpdateRequest, server:string, ttn_auth_token:string):Promise<HTTP_Response>=>{
+export const update_ttn_device = async (request: DeviceUpdateRequest, server: string, ttn_auth_token: string): Promise<HTTP_Response> => {
     /*
         Updating device on TTN according to the TTN_Action passed to this function
     */
 
-    const api_device:APIDeviceResponse=ConvertFromDevice(request.device)
-    const body={
-        end_device:{
-            ...api_device
+    const api_device: APIDeviceResponse = ConvertFromDevice(request.device);
+    const body = {
+        end_device: {
+            ...api_device,
         },
-        field_mask:{
-            paths:[
-                request.action
-            ]
-        }
-    }
-    try{
-        const resp:Response=await fetch(`${server}/api/v3/applications/${request.device.applications_id}/devices/${request.device.id}`,{
-            method:"PUT",
-            headers:{
-                "Authorization":ttn_auth_token
+        field_mask: {
+            paths: [request.action],
+        },
+    };
+    try {
+        const resp: Response = await fetch(`${server}/api/v3/applications/${request.device.applications_id}/devices/${request.device.id}`, {
+            method: "PUT",
+            headers: {
+                Authorization: ttn_auth_token,
             },
-            body:JSON.stringify(body)
-        })
-        
-        const json=await resp.json()
-        console.log(json)
-        return{
-            status:resp.status,
-            status_text:resp.statusText
-        }
+            body: JSON.stringify(body),
+        });
 
-    }
-    catch(error){
-        console.log("Error updating device", error)
-        
+        const json = await resp.json();
+        console.log(json);
+        return {
+            status: resp.status,
+            status_text: resp.statusText,
+        };
+    } catch (error) {
+        console.log("Error updating device", error);
+
         //Return status 0 to let parent function know error is not an http error
         return {
-            status:0,
-            status_text:error
-        }
+            status: 0,
+            status_text: error,
+        };
     }
-
-}
+};
 
 const checkUnique = async (data) => {
     //Checks that a particular device is unique
@@ -227,32 +222,41 @@ const checkUnique = async (data) => {
         error: null,
     };
 };
-export const validateToken = async (token: string, verify_url: string): Promise<boolean> => {
+export const validateToken = async (token: string) => {
     /*
-        Validate ttn token against verify url
+        Validate ttn token against all ttn servers e.g (eu1, au1, nam1)
     */
 
     if (token) {
         token = token.replace("Bearer ", "");
         token = `Bearer ${token}`;
+        console.log(token);
+        for (const region in Regions) {
+            try {
+                const req: Response = await fetch(`${Regions[region]}/api/v3/applications`, {
+                    method: "GET",
+                    headers: {
+                        Authorization: token,
+                    },
+                });
 
-        try {
-            const req: Response = await fetch(verify_url, {
-                method: "GET",
-                headers: {
-                    Authorization: token,
-                },
-            });
+                console.log(req.status);
 
-            if (req.status != 200) {
-                throw Error("TTN token invalid");
+                if (req.status == 200) {
+                    return {
+                        success: true,
+                        server: Regions[region],
+                    };
+                }
+            } catch (error) {
+                console.log(error);
             }
-            return true;
-        } catch (error) {
-            return false;
         }
     }
-    return false;
+    return {
+        success: false,
+        server: null,
+    };
 };
 
 const getApplications = async () => {

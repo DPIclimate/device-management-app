@@ -1,6 +1,6 @@
 import { useContext, useEffect, useState } from 'react';
 import { GlobalContext } from '../context/GlobalContext';
-import { getFromStore } from '../functions/ManageLocStorage';
+import { get_req_from_storage } from '../functions/ManageLocStorage';
 import { APIApplicationsResponse, APICommResponse, APIDeviceResponse, APIGatewayResponse } from '../types/APIResponseTypes';
 // import { checkError } from './checkError';
 import { useNetworkStatus } from './useNetworkStatus';
@@ -39,8 +39,7 @@ export const useFetch = (url:string):useFetchResponse =>{
 			if (state.network_status){
 				try{
 
-					// console.log('fetching', url)
-					
+					console.log('fetching', url)
 					const resp:Response = await fetch(url, { 
 						signal: abortCont.signal,
 						headers:{
@@ -78,10 +77,15 @@ export const useFetch = (url:string):useFetchResponse =>{
 								set_response(data)
 							}
 						}
+						else if (path.search(/api\/v3\/gateways$/g)==0){
+							const data:APIGatewayResponse[]=json.gateways
+							set_response(data)
+						}
 						setIsLoading(false);
 						setError(null);
 						
 					}else{
+						console.log(resp.status)
 						setError(resp.status)
 						setIsLoading(false)
 						set_response(null)
@@ -91,54 +95,26 @@ export const useFetch = (url:string):useFetchResponse =>{
 					if (err.name === 'AbortError') {
 						console.log('Fetch aborted');
 					} else {
-						console.log(err.message)
+						console.log("error in fetch hook", err.message)
 						// setError(err.message);
 						setIsLoading(false);
 					}
 				}
 
 			}else{
-				//TODO
-				console.log('in offline')
+				console.log('Offline, getting from storage', url)
 				//Get offline version of request
-				const fromStore = await getFromStore(url)
-				set_response(fromStore)
+				const path:string=Linking.parse(url).path
+				const store_response=await get_req_from_storage(path)
+				set_response(store_response)
 				setIsLoading(false)
 				setError(null)
 			}
 		}
 		fetchData()
 		return () => abortCont.abort();
-	}, [url, refetch]);
+	}, [url, refetch, state.network_status]);
 
 	return { response, isLoading, error, retry };
 };
-// export const useFetch = async(url) =>{
-// 	//Use fetch method that returns the results depending on internet connection
-// 	const netStatus = await checkNetworkStatus()
 
-// 	if (netStatus){
-				
-// 		try{
-// 			console.log(url)
-// 			if (global.TTN_TOKEN == null) throw Error("User not logged in")
-// 			if (url.includes(undefined)) throw Error("Invalid URL")
-
-// 			console.log('fetching', url)
-// 			const resp = await fetch(url, { 
-// 				headers:global.headers,
-// 				method:'GET'
-// 			}).then(checkError)
-
-// 			return resp
-// 		}catch(err){
-// 			console.log(err)
-// 		}
-
-// 	}else{
-// 		//Get offline version of request
-// 		const fromStore = await getFromStore(url)
-// 		return fromStore
-// 	}
-// }
-// export default useFetchState;

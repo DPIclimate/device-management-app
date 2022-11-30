@@ -4,8 +4,8 @@ export interface APIApplicationsResponse {
         application_id: string;
     };
     updated_at: string;
-    name: string | null;
-    description: string | null;
+    name: string | undefined;
+    description: string | undefined;
 }
 
 export interface APIDeviceResponse {
@@ -19,8 +19,8 @@ export interface APIDeviceResponse {
     };
     created_at: string;
     updated_at: string;
-    name: string|null;
-    description:string|null;
+    name: string|undefined;
+    description:string|undefined;
     locations: {
         user: {
             latitude: number;
@@ -28,10 +28,10 @@ export interface APIDeviceResponse {
             altitude: number;
             source: string;
         };
-    } | null;
+    } | undefined;
     attributes: {
         uid: string;
-    } | null;
+    } | undefined;
 }
 
 export interface APIGatewayResponse {
@@ -41,6 +41,8 @@ export interface APIGatewayResponse {
     };
     created_at: string;
     updated_at: string;
+    name:string|undefined;
+    description:string|undefined;
 }
 
 export interface APICommResponse {

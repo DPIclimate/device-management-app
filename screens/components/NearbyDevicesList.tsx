@@ -1,19 +1,16 @@
-import React, { useEffect, useRef, useState } from "react";
-import { Text, View, TouchableOpacity, Image, StyleSheet, Dimensions, RefreshControl } from "react-native";
+import React from "react";
+import { Text, View, TouchableOpacity, Image, StyleSheet, RefreshControl } from "react-native";
 import { FlatList } from "react-native-gesture-handler";
 import globalStyles from "../../styles";
-import MultiSlider from "@ptomasroos/react-native-multi-slider";
 import { useLocation } from "../../shared/hooks/useLocation";
 import { Device } from "../../shared/types/CustomTypes";
-import { LoadingComponent } from "../../shared/components/LoadingComponent";
-import { Card, renderItem } from "../../shared";
+import Card from "../../shared/components/Card";
 
 export function NearbyDevicesList({ handlePress, devices, retry, isLoading, error }): JSX.Element {
-
-    const { location_status, location, isLoading: location_loading, error: location_error, retry: location_retry} = useLocation();
+    const { location_status, location, isLoading: location_loading, error: location_error, retry: location_retry } = useLocation();
 
     const distance_to_user = (device: Device): number => {
-        if (!location || !device.location) return
+        if (!location || !device.location) return;
         const user_latitude = location.coords.latitude;
         const device_latitude = device.location.latitude;
 
@@ -34,7 +31,7 @@ export function NearbyDevicesList({ handlePress, devices, retry, isLoading, erro
 
         return d;
     };
-    const listData = ():Device[] => {
+    const listData = (): Device[] => {
         if (!devices) return;
 
         //Possibly inefficient as we may be calculating distance multiple times
@@ -42,20 +39,23 @@ export function NearbyDevicesList({ handlePress, devices, retry, isLoading, erro
         return list;
     };
 
-    const renderItem = ({ item, index }):JSX.Element => {
-      return (
-          <Card>
-              <TouchableOpacity style={styles.clickable} onPress={() => handlePress(item)}>
-                  <Text style={styles.device_id} numberOfLines={1} ellipsizeMode="tail">
-                      {item.name? item.name:item.id}
-                  </Text>
-                  <Text style={styles.distance}>Dist: {distance_to_user(item)?.toFixed(2)}km</Text>
-                  <Image source={require("../../assets/arrowBlue.png")} style={{ height: 20, width: 20 }} />
-              </TouchableOpacity>
-          </Card>
-      );
-  };
-  
+    const renderItem = ({ item, index }): JSX.Element => {
+        return (
+            <TouchableOpacity onPress={() => handlePress(item)}>
+                <Card>
+                    <View style={styles.clickable}>
+
+                    <Text style={styles.device_id} numberOfLines={1} ellipsizeMode="tail">
+                        {item.name ? item.name : item.id}
+                    </Text>
+                    <Text style={styles.distance}>Dist: {distance_to_user(item)?.toFixed(2)}km</Text>
+                    <Image source={require("../../assets/arrowBlue.png")} style={{ height: 20, width: 20 }} />
+                    </View>
+                </Card>
+            </TouchableOpacity>
+        );
+    };
+
     return (
         <View style={globalStyles.screen}>
             <FlatList
@@ -83,10 +83,10 @@ const styles = StyleSheet.create({
         width: "100%",
         height: 30,
     },
-    device_id:{
-      flex:1
+    device_id: {
+        flex: 1,
     },
-    distance:{
-      paddingRight:10
-    }
+    distance: {
+        paddingRight: 10,
+    },
 });

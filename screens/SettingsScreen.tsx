@@ -1,235 +1,214 @@
-import React, {useEffect, useState} from 'react';
-import { View,Text, ScrollView,StyleSheet ,TextInput, Alert, Linking, Image, TouchableOpacity} from 'react-native';
-import globalStyles from '../styles';
-import {Card} from '../shared';
-import {updateCommServer, updateServer, updateToken} from '../shared/functions/ManageLocStorage'
-import { LoadingComponent } from '../shared';
-import { validateToken } from '../shared';
-import version from '../app.json'
-import {what_is_bearer, why_bearer, how_to_part1, how_to_part2, api_link, about} from '../card_text.js'
-import { Button } from '../shared/Button';
+import React, { useContext, useEffect, useState } from "react";
+import { Alert, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from "react-native";
+import { TouchableOpacity } from "react-native-gesture-handler";
+import Card from "../shared/components/Card";
+import { LoadingComponent } from "../shared/components/LoadingComponent";
+import { GlobalContext } from "../shared/context/GlobalContext";
+import { validateToken } from "../shared/functions/InterfaceTTN";
+import { write_app_server_to_storage, write_comm_server_to_storage, write_token_to_storage } from "../shared/functions/ManageLocStorage";
+import { GlobalState_Actions, Regions } from "../shared/types/CustomTypes";
+import globalStyles from "../styles";
+import version from "../app.json";
+import { Bearer_Help_Card } from "../shared/components/Bearer_Help_Card";
+import { DPI_TAG } from "../shared/components/DPI_Tag";
 
-function SettingsScreen(params) {
-    
-    const [token, changeToken] = useState('')
-    const [currentToken, changeCurrentToken] = useState()
-    const [validating, setValidating] = useState(false)
-    const [invalidToken, setInvalid] = useState(false)
+export function SettingsScreen({ route, navigation }): JSX.Element {
+    const [state, dispatch] = useContext(GlobalContext);
 
-    useEffect(() =>{
-        getCurrentToken()
-    },[])
+    const [token, changeToken] = useState<string>();
+    const [validating, setValidating] = useState<boolean>(false);
+    const [invalidToken, setInvalid] = useState<boolean>(false);
 
+    const handleServerChange = async(server: string):Promise<void> => {
 
-    const getCurrentToken = () =>{
-        
-        let privBearer = ''
-        headers = global.headers
-        if (headers['Authorization'] != null){
-            let bearer = headers['Authorization'].split(' ')[1]
-                    
-            let first = ""
-            let last = ""
-            for( let i in bearer){
-                
-                if(i < 5){
-                    first += bearer[i]
-                }
-                else if (i > 93){
-                    last += bearer[i]
-                }
-            }
-            privBearer = `${first}................................${last}`
-        }else{
-            privBearer = '-'
-        }
-        changeCurrentToken(privBearer)
-        
-    }
+        dispatch({type:GlobalState_Actions.SET_COMMUNICATION_SERVER, payload:server})
+        await write_comm_server_to_storage(server)
+    };
 
-    const handlePress = () =>{
+    const redacted = (token: string): string => {
+        const noBearer = token.replace("Bearer ", "");
+        const token_redacted = noBearer.replace(/\.[a-zA-Z0-9]*\.[a-zA-Z0-9]{47}/, "..................");
+        return token_redacted;
+    };
 
-        Alert.alert("Are you sure?","Are you sure you want to change your TTN bearer token, this cannot be undone?",[
+    const handlePress = () => {
+        if (!token) return;
+        Alert.alert("Are you sure?", "Are you sure you want to change your TTN bearer token?", [
             {
                 text: "Yes",
-                onPress: () => handleYes(token)
+                onPress: () => handleYes(token),
             },
             {
-                text:"No",
-                onPress: () => console.log('no')
-            }
-        ])
+                text: "No",
+                onPress: () => console.log("no"),
+            },
+        ]);
+    };
+    const handleYes = async (token) => {
+        setValidating(true);
+        setInvalid(false);
 
-    }
-    const handleYes = async(token) =>{
+        const validation = await validateToken(token);
 
-        setValidating(true)
+        if (validation.success) {
+            console.log("token is valid");
 
-        const validToken = await validateToken(token)
-        console.log('in settings', validToken)
-        
-        if (validToken){
-            setInvalid(false)
-            await updateToken(token)
-            getCurrentToken()
-            changeToken('')  
-            Alert.alert("Success", "Bearer token successfully updated, please relaunch application to ensure changes take affect")  
-                
+            const tmpToken = token.replace("Bearer ", ""); //Does not matter whether user includes the word Bearer or not
+            const bToken = `Bearer ${tmpToken}`;
+
+            dispatch({ type: GlobalState_Actions.SET_AUTH_TOKEN, payload: bToken });
+            dispatch({ type: GlobalState_Actions.SET_TOKEN_VALID, payload: true });
+            await write_token_to_storage(token);
+
+            dispatch({ type: GlobalState_Actions.SET_APPLICATION_SERVER, payload: validation.server });
+            await write_app_server_to_storage(validation.server);
+
+            setValidating(false);
+            changeToken(null);
+
+            Alert.alert("Success", "Token successfully updated");
+        } else {
+            setInvalid(true);
+            setValidating(false);
         }
-        else{
-            console.log('token was invalid')
-            setInvalid(true)
-        }
+    };
 
-        setValidating(false)
-    }
-    
     return (
-        <ScrollView>
-            <View style={globalStyles.contentView}> 
-                <Card>
-                    <Text style={globalStyles.title}>Authentication</Text>
-                    <Text style={[globalStyles.subTitle, styles.subTitle]}>Current TTN Bearer Token:</Text>
-                    <Text style={[globalStyles.text,styles.text]}>{currentToken}</Text>
+        <ScrollView style={globalStyles.screen}>
+            <Card>
+                <Text style={styles.cardTitle}>TTN Token</Text>
 
-                    <Text  style={[globalStyles.subTitle, styles.subTitle]}>New TTN Bearer Token</Text>
-                    <TextInput value={token} placeholder='e.g NNSXS.ABCDEF.........' style={[styles.inputWborder, invalidToken?globalStyles.inputInvalid:null]} onChangeText={changeToken} autoCorrect={false} autoCapitalize='none'/>
+                <View style={styles.separatorLine} />
 
-                    {!validating?
-                        <Button onSubmit={handlePress} disabled={token.length == 0? true: false}>Update</Button>
-                        :
-                        <LoadingComponent loading={validating}/>
-                    }
-                    {invalidToken? <Text style={globalStyles.invalidText}>Invalid TTN Bearer Token</Text>:<View></View>  }
-                </Card>
+                <Text style={styles.title}>Current Token:</Text>
+                <Text>{redacted(state.ttn_auth_token)}</Text>
+                <TextInput
+                    value={token}
+                    placeholder="e.g NNSXS.ABCDEF........."
+                    style={styles.input}
+                    onChangeText={changeToken}
+                    autoCorrect={false}
+                    autoCapitalize="none"
+                />
+                {validating ? (
+                    <LoadingComponent isLoading={validating} />
+                ) : (
+                    <TouchableOpacity style={styles.submit} onPress={() => handlePress()}>
+                        <Text style={styles.submitText}>Continue</Text>
+                    </TouchableOpacity>
+                )}
+                {invalidToken && (
+                    <Text style={[styles.text, styles.invalidText]}>Invalid TTN Bearer Token, please check that your token is correct.</Text>
+                )}
+            </Card>
+            <Card>
+                <Text style={styles.cardTitle}>Communications Server</Text>
 
-                <TTN_SERVER/>
-                <HelpCard/>
-                <Card>
-                    <Text style={globalStyles.title}>Found a bug?</Text>
-                    <Text style={[globalStyles.text,styles.text]}>Please report it <Text style={{color:'blue'}} onPress={() => Linking.openURL('https://github.com/DPIclimate/device-management-app/issues/new')}>here</Text></Text>
-                </Card>
-                <DPI_TAG/>
-            </View>
-            <View style={{height:50, alignItems:'center'}}>
-                <Text>v{version['expo']['version']}</Text>
+                <View style={styles.separatorLine} />
+
+                <View style={styles.commsOptions}>
+                    <Pressable
+                        onPress={() => handleServerChange(Regions.EU1)}
+                        style={state.communication_server == Regions.EU1 ? styles.exclusiveOptsSelected : styles.exclusiveOpts}
+                    >
+                        <Text style={state.communication_server == Regions.EU1 ? styles.exclusiveOptsSelectedTxt : styles.exclusiveOptsText}>EU1</Text>
+                    </Pressable>
+                    <Pressable
+                        onPress={() => handleServerChange(Regions.AU1)}
+                        style={state.communication_server == Regions.AU1 ? styles.exclusiveOptsSelected : styles.exclusiveOpts}
+                    >
+                        <Text style={state.communication_server == Regions.AU1 ? styles.exclusiveOptsSelectedTxt : styles.exclusiveOptsText}>AU1</Text>
+                    </Pressable>
+                    <Pressable
+                        onPress={() => handleServerChange(Regions.NAM1)}
+                        style={state.communication_server == Regions.NAM1 ? styles.exclusiveOptsSelected : styles.exclusiveOpts}
+                    >
+                        <Text style={state.communication_server == Regions.NAM1 ? styles.exclusiveOptsSelectedTxt : styles.exclusiveOptsText}>NAM1</Text>
+                    </Pressable>
+                </View>
+            </Card>
+            <Bearer_Help_Card />
+            <DPI_TAG />
+            <View style={{ height: 50, alignItems: "center" }}>
+                <Text>v{version["expo"]["version"]}</Text>
             </View>
         </ScrollView>
     );
 }
-const HelpCard = () =>{
-    return(
-        <Card>
-            <Text style={globalStyles.title}>Help</Text>
-            <Text style={[globalStyles.subTitle, styles.subTitle]}>What is a bearer token?</Text>
-            <Text style={[globalStyles.text, styles.text]}>{what_is_bearer}</Text>
-
-            <Text style={[globalStyles.subTitle, styles.subTitle]}>Why do I need this?</Text>
-            <Text style={[globalStyles.text, styles.text]}>{why_bearer}</Text>
-
-            <Text style={[globalStyles.subTitle, styles.subTitle]}>How do I get one?</Text>
-            <Text style={[globalStyles.text, styles.text]}>{how_to_part1}<Text style={{color:'blue'}} onPress={() => Linking.openURL(api_link)}>Personal API Keys </Text>{how_to_part2}</Text>
-        </Card>
-    )
-}
-const DPI_TAG = () =>{
-    return(
-        <View style={{alignItems:'center'}}>
-            <Image style={{height:60}} resizeMode="contain" source={require('../assets/dpiLogo.png')}/>
-            <Text style={{fontSize:10, textAlign:'center', paddingTop:10}}>This app was produced by the NSW Department of Primary Industries Climate Change Research Project, funded by the NSW Climate Change Fund.</Text>
-        </View>
-    )
-}
-const TTN_SERVER = ()=>{
-    
-    const [server, setServer] = useState(global.TTN_SERVER)
-    const [commServer, setCommServer] = useState(global.COMM_SERVER)
-
-    const servers ={
-        EU_1:'eu1',
-        AU_1:'au1',
-        NAM_1:'nam1'
-    }
-    const onServerChange = (serv)=>{
-        global.TTN_SERVER=serv
-        global.BASE_URL=`https://${serv}.cloud.thethings.network/api/v3`
-        updateServer(serv)
-        setServer(serv)
-    }
-
-    const onCommServerChange=(serv)=>{
-        global.COMM_SERVER=serv
-        global.COMM_URL=`https://${serv}.cloud.thethings.network/api/v3/ns`
-        updateCommServer(serv)
-        setCommServer(serv)
-    }
-    return (
-        <Card>
-            <Text style={globalStyles.title}>TTN Server</Text>
-
-            <Text style={styles.subTitle}>Applications/Devices</Text>
-            <View style={{flexDirection:'row', alignItems:'center', justifyContent:'center'}}>
-                <TouchableOpacity style={[styles.serverButton, {backgroundColor: server == servers.EU_1 ? '#c2c2c2': '#f2f2f2'}]} onPress={() => onServerChange(servers.EU_1)}>
-                    <Text style={styles.buttonText}>EU</Text>
-                </TouchableOpacity>
-                    
-                <TouchableOpacity style={[styles.serverButton, {backgroundColor: server == servers.AU_1 ? '#c2c2c2': '#f2f2f2'}]} onPress={() => onServerChange(servers.AU_1)}>
-                    <Text style={styles.buttonText}>AU</Text>
-                </TouchableOpacity>
-
-                <TouchableOpacity style={[styles.serverButton, {backgroundColor: server == servers.NAM_1 ? '#c2c2c2': '#f2f2f2'}]} onPress={() => onServerChange(servers.NAM_1)}>
-                    <Text style={styles.buttonText}>NAM</Text>
-                </TouchableOpacity>
-            </View>
-            <Text style={styles.subTitle}>Device communications</Text>
-            <View style={{flexDirection:'row', alignItems:'center', justifyContent:'center'}}>
-                <TouchableOpacity style={[styles.serverButton, {backgroundColor: commServer == servers.EU_1 ? '#c2c2c2': '#f2f2f2'}]} onPress={() => onCommServerChange(servers.EU_1)}>
-                    <Text style={styles.buttonText}>EU</Text>
-                </TouchableOpacity>
-                    
-                <TouchableOpacity style={[styles.serverButton, {backgroundColor: commServer== servers.AU_1 ? '#c2c2c2': '#f2f2f2'}]} onPress={() => onCommServerChange(servers.AU_1)}>
-                    <Text style={styles.buttonText}>AU</Text>
-                </TouchableOpacity>
-
-                <TouchableOpacity style={[styles.serverButton, {backgroundColor: commServer== servers.NAM_1 ? '#c2c2c2': '#f2f2f2'}]} onPress={() => onCommServerChange(servers.NAM_1)}>
-                    <Text style={styles.buttonText}>NAM</Text>
-                </TouchableOpacity>
-            </View>
-        </Card>
-    )
-}
 
 const styles = StyleSheet.create({
-
-    subTitle:{
-        paddingTop:20,
-        fontWeight:'bold'
+    cardTitle: {
+        fontWeight: "bold",
+        fontSize: 20,
+        marginTop: 10,
+        marginBottom: 10,
     },
-    text:{
-        paddingTop:10
+    separatorLine: {
+        width: "80%",
+        height: 2,
+        backgroundColor: "#128cde",
+        alignSelf: "flex-start",
     },
-    inputWborder:{
-        borderRadius:10,
-        borderWidth:1,
-        marginTop:2,
-        height:40,
-        padding:5,
-        width:'100%'
+    title: {
+        fontWeight: "bold",
+        fontSize: 15,
+        marginTop: 15,
     },
-    serverButton:{
-        padding:10,
-        flex:1,
-        borderColor:'#dadada',
-        borderWidth:1,
-        alignItems:'center',
-        margin:5,
-        borderRadius:5
+    input: {
+        borderWidth: 1,
+        borderColor: "black",
+        padding: 10,
+        marginTop: 20,
+        borderRadius: 25,
     },
-    buttonText:{
-        width:'100%',
-        height:20,
-        textAlign:'center'
+    submit: {
+        backgroundColor: "#128cde",
+        width: "100%",
+        justifyContent: "center",
+        alignItems: "center",
+        alignSelf: "center",
+        borderRadius: 50,
+        margin: 20,
+    },
+    submitText: {
+        color: "white",
+        fontWeight: "bold",
+        fontSize: 15,
+        padding: 10,
+    },
+    text: {
+        paddingBottom: 20,
+        textAlign: "center",
+    },
+    invalidText: {
+        color: "red",
+    },
+    exclusiveOpts: {
+        padding: 10,
+        borderWidth: 1,
+        borderColor: "#128cde",
+        flex: 1,
+        alignItems: "center",
+        backgroundColor: "white",
+        margin: 1,
+    },
+    exclusiveOptsSelected: {
+        padding: 10,
+        borderWidth: 1,
+        borderColor: "#128cde",
+        flex: 1,
+        alignItems: "center",
+        backgroundColor: "#128cde",
+        margin: 1,
+    },
+    exclusiveOptsText: {
+        color: "#128cde",
+    },
+    exclusiveOptsSelectedTxt: {
+        color: "white",
+    },
+    commsOptions:{
+        flexDirection:'row',
+        marginTop:15
     }
-})
-export default SettingsScreen;
-export {HelpCard, DPI_TAG, TTN_SERVER}
+});
