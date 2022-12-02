@@ -56,7 +56,6 @@ const globalStyles = StyleSheet.create({
         height:40,
         width:'100%'
     },
-<<<<<<< HEAD:styles.tsx
     inputInvalid:{
         borderColor:'red',
         borderWidth:1,
@@ -65,8 +64,6 @@ const globalStyles = StyleSheet.create({
         height:40,
         width:'100%'
     },
-=======
->>>>>>> main:styles.js
     invalidText:{
         color:'red',
         paddingTop:10
