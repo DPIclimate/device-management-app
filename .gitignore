@@ -11,6 +11,8 @@ npm-debug.*
 *.orig.*
 web-build/
 google-api-key.json
+.vscode/*
+.venv/
 
 # macOS
 .DS_Store
