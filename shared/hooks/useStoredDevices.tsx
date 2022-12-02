@@ -10,7 +10,7 @@ export interface StoredDeviceResponse{
     retry():void
 }
 
-export default function useStoredDevices():StoredDeviceResponse {
+export function useStoredDevices():StoredDeviceResponse {
  
     const [response, set_response] = useState<Device[]>([])
     const [isLoading, set_isLoading]=useState<boolean>(true)
@@ -26,17 +26,34 @@ export default function useStoredDevices():StoredDeviceResponse {
 
     useEffect(() =>{
 
+        let isMounted=true
+
         const fetchData = async():Promise<void> =>{
             try{
-                const inStore:string=await AsyncStorage.getItem(Store_Tokens.DEVICE_UPDATES).then(JSON.parse)
-                console.log(inStore)
+                const inStore=await AsyncStorage.getItem(Store_Tokens.DEVICE_UPDATES).then(JSON.parse)
+
+                if (inStore){   
+                    if(isMounted){
+                        set_response(inStore as Device[])
+                    }
+                }
+
+                if(isMounted){
+                    set_isLoading(false)
+                }
             }
             catch(error){
-                set_error(error)
+                if(isMounted){
+                    set_error(error)
+                }
+                console.log(error)
             }
-            set_isLoading(false)
         }
         fetchData()
+        
+        return () =>{
+            isMounted=false
+        }
     },[refetch])
 
     return {

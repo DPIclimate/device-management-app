@@ -1,15 +1,20 @@
-import React, { useRef, useState } from "react";
+import React, { useRef } from "react";
 import { View, StyleSheet, Text, Image } from "react-native";
 import { TouchableOpacity } from "react-native-gesture-handler";
-import MapView, { Marker, PROVIDER_DEFAULT, Callout, MAP_TYPES, Region, LatLng, Camera } from "react-native-maps";
-import { useLocation } from "../../shared/hooks/useLocation";
+import MapView, { Marker, PROVIDER_DEFAULT, Callout, MAP_TYPES, Camera } from "react-native-maps";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { LocationResponse, useLocation } from "../../shared/hooks/useLocation";
 import { Device } from "../../shared/types/CustomTypes";
 
-export function NearbyDevicesMap({ handlePress, devices, retry, isLoading, error }): JSX.Element {
-    const { location_status, location, isLoading: location_loading, error: location_error, retry: location_retry } = useLocation();
+export function NearbyDevicesMap({ userLocation, handlePress, devices, retry, isLoading, error }): JSX.Element {
+
+    const { location_status, location, isLoading: location_loading, error: location_error, retry: location_retry } = userLocation as LocationResponse
+    const insets=useSafeAreaInsets()
 
     const mapRef = useRef();
     const locationUpdate = () => {
+
+        if (!location) return
         const camera: Camera = {
             center: {
                 latitude: location.coords.latitude,
@@ -59,7 +64,7 @@ export function NearbyDevicesMap({ handlePress, devices, retry, isLoading, error
                     );
                 })}
             </MapView>
-            <View style={styles.imageView}>
+            <View style={[styles.imageView, {right:styles.imageView.right + insets.right}]}>
                 <TouchableOpacity style={styles.locationButton} onPress={() => locationUpdate()}>
                     <Image source={require("../../assets/location.png")} style={styles.locationImg} />
                 </TouchableOpacity>
@@ -81,7 +86,8 @@ const styles = StyleSheet.create({
         backgroundColor: "tomato",
     },
     map: {
-        flex: 1,
+        width:'100%',
+        height:'100%'
     },
     locationImg: {
         width: 20,

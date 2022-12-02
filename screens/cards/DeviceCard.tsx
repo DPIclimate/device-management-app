@@ -7,54 +7,7 @@ import Card from "../../shared/components/Card";
 export function DeviceCard():JSX.Element {
 
     const {device_state, set_device_state, device_comm_data} = useContext(ManageDeviceContext);
-    //TODO
-    //Change UID
-    // const handlePress = async () => {
-    //     const newUID = (await AsyncAlertPrompt("Enter new UID")).toLowerCase();
-
-    //     if (newUID.length != 6) {
-    //         Alert.alert("Invalid UID", `The UID ${newUID} is of invalid length. Please make sure the UID you have entered is 6 characters long`);
-    //         return;
-    //     } else if (!global.ALLOWED_CHARS.test(newUID)) {
-    //         Alert.alert("Invalid UID", `The UID ${newUID} contains one or more illegal character. Please try a different UID`);
-    //         return;
-    //     }
-
-    //     const data = {
-    //         end_device: {
-    //             ids: {
-    //                 device_id: device_state.devID,
-    //                 application_ids: {
-    //                     application_id: device_state.appID,
-    //                 },
-    //             },
-    //             attributes: {
-    //                 uid: newUID.toUpperCase(),
-    //             },
-    //         },
-    //         field_mask: {
-    //             paths: ["attributes"],
-    //         },
-    //     };
-    //     const { success, error } = await updateDevice(data);
-    //     if (success) {
-    //         Alert.alert("Update Successful!");
-    //         // autoSearch(true)
-    //     } else {
-    //         Alert.alert("An error occurred", `${error}`);
-    //     }
-    // };
-    // const UID_FIELD = () => {
-    //     if (!device_state.uid) {
-    //         return (
-    //             <TouchableOpacity onPress={handlePress}>
-    //                 <Image source={require("../../assets/plus.png")} style={styles.image} />
-    //             </TouchableOpacity>
-    //         );
-    //     } else {
-    //         return <Text>{device_state.uid}</Text>;
-    //     }
-    // };
+    //TODO enable ability to change device attributes
 
     //Mappings from key to display text
     const mappings = {

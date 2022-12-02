@@ -5,7 +5,6 @@ import * as SplashScreen from "expo-splash-screen";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { GlobalContextProvider } from "./shared/context/GlobalContext";
 import { GlobalState, GlobalState_Actions, Regions, Store_Tokens } from "./shared/types/CustomTypes";
-import { validateToken } from "./shared/functions/InterfaceTTN";
 
 SplashScreen.preventAutoHideAsync();
 
@@ -13,11 +12,12 @@ export default function App() {
     //Used for deep linking
     // exp://10.221.26.87:19000/--/device/?appid=oai-test-devices&uid=2SBBWH&link=true
     // dma://device/?appid=oai-test-devices&uid=A4RF3C&link=true
+    
     const initialState: GlobalState = {
         ttn_auth_token: null,
         ttn_allowed_chars: new RegExp("^[a-z0-9](?:[-]?[a-z0-9]){2,}$"),
         application_server: Regions.EU1,
-        communication_server: Regions.EU1,
+        communication_server: Regions.AU1,
         network_status: false,
     };
 
@@ -116,9 +116,11 @@ export default function App() {
     };
 
     const loadUserSettings = async () => {
+
         try {
             const server = await AsyncStorage.getItem(Store_Tokens.APPLICATION_SERVER);
             dispatch({ type: GlobalState_Actions.SET_APPLICATION_SERVER, payload: server });
+
         } catch (error) {
             console.log(error);
         }
@@ -126,6 +128,7 @@ export default function App() {
         try {
             const server = await AsyncStorage.getItem(Store_Tokens.COMMUNICATION_SERVER);
             dispatch({ type: GlobalState_Actions.SET_COMMUNICATION_SERVER, payload: server });
+
         } catch (error) {
             console.log(error);
         }

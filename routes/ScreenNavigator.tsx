@@ -9,7 +9,7 @@ import QrScanner from '../screens/QrScanner';
 import { ManageDeviceScreen } from '../screens/ManageDeviceScreen';
 import { NearbyDevicesScreen } from '../screens/NearbyDevicesScreen';
 import { SettingsScreen } from '../screens/SettingsScreen';
-import { OfflineDevicesScreen } from '../screens/OfflineDevicesScreen';
+import { SavedUpdatesScreen } from '../screens/SavedUpdatesScreen';
 
 const { Screen, Navigator } = createStackNavigator();
 
@@ -56,9 +56,9 @@ function ScreenStack() {
         options={{title:"Manage Device"}}
         />
       <Screen
-      name="OfflineDevices"
-      component={OfflineDevicesScreen}
-      options={{title:"Saved Devices"}}
+      name="SavedUpdatesScreen"
+      component={SavedUpdatesScreen}
+      options={{title:"Saved Updates"}}
       />
       <Screen
       name="SettingsScreen"

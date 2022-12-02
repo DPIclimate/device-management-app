@@ -15,6 +15,7 @@ export const cacheData = async (ttn_auth_token: string, device_server: string, c
             method: "GET",
             headers: {
                 Authorization: ttn_auth_token,
+                "Content-Type": "application/json"
             },
         });
         if (response.status != 200) {
@@ -35,6 +36,7 @@ export const cacheData = async (ttn_auth_token: string, device_server: string, c
                     method: "GET",
                     headers: {
                         Authorization: ttn_auth_token,
+                        "Content-Type": "application/json"
                     },
                 });
 

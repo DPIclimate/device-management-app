@@ -1,7 +1,6 @@
 import React, { useEffect, useState, useRef, useContext, useReducer } from "react";
-import { StyleSheet, ScrollView, RefreshControl } from "react-native";
+import { StyleSheet, ScrollView, RefreshControl, SafeAreaView } from "react-native";
 import { GlobalContext } from "../shared/context/GlobalContext";
-import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { CommMessage, Device } from "../shared/types/CustomTypes";
 import { DeviceCard } from "./cards/DeviceCard";
 import { ManageDeviceContextProvider } from "../shared/context/ManageDeviceContext";
@@ -13,10 +12,10 @@ import { APICommResponse, APIDeviceResponse } from "../shared/types/APIResponseT
 import { LocationCard } from "./cards/LocationCard";
 import { NotesCard } from "./cards/NotesCard";
 import { useKeyboardHeight } from "../shared/hooks/useKeyboardHeight";
+import globalStyles from "../styles";
 
-export const ManageDeviceScreen = ({ route, navigation }) => {
+export const ManageDeviceScreen = ({ route, navigation }): JSX.Element => {
     const [state, dispatch] = useContext(GlobalContext);
-    const insets = useSafeAreaInsets();
     const keyboardHeight = useKeyboardHeight();
     const scrollViewRef = useRef();
 
@@ -42,7 +41,6 @@ export const ManageDeviceScreen = ({ route, navigation }) => {
     );
 
     useEffect(() => {
-
         if (comm_isLoading) return;
         if (!comm_response) return;
 
@@ -53,14 +51,12 @@ export const ManageDeviceScreen = ({ route, navigation }) => {
     }, [comm_isLoading]);
 
     useEffect(() => {
-
         if (dev_isLoading) return;
         if (!dev_response) return;
 
         const dev_data = dev_response as APIDeviceResponse;
-        const formatted:Device=ConvertToDevice(dev_data, route.params.device.isFav)
-        set_device_state(formatted)
-
+        const formatted: Device = ConvertToDevice(dev_data, route.params.device.isFav);
+        set_device_state(formatted);
     }, [dev_isLoading]);
 
     useEffect(() => {
@@ -69,34 +65,36 @@ export const ManageDeviceScreen = ({ route, navigation }) => {
     }, [keyboardHeight]);
 
     return (
-        <ScrollView
-            keyboardDismissMode="interactive"
-            ref={scrollViewRef}
-            style={styles.contentView}
-            contentContainerStyle={{
-                paddingBottom: keyboardHeight + 20 +insets.bottom,
-            }}
-            refreshControl={
-                <RefreshControl
-                refreshing={dev_isLoading||comm_isLoading}
-                onRefresh={() =>{
-                    dev_retry()
-                    comm_retry()
-                }}/>
-            }
-        >
-            <ManageDeviceContextProvider
-                device_comm_data={{ data: device_comm_data, isLoading: comm_isLoading }}
-                device_state={device_state}
-                set_device_state={set_device_state}
+        <SafeAreaView style={globalStyles.screen}>
+            <ScrollView
+                keyboardDismissMode="interactive"
+                ref={scrollViewRef}
+                contentContainerStyle={{
+                    paddingBottom: keyboardHeight + 20,
+                }}
+                refreshControl={
+                    <RefreshControl
+                        refreshing={dev_isLoading || comm_isLoading}
+                        onRefresh={() => {
+                            dev_retry();
+                            comm_retry();
+                        }}
+                    />
+                }
             >
-                <LastSeenCard />
-                <DeviceCard />
-                <CommCard />
-                <LocationCard />
-                <NotesCard />
-            </ManageDeviceContextProvider>
-        </ScrollView>
+                <ManageDeviceContextProvider
+                    device_comm_data={{ data: device_comm_data, isLoading: comm_isLoading }}
+                    device_state={device_state}
+                    set_device_state={set_device_state}
+                >
+                    <LastSeenCard />
+                    <DeviceCard />
+                    <CommCard />
+                    <LocationCard />
+                    <NotesCard />
+                </ManageDeviceContextProvider>
+            </ScrollView>
+        </SafeAreaView>
     );
 };
 const styles = StyleSheet.create({

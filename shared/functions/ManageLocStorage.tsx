@@ -1,43 +1,7 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import * as Linking from 'expo-linking';
-import { Region } from 'react-native-maps';
 import { APIApplicationsResponse, APICommResponse, APIDeviceResponse, APIGatewayResponse } from '../types/APIResponseTypes';
-import { Device, DeviceUpdateRequest, Store_Tokens } from '../types/CustomTypes';
+import { DeviceUpdateRequest, Store_Tokens } from '../types/CustomTypes';
 
-//Functions to manage local storage
-const saveDevice = async(device) =>{
-
-    let currentDevices = []
-    console.log('reading')
-    try{
-        const fromStore = await AsyncStorage.getItem(global.DEV_STORE).then(JSON.parse)
-        fromStore != null? currentDevices = [...currentDevices,
-	...fromStore] : currentDevices = []
-
-    }catch(error){
-        console.log(error)
-    }
-
-    console.log('creating')
-    currentDevices.push(device)
-    
-    console.log('writing')
-    try{
-        await AsyncStorage.setItem(global.DEV_STORE,
-	JSON.stringify(currentDevices))
-        return {
-            success:true, 
-            error:null
-        }
-
-    }catch(error){
-        console.log(error)
-        return {
-            success:false, 
-            error:error
-        }
-    }
-}
 export const save_update_to_storage=async(updateRequest:DeviceUpdateRequest):Promise<void>=>{
 
     /*
@@ -55,12 +19,36 @@ export const save_update_to_storage=async(updateRequest:DeviceUpdateRequest):Pro
         devices.push(updateRequest)
 
         await AsyncStorage.setItem(Store_Tokens.DEVICE_UPDATES, JSON.stringify(devices))
+        console.log("Save successful")
     }
     catch(error){
         console.log(error)
     }
 
-    console.log("Save successful")
+}
+
+export const delete_update_from_storage=async(index:number):Promise<void>=>{
+    /*
+        Delete an update request from storage
+    */
+
+    try{
+        const in_storage=await AsyncStorage.getItem(Store_Tokens.DEVICE_UPDATES).then(JSON.parse)
+        
+        let devices:DeviceUpdateRequest[]=[]
+        if (in_storage){
+            devices=[...in_storage]
+        }
+
+        devices.splice(index,1)
+
+        await AsyncStorage.setItem(Store_Tokens.DEVICE_UPDATES, JSON.stringify(devices))
+        console.log("delete successful")
+    }
+    catch(error){
+        console.log(error)
+    }
+
 }
 
 export const get_req_from_storage = async(key:string):Promise<APIApplicationsResponse[]|APIDeviceResponse[]|APIDeviceResponse|APIGatewayResponse[]|APICommResponse|null>=>{
@@ -73,17 +61,6 @@ export const get_req_from_storage = async(key:string):Promise<APIApplicationsRes
     try{
         const response = await AsyncStorage.getItem(key).then(JSON.parse)
         return response
-    }
-    catch(error){
-        console.log(error)
-    }
-}
-const getOfflineDevs = async()=>{
-    //Returns devices saved offline for online registration
-
-    try{
-        const store = await AsyncStorage.getItem(global.DEV_STORE).then(JSON.parse)
-        return store
     }
     catch(error){
         console.log(error)
@@ -163,13 +140,4 @@ export const write_comm_server_to_storage = async(server:string):Promise<void>=>
     catch(error){
         console.log("Error in writing comm server to storage error")
     }
-}
-
-export {
-	// updateToken,
-	saveDevice,
-    // getFavs,
-    getOfflineDevs,
-    // updateServer,
-    // updateCommServer
 }

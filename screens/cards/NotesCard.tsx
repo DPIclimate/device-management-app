@@ -86,6 +86,7 @@ export function NotesCard():JSX.Element {
 
                 <Grid>
                     <TextInput
+                        style={styles.input}
                         onSubmitEditing={saveNotes}
                         inputAccessoryViewID={inputAccessoryViewID}
                         multiline={true}
@@ -130,4 +131,7 @@ const styles = StyleSheet.create({
         marginTop: 10,
         marginBottom: 10,
     },
+    input:{
+        width:'100%'
+    }
 });

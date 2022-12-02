@@ -11,7 +11,8 @@ export const cacheCommData = async (ttn_auth_token: string, server: string, devi
                 const response: Response = await fetch(url, {
                     method: "GET",
                     headers:{
-                        "Authorization":ttn_auth_token
+                        Authorization:ttn_auth_token,
+                        "Content-Type": "application/json"
                     },
                 });
                 

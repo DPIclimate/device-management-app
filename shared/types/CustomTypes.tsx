@@ -13,6 +13,7 @@ export interface Device {
         latitude: number|undefined;
         longitude: number|undefined;
         altitude: number|undefined;
+        accuracy:number|undefined;
         source: string|undefined;
     };
 }
@@ -24,7 +25,6 @@ export interface Application {
     updated_at: string;
     isFav: boolean;
     description: string;
-    // devices:Device[]
 }
 
 export interface CommMessage {
@@ -42,6 +42,10 @@ export interface GlobalState {
     network_status: boolean;
 }
 
+export interface QRCode{
+    application_id:string,
+    device_uid:string
+}
 export interface HTTP_Response{
     status:number,
     status_text:string
@@ -64,13 +68,13 @@ export enum Regions {
 }
 
 export enum Store_Tokens {
-    DEVICE_UPDATES="devUpdates",
-    DEVICES = "devices",
-    AUTH_TOKEN = "authToken",
-    FAV_APPLICATIONS = "appFavs",
-    FAV_DEVICES = "devFavs",
-    APPLICATION_SERVER = "server",
-    COMMUNICATION_SERVER = "commServer",
+    DEVICE_UPDATES="device_updates",
+    DEVICES = "device_list",
+    AUTH_TOKEN = "ttn_auth_token",
+    FAV_APPLICATIONS = "app_favs",
+    FAV_DEVICES = "dev_faves",
+    APPLICATION_SERVER = "application_server",
+    COMMUNICATION_SERVER = "communication_server",
 }
 
 export enum GlobalState_Actions {

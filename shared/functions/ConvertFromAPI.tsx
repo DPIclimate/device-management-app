@@ -20,6 +20,7 @@ export function ConvertToDevice(APIDevice: APIDeviceResponse, isFav: boolean): D
             latitude: APIDevice.locations?.user.latitude,
             longitude: APIDevice.locations?.user.longitude,
             altitude: APIDevice.locations?.user.altitude,
+            accuracy:APIDevice.locations?.user.accuracy,
             source: APIDevice.locations?.user.source,
         }:null,
         isFav: isFav,

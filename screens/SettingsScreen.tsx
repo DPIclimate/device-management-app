@@ -8,9 +8,10 @@ import { validateToken } from "../shared/functions/InterfaceTTN";
 import { write_app_server_to_storage, write_comm_server_to_storage, write_token_to_storage } from "../shared/functions/ManageLocStorage";
 import { GlobalState_Actions, Regions } from "../shared/types/CustomTypes";
 import globalStyles from "../styles";
-import version from "../app.json";
+import app_json from "../app.json";
 import { Bearer_Help_Card } from "../shared/components/Bearer_Help_Card";
 import { DPI_TAG } from "../shared/components/DPI_Tag";
+import CommServerCard from "./cards/CommServerCard";
 
 export function SettingsScreen({ route, navigation }): JSX.Element {
     const [state, dispatch] = useContext(GlobalContext);
@@ -101,36 +102,11 @@ export function SettingsScreen({ route, navigation }): JSX.Element {
                     <Text style={[styles.text, styles.invalidText]}>Invalid TTN Bearer Token, please check that your token is correct.</Text>
                 )}
             </Card>
-            <Card>
-                <Text style={styles.cardTitle}>Communications Server</Text>
-
-                <View style={styles.separatorLine} />
-
-                <View style={styles.commsOptions}>
-                    <Pressable
-                        onPress={() => handleServerChange(Regions.EU1)}
-                        style={state.communication_server == Regions.EU1 ? styles.exclusiveOptsSelected : styles.exclusiveOpts}
-                    >
-                        <Text style={state.communication_server == Regions.EU1 ? styles.exclusiveOptsSelectedTxt : styles.exclusiveOptsText}>EU1</Text>
-                    </Pressable>
-                    <Pressable
-                        onPress={() => handleServerChange(Regions.AU1)}
-                        style={state.communication_server == Regions.AU1 ? styles.exclusiveOptsSelected : styles.exclusiveOpts}
-                    >
-                        <Text style={state.communication_server == Regions.AU1 ? styles.exclusiveOptsSelectedTxt : styles.exclusiveOptsText}>AU1</Text>
-                    </Pressable>
-                    <Pressable
-                        onPress={() => handleServerChange(Regions.NAM1)}
-                        style={state.communication_server == Regions.NAM1 ? styles.exclusiveOptsSelected : styles.exclusiveOpts}
-                    >
-                        <Text style={state.communication_server == Regions.NAM1 ? styles.exclusiveOptsSelectedTxt : styles.exclusiveOptsText}>NAM1</Text>
-                    </Pressable>
-                </View>
-            </Card>
+            <CommServerCard/>
             <Bearer_Help_Card />
             <DPI_TAG />
             <View style={{ height: 50, alignItems: "center" }}>
-                <Text>v{version["expo"]["version"]}</Text>
+                <Text>v{app_json["expo"]["version"]}</Text>
             </View>
         </ScrollView>
     );
@@ -183,32 +159,5 @@ const styles = StyleSheet.create({
     invalidText: {
         color: "red",
     },
-    exclusiveOpts: {
-        padding: 10,
-        borderWidth: 1,
-        borderColor: "#128cde",
-        flex: 1,
-        alignItems: "center",
-        backgroundColor: "white",
-        margin: 1,
-    },
-    exclusiveOptsSelected: {
-        padding: 10,
-        borderWidth: 1,
-        borderColor: "#128cde",
-        flex: 1,
-        alignItems: "center",
-        backgroundColor: "#128cde",
-        margin: 1,
-    },
-    exclusiveOptsText: {
-        color: "#128cde",
-    },
-    exclusiveOptsSelectedTxt: {
-        color: "white",
-    },
-    commsOptions:{
-        flexDirection:'row',
-        marginTop:15
-    }
+    
 });

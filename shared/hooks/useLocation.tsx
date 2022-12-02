@@ -16,7 +16,7 @@ export const useLocation = (): LocationResponse => {
     const [location_status, set_location_status] = useState<Location.PermissionStatus>(null);
     const [error, setError] = useState<string>(null);
     const [refetch, setRefetch]=useState<boolean>(false)
-
+    
     const retry = (): void => {
         setLoading(true);
         setLocation(null);
@@ -25,23 +25,38 @@ export const useLocation = (): LocationResponse => {
     };
 
     useEffect(() => {
+        
+        let mounted=true 
+
         const getLocation = async () => {
             const { status } = await Location.requestForegroundPermissionsAsync();
-            set_location_status(status);
-
+            
             if (status != Location.PermissionStatus.GRANTED) {
-                setError("Location failed");
+                if (mounted){
+                    setError("Location failed");
+                }
                 return;
             }
             try {
                 const user_location = await Location.getCurrentPositionAsync({});
-                setLocation(user_location);
+                if (mounted){
+                    setLocation(user_location);
+                }
             } catch (error) {
-                setError(error);
+                if (mounted){
+                    setError(error);
+                }
+            }
+            if (mounted){
+                set_location_status(status);
+                setLoading(false);
             }
         };
-        setLoading(false);
         getLocation();
+
+        return () => {
+            mounted=false
+        }
     }, [refetch]);
 
     return { location_status, location, isLoading, error, retry };

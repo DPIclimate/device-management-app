@@ -43,7 +43,7 @@ export const useFetch = (url:string):useFetchResponse =>{
 					const resp:Response = await fetch(url, { 
 						signal: abortCont.signal,
 						headers:{
-							"Authorization":state.ttn_auth_token,
+							Authorization:state.ttn_auth_token,
 							"Content-Type": "application/json"
 						},
 						method:'GET'

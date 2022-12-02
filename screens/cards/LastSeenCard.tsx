@@ -16,7 +16,6 @@ const circles = {
 
 export default function LastSeenCard() {
 
-    //TODO - Fix incorrect image showing
     
     const {device_state, set_device_state, device_comm_data} = useContext(ManageDeviceContext);
 

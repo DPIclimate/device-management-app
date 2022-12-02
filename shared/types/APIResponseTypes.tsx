@@ -26,6 +26,7 @@ export interface APIDeviceResponse {
             latitude: number;
             longitude: number;
             altitude: number;
+            accuracy:number;
             source: string;
         };
     } | undefined;

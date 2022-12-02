@@ -67,6 +67,7 @@ export function LocationCard(): JSX.Element {
             } else {
                 console.log("Saving to storage");
                 save_update_to_storage(updateRequest);
+                Alert.alert("Saved Update", "There was no internet connection to perform this action, this update has instead been saved to the queue. Try again when you have an internet connection")
             }
         } else {
             Alert.alert("Permission Error", "Unable to update location because location services are not enabled");

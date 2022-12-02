@@ -2,12 +2,13 @@ import React from "react";
 import { Text, View, TouchableOpacity, Image, StyleSheet, RefreshControl } from "react-native";
 import { FlatList } from "react-native-gesture-handler";
 import globalStyles from "../../styles";
-import { useLocation } from "../../shared/hooks/useLocation";
+import { LocationResponse, useLocation } from "../../shared/hooks/useLocation";
 import { Device } from "../../shared/types/CustomTypes";
 import Card from "../../shared/components/Card";
 
-export function NearbyDevicesList({ handlePress, devices, retry, isLoading, error }): JSX.Element {
-    const { location_status, location, isLoading: location_loading, error: location_error, retry: location_retry } = useLocation();
+export function NearbyDevicesList({ handlePress, devices, retry, isLoading, error, userLocation }): JSX.Element {
+
+    const { location_status, location, isLoading: location_loading, error: location_error, retry: location_retry } = userLocation as LocationResponse
 
     const distance_to_user = (device: Device): number => {
         if (!location || !device.location) return;

@@ -134,6 +134,7 @@ export const update_ttn_device = async (request: DeviceUpdateRequest, server: st
             method: "PUT",
             headers: {
                 Authorization: ttn_auth_token,
+                "Content-Type": "application/json"
             },
             body: JSON.stringify(body),
         });
@@ -230,13 +231,22 @@ export const validateToken = async (token: string) => {
     if (token) {
         token = token.replace("Bearer ", "");
         token = `Bearer ${token}`;
-        console.log(token);
+        
+        if (!token.match(/^Bearer NNSXS\.[A-Z0-9]{39}\.[A-Z0-9]{52}$/)){
+            //Token must match regex
+            return {
+                success:false,
+                server:null
+            }
+        }
+
         for (const region in Regions) {
             try {
                 const req: Response = await fetch(`${Regions[region]}/api/v3/applications`, {
                     method: "GET",
                     headers: {
                         Authorization: token,
+                        "Content-Type": "application/json"
                     },
                 });
 

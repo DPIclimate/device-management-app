@@ -1,17 +1,17 @@
 import React, { useLayoutEffect, useState, useEffect, useContext } from "react";
-import { StyleSheet, Text, View, Image, ScrollView, ImageBackground, TouchableOpacity, Dimensions, Pressable } from "react-native";
+import { StyleSheet, Text, View, Image, ScrollView, ImageBackground, TouchableOpacity, Dimensions, Pressable, Alert } from "react-native";
 import Card from "../shared/components/Card";
 import globalStyles from "../styles";
 import { WelcomeScreen } from "./WelcomeScreen";
 import { Overlay } from "react-native-elements";
 import { Col, Row } from "react-native-easy-grid";
-import AsyncStorage from "@react-native-async-storage/async-storage";
-import { useOrientation } from "../shared/useOrientation";
+import { useOrientation } from "../shared/hooks/useOrientation";
 import { cacheData } from "../shared/functions/cacheData";
-import { cacheCommData } from "../shared/functions/cacheCommData";
 import { GlobalContext } from "../shared/context/GlobalContext";
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { useFetch } from "../shared/hooks/useFetch";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { APIDeviceResponse } from "../shared/types/APIResponseTypes";
+import { ConvertToDevice } from "../shared/functions/ConvertFromAPI";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
 //Images for Icons
 const appList = require("../assets/appList.png");
@@ -21,14 +21,13 @@ const failedUpload = require("../assets/uploadFailedBlue.png");
 const gateway = require("../assets/gateway.png");
 
 export default function HomeScreen({ route, navigation }): JSX.Element {
-
     const [state, dispatch] = useContext(GlobalContext);
-    
+
     const orientation = useOrientation();
     const insets = useSafeAreaInsets();
 
     const [welcomeVisible, setWelcVisible] = useState(false);
-    
+
     useLayoutEffect(() => {
         //Settings icon
         navigation.setOptions({
@@ -47,12 +46,12 @@ export default function HomeScreen({ route, navigation }): JSX.Element {
             If welcome visible changes, user has logged in, attempt to start cache
         */
 
-        async function startCache():Promise<void> {
-            if (!state.ttn_auth_token) return
+        async function startCache(): Promise<void> {
+            if (!state.ttn_auth_token) return;
 
             try {
                 //Cache ttn data on app load
-                await cacheData(state.ttn_auth_token, state.application_server, state.communication_server, true); 
+                await cacheData(state.ttn_auth_token, state.application_server, state.communication_server, true);
             } catch (error) {
                 console.log(`Caching error - ${error}`);
             }
@@ -60,56 +59,56 @@ export default function HomeScreen({ route, navigation }): JSX.Element {
         startCache();
     }, [welcomeVisible]);
 
-    // useEffect(() => {
-    //     /*
-    //         If params passed to this screen, app was entered via a deep link, therefore search for device
-    //     */
+    useEffect(() => {
+        /*
+            If params passed to this screen, app was entered via a deep link, therefore search for device
+        */
 
-    //     if (route.params?.appid && route.params?.uid) {
-    //         // handleSearch();
-    //     }
-    // }, [route]);
+        if (route.params?.appid && route.params?.uid) {
+            handleSearch();
+        }
+    }, [route]);
 
-    
-    // const handleSearch = async ():Promise<void> => {
-        
-        //     //TODO - refactor to use new fetch
-    //     /*
-    //         Handle search for deep link
-    //         If device exists take to manage screen, else take to registration screen
-    //     */
-    //     try {
-    //         const data = await useFetch(
-    //             `${state.application_server}/applications/${route.params.appid}/devices?field_mask=attributes,locations,description,name`
-    //         );
+    const handleSearch = async (): Promise<void> => {
+        /*
+            Handle search for deep link
+            If device exists take to manage screen, else take to registration screen
+        */
 
-    //         let device;
-    //         for (const dev of data.end_devices) {
-    //             if (route.params.uid != null && dev.attributes?.uid == route.params.uid) {
-    //                 device = dev;
-    //                 console.log("device found");
-    //             }
-    //         }
-    //         if (!device) {
-    //             console.log("no device");
-    //             navigation.navigate("RegisterDevice", { autofill: { appID: route.params.appid, uid: route.params.uid } });
-    //             route.params = null;
-    //             return;
-    //         }
-    //         navigation.navigate("ManageDevices", { autofill: { appID: route.params.appid, uid: route.params.uid } });
-    //         route.params = null;
-    //     } catch (error) {
-    //         console.log(error);
-    //         navigation.navigate("RegisterDevice", { autofill: { appID: route.params.appid, uid: route.params.uid } });
-    //         route.params = null;
-    //         return;
-    //     }
-    // };
+        try {
+            const response: Response = await fetch(`${state.application_server}/api/v3/applications/${route.params.appid}/devices?field_mask=attributes,locations,description,name`,{
+                    method: "GET",
+                    headers: {
+                        Authorization: state.ttn_auth_token,
+                        "Content-Type": "application/json",
+                    },
+                }
+            );
 
-    const SettingsIcon = ():JSX.Element => {
+            if (response.status != 200) {
+                console.log("search failed in home screen", response.status);
+                return
+            }
+
+            const devices:APIDeviceResponse[]=(await response.json()).end_devices
+            
+            for (const device of devices){
+                if (device.attributes?.uid.toLocaleUpperCase() == route.params.uid.toLocaleUpperCase()){
+                  const to_return=ConvertToDevice(device, false)
+                  navigation.navigate("ManageDeviceScreen", {device:to_return})
+                  return
+                }
+              }
+              Alert.alert("Not found", `Could not find a device in ${route.params.appid} with uid ${route.params.uid}`)
+
+        } catch (error) {
+            console.log("Search failed in home screen", error)
+        }
+    };
+
+    const SettingsIcon = (): JSX.Element => {
         return (
-            // <TouchableOpacity onPress={() => AsyncStorage.clear()}>
-                <TouchableOpacity onPress={() => navigation.navigate('SettingsScreen')}> 
+            <TouchableOpacity onPress={() => navigation.navigate("SettingsScreen")}>
                 <Image source={require("../assets/settingsWhite.png")} style={{ width: 25, height: 25, marginRight: 20 }} />
             </TouchableOpacity>
         );
@@ -156,14 +155,14 @@ export default function HomeScreen({ route, navigation }): JSX.Element {
                                 />
                             </Col>
                             <Col style={{ alignItems: "center" }}>
-                                <Icon title={"Queue"} image={failedUpload} onPress={() => navigation.navigate("OfflineDevices")} />
+                                <Icon title={"Queue"} image={failedUpload} onPress={() => navigation.navigate("SavedUpdatesScreen")} />
                             </Col>
                         </Row>
                         <Row>
                             <Col style={{ alignItems: "center" }}>
                                 <Icon title={"Gateways"} image={gateway} onPress={() => navigation.navigate("Gateways")} />
                             </Col>
-                            <Col/>
+                            <Col />
                         </Row>
                     </View>
                 </ScrollView>
@@ -178,7 +177,6 @@ export default function HomeScreen({ route, navigation }): JSX.Element {
                 }}
             >
                 <WelcomeScreen visible={setWelcVisible} />
-                
             </Overlay>
         </>
     );

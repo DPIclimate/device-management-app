@@ -24,11 +24,7 @@ export default function ApplicationsScreen({ navigation }): JSX.Element {
     const [searchText, setSearchText] = useState<string>("");
     const [showSearch, setShow] = useState<boolean>(false);
 
-    //TODO - Fix loading bug when app hasnt check network status yet
-
-    //TODO - Change the way favourites are done, instead of isFav being device attirbute, have list of favourites and compare with devices
-    //TODO - add content type header to all requests
-    
+    //TODO - Change the way favourites are done, instead of isFav being device attirbute, have list of favourites and compare with devices    
     useEffect(() => {
         async function loaded() {
 
@@ -59,7 +55,6 @@ export default function ApplicationsScreen({ navigation }): JSX.Element {
 
     const toggleFavourite = async (data, rowMap:RowMap<Application>): Promise<void> => {
 
-        //TODO - enforce types on data variable
         if (rowMap[data.index]) {
             rowMap[data.index].closeRow();
         }
@@ -112,9 +107,6 @@ export default function ApplicationsScreen({ navigation }): JSX.Element {
     };
     return (
         <View style={globalStyles.screen}>
-            {/* <View style={styles.offlineIcon}>
-                    <Offline isConnected={false} />
-                </View> */}
 
             {searchText != "" && !showSearch && <Text style={styles.searchText}>Search: {searchText}</Text>}
 

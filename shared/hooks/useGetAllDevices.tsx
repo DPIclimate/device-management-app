@@ -24,6 +24,8 @@ export default function useGetAllDevices() {
     };
 
     useEffect(() => {
+        let isMounted=true
+
         const abortCont: AbortController = new AbortController();
 
         const fetch_all = async (): Promise<void> => {
@@ -34,11 +36,14 @@ export default function useGetAllDevices() {
                     method: "GET",
                     headers: {
                         Authorization: state.ttn_auth_token,
+                        "Content-Type": "application/json"
                     },
                 });
 
                 if (app_response.status != 200) {
-                    set_error(app_response.statusText);
+                    if(isMounted){
+                        set_error(app_response.statusText);
+                    }
                     console.log("Error occured", app_response.status, app_response.statusText);
                     return;
                 }
@@ -53,6 +58,7 @@ export default function useGetAllDevices() {
                                     method: "GET",
                                     headers: {
                                         Authorization: state.ttn_auth_token,
+                                        "Content-Type": "application/json"
                                     },
                                 }
                             );
@@ -67,19 +73,27 @@ export default function useGetAllDevices() {
                     )
                 ).flat();
                 
-                set_devices(all_devices);
-                set_isLoading(false)
-                set_error(null)
+                if (isMounted){
+                    set_devices(all_devices);
+                    set_isLoading(false)
+                    set_error(null)
+                }
                 return;
 
             } catch (error) {
-                set_error(error);
-                set_isLoading(false)
-                console.log("Error", error)
+                if (isMounted){
+                    set_error(error);
+                    set_isLoading(false)
+                }
+                    console.log("Error", error)
                 return;
             }
         };
         fetch_all();
+
+        return () =>{
+            isMounted=false
+        }
     }, [refetch]);
 
     return {

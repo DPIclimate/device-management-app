@@ -1,14 +1,14 @@
 import React, { useContext, useState } from "react";
-import { Text, StyleSheet, TextInput, ScrollView, View } from "react-native";
+import { Text, StyleSheet, TextInput, ScrollView,TouchableOpacity } from "react-native";
 import { write_app_server_to_storage, write_token_to_storage } from "../shared/functions/ManageLocStorage";
 import globalStyles from "../styles";
 import { GlobalContext } from "../shared/context/GlobalContext";
 import { GlobalState_Actions } from "../shared/types/CustomTypes";
 import { LoadingComponent } from "../shared/components/LoadingComponent";
-import { TouchableOpacity } from "react-native-gesture-handler";
 import { Bearer_Help_Card } from "../shared/components/Bearer_Help_Card";
 import { DPI_TAG } from "../shared/components/DPI_Tag";
 import { validateToken } from "../shared/functions/InterfaceTTN";
+import CommServerCard from "./cards/CommServerCard";
 
 export const WelcomeScreen = ({visible}): JSX.Element => {
     const [state, dispatch] = useContext(GlobalContext);
@@ -34,7 +34,6 @@ export const WelcomeScreen = ({visible}): JSX.Element => {
             await write_token_to_storage(token);
 
             dispatch({ type: GlobalState_Actions.SET_APPLICATION_SERVER, payload: validation.server });
-            dispatch({ type: GlobalState_Actions.SET_COMMUNICATION_SERVER, payload: validation.server });
             
             await write_app_server_to_storage(validation.server);
 
@@ -73,7 +72,7 @@ export const WelcomeScreen = ({visible}): JSX.Element => {
             {invalidToken&&
                 <Text style={[styles.text, styles.invalidText]}>Invalid TTN Bearer Token, please check that your token is correct.</Text>
                 }
-                
+            <CommServerCard/>
             <Bearer_Help_Card/>
             <DPI_TAG/>
         </ScrollView>
