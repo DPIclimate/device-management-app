@@ -23,14 +23,14 @@ export function SavedUpdatesScreen({ route, navigation }):JSX.Element {
             return
         }
         
-        const { status, status_text } = await update_ttn_device(data.item, state.application_server, state.ttn_auth_token);
-        if (status==200){
-            Alert.alert("Success", "Successfully pushed this update to TTN.")
+        try{
+            await update_ttn_device(data.item, state.application_server, state.ttn_auth_token);
             await handleDelete(data, rowMap)
-            return
+            Alert.alert("Success", "Successfully pushed this update to TTN.")
         }
-        
-        Alert.alert("Update Failed", `Failed to push update to TTN. Error:${status} ${status_text}`)
+        catch(error){
+            Alert.alert("Update Failed", `Failed to push update to TTN. Error:${error}`)
+        }
     }
 
     const handleDelete = async (data, rowMap) => {

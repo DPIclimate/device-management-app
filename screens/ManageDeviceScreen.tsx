@@ -21,6 +21,7 @@ export const ManageDeviceScreen = ({ route, navigation }): JSX.Element => {
 
     const [device_state, set_device_state] = useState<Device>(route.params.device);
     const [device_comm_data, set_device_comm_data] = useState<CommMessage[]>([]);
+    const [scrollToEnd, set_scrollToEnd]=useState<boolean>(false);
 
     const {
         response: dev_response,
@@ -41,8 +42,7 @@ export const ManageDeviceScreen = ({ route, navigation }): JSX.Element => {
     );
 
     useEffect(() => {
-        if (comm_isLoading) return;
-        if (!comm_response) return;
+        if (!comm_response || comm_isLoading) return;
 
         const comm_data = comm_response as APICommResponse;
 
@@ -60,8 +60,11 @@ export const ManageDeviceScreen = ({ route, navigation }): JSX.Element => {
     }, [dev_isLoading]);
 
     useEffect(() => {
-        if (keyboardHeight == 0) return;
+        if (keyboardHeight == 0 || !scrollToEnd) return;
+
         scrollViewRef.current?.scrollToEnd({ animated: true });
+        set_scrollToEnd(false)
+
     }, [keyboardHeight]);
 
     return (
@@ -91,7 +94,7 @@ export const ManageDeviceScreen = ({ route, navigation }): JSX.Element => {
                     <DeviceCard />
                     <CommCard />
                     <LocationCard />
-                    <NotesCard />
+                    <NotesCard set_scrollToEnd={set_scrollToEnd}/>
                 </ManageDeviceContextProvider>
             </ScrollView>
         </SafeAreaView>

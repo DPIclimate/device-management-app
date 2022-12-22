@@ -11,7 +11,6 @@ import { GlobalContext } from "../shared/context/GlobalContext";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { APIDeviceResponse } from "../shared/types/APIResponseTypes";
 import { ConvertToDevice } from "../shared/functions/ConvertFromAPI";
-import AsyncStorage from "@react-native-async-storage/async-storage";
 
 //Images for Icons
 const appList = require("../assets/appList.png");
