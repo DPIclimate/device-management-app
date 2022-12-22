@@ -8,7 +8,6 @@ import { GlobalState_Actions, Regions } from "../../shared/types/CustomTypes";
 export default function CommServerCard() {
     const [state, dispatch] = useContext(GlobalContext);
 
-    console.log(state)
     const handleServerChange = async(server: string):Promise<void> => {
 
         dispatch({type:GlobalState_Actions.SET_COMMUNICATION_SERVER, payload:server})
