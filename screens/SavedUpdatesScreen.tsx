@@ -2,14 +2,14 @@ import React, { useContext, useEffect, useState } from "react";
 import { View, Text, StyleSheet, Image, TouchableOpacity, Alert } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { RowMap, SwipeListView } from "react-native-swipe-list-view";
-import Card from "../shared/components/Card";
+import Card from "../shared/components/atoms/Card";
 import { GlobalContext } from "../shared/context/GlobalContext";
 import { update_ttn_device } from "../shared/functions/InterfaceTTN";
 import { delete_update_from_storage, } from "../shared/functions/ManageLocStorage";
 import {useStoredDevices} from "../shared/hooks/useStoredDevices";
 import { DeviceUpdateRequest } from "../shared/types/CustomTypes";
 import globalStyles from "../styles";
-import { DescriptionUpdate, LocationUpdateCard } from "./cards/OfflineUpdateCards";
+import { DescriptionUpdate, LocationUpdateCard } from "../shared/components/organisms/cards/OfflineUpdateCards";
 
 export function SavedUpdatesScreen({ route, navigation }):JSX.Element {
     const [state, dispatch] = useContext(GlobalContext);

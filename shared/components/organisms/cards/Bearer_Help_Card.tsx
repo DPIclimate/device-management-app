@@ -1,6 +1,6 @@
 import React from "react"
 import {Linking, Text, StyleSheet, View} from 'react-native'
-import Card from "./Card"
+import Card from "../../atoms/Card"
 
 export const Bearer_Help_Card = ():JSX.Element =>{
 

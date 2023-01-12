@@ -2,8 +2,6 @@ import { useContext, useEffect, useState } from 'react';
 import { GlobalContext } from '../context/GlobalContext';
 import { get_req_from_storage } from '../functions/ManageLocStorage';
 import { APIApplicationsResponse, APICommResponse, APIDeviceResponse, APIGatewayResponse } from '../types/APIResponseTypes';
-// import { checkError } from './checkError';
-import { useNetworkStatus } from './useNetworkStatus';
 import * as Linking from 'expo-linking';
 
 interface useFetchResponse{

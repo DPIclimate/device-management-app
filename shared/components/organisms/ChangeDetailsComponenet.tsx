@@ -1,14 +1,15 @@
 import { Alert, Pressable, StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import React, { useContext, useState } from "react";
 import { TextInput } from "react-native-gesture-handler";
-import { ManageDeviceContext } from "../../shared/context/ManageDeviceContext";
-import { DeviceUpdateRequest } from "../../shared/types/CustomTypes";
-import { TTN_Actions, update_ttn_device } from "../../shared/functions/InterfaceTTN";
-import { save_update_to_storage } from "../../shared/functions/ManageLocStorage";
-import { GlobalContext } from "../../shared/context/GlobalContext";
-import { LoadingComponent } from "../../shared/components/LoadingComponent";
+import { ManageDeviceContext } from "../../context/ManageDeviceContext";
+import { Device, DeviceUpdateRequest } from "../../types/CustomTypes";
+import { TTN_Actions, update_ttn_device } from "../../functions/InterfaceTTN";
+import { save_update_to_storage } from "../../functions/ManageLocStorage";
+import { GlobalContext } from "../../context/GlobalContext";
+import { LoadingComponent } from "../atoms/LoadingComponent";
+import Button from "../atoms/Button";
 
-export default function ChangeDetailsComponent({ set_overlay_vis }) {
+export default function ChangeDetailsComponent({ set_overlay_vis }):JSX.Element {
     const [state, dispatch] = useContext(GlobalContext);
     const { device_state, set_device_state, device_comm_data } = useContext(ManageDeviceContext);
 
@@ -77,9 +78,9 @@ export default function ChangeDetailsComponent({ set_overlay_vis }) {
                 "There was no internet connection to perform this action, this update has instead been saved to the queue. Try again when you have an internet connection"
             );
         }
-        
+
         //Update device state so changes are reflected immediately
-        const dev_state={
+        const dev_state:Device={
          ...device_state,
          name:updateRequests[0]?updateRequests[0].device.name:device_state.name,
          uid:updateRequests[1]?updateRequests[1].device.uid:device_state.uid   
@@ -89,7 +90,7 @@ export default function ChangeDetailsComponent({ set_overlay_vis }) {
     };
 
     return (
-        <Pressable style={styles.content}>
+        <>
             <Text style={styles.title}>Edit Device Details</Text>
             <View style={styles.row}>
                 <Text>Device Name: </Text>
@@ -103,11 +104,9 @@ export default function ChangeDetailsComponent({ set_overlay_vis }) {
             {isLoading ? (
                 <LoadingComponent isLoading={isLoading} />
             ) : (
-                <TouchableOpacity style={styles.submit} onPress={() => handleSubmit()}>
-                    <Text style={styles.submit_text}>Update</Text>
-                </TouchableOpacity>
+                <Button onPress={handleSubmit} text={"Update"}/>
             )}
-        </Pressable>
+        </>
     );
 }
 

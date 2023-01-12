@@ -1,17 +1,18 @@
 import React, { useContext, useEffect, useState } from "react";
 import { Alert, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from "react-native";
 import { TouchableOpacity } from "react-native-gesture-handler";
-import Card from "../shared/components/Card";
-import { LoadingComponent } from "../shared/components/LoadingComponent";
+import Card from "../shared/components/atoms/Card";
+import { LoadingComponent } from "../shared/components/atoms/LoadingComponent";
 import { GlobalContext } from "../shared/context/GlobalContext";
 import { validateToken } from "../shared/functions/InterfaceTTN";
 import { write_app_server_to_storage, write_comm_server_to_storage, write_token_to_storage } from "../shared/functions/ManageLocStorage";
 import { GlobalState_Actions, Regions } from "../shared/types/CustomTypes";
 import globalStyles from "../styles";
 import app_json from "../app.json";
-import { Bearer_Help_Card } from "../shared/components/Bearer_Help_Card";
-import { DPI_TAG } from "../shared/components/DPI_Tag";
-import CommServerCard from "./cards/CommServerCard";
+import { Bearer_Help_Card } from "../shared/components/organisms/cards/Bearer_Help_Card";
+import { DPI_TAG } from "../shared/components/atoms/DPI_Tag";
+import CommServerCard from "../shared/components/molecules/CommServerCard";
+import Button from "../shared/components/atoms/Button";
 
 export function SettingsScreen({ route, navigation }): JSX.Element {
     const [state, dispatch] = useContext(GlobalContext);
@@ -19,12 +20,6 @@ export function SettingsScreen({ route, navigation }): JSX.Element {
     const [token, changeToken] = useState<string>();
     const [validating, setValidating] = useState<boolean>(false);
     const [invalidToken, setInvalid] = useState<boolean>(false);
-
-    const handleServerChange = async(server: string):Promise<void> => {
-
-        dispatch({type:GlobalState_Actions.SET_COMMUNICATION_SERVER, payload:server})
-        await write_comm_server_to_storage(server)
-    };
 
     const redacted = (token: string): string => {
         const noBearer = token.replace("Bearer ", "");
@@ -77,32 +72,28 @@ export function SettingsScreen({ route, navigation }): JSX.Element {
     return (
         <ScrollView style={globalStyles.screen}>
             <Card>
-                <Text style={styles.cardTitle}>TTN Token</Text>
+                <>
+                    <Text style={styles.cardTitle}>TTN Token</Text>
 
-                <View style={styles.separatorLine} />
+                    <View style={styles.separatorLine} />
 
-                <Text style={styles.title}>Current Token:</Text>
-                <Text>{redacted(state.ttn_auth_token)}</Text>
-                <TextInput
-                    value={token}
-                    placeholder="e.g NNSXS.ABCDEF........."
-                    style={styles.input}
-                    onChangeText={changeToken}
-                    autoCorrect={false}
-                    autoCapitalize="none"
-                />
-                {validating ? (
-                    <LoadingComponent isLoading={validating} />
-                ) : (
-                    <TouchableOpacity style={styles.submit} onPress={() => handlePress()}>
-                        <Text style={styles.submitText}>Continue</Text>
-                    </TouchableOpacity>
-                )}
-                {invalidToken && (
-                    <Text style={[styles.text, styles.invalidText]}>Invalid TTN Bearer Token, please check that your token is correct.</Text>
-                )}
+                    <Text style={styles.title}>Current Token:</Text>
+                    <Text>{redacted(state.ttn_auth_token)}</Text>
+                    <TextInput
+                        value={token}
+                        placeholder="e.g NNSXS.ABCDEF........."
+                        style={styles.input}
+                        onChangeText={changeToken}
+                        autoCorrect={false}
+                        autoCapitalize="none"
+                    />
+                    {validating ? <LoadingComponent isLoading={validating} /> : <Button onPress={handlePress} text={"Continue"} />}
+                    {invalidToken && (
+                        <Text style={[styles.text, styles.invalidText]}>Invalid TTN Bearer Token, please check that your token is correct.</Text>
+                    )}
+                </>
             </Card>
-            <CommServerCard/>
+            <CommServerCard />
             <Bearer_Help_Card />
             <DPI_TAG />
             <View style={{ height: 50, alignItems: "center" }}>
@@ -137,21 +128,6 @@ const styles = StyleSheet.create({
         marginTop: 20,
         borderRadius: 25,
     },
-    submit: {
-        backgroundColor: "#128cde",
-        width: "100%",
-        justifyContent: "center",
-        alignItems: "center",
-        alignSelf: "center",
-        borderRadius: 50,
-        margin: 20,
-    },
-    submitText: {
-        color: "white",
-        fontWeight: "bold",
-        fontSize: 15,
-        padding: 10,
-    },
     text: {
         paddingBottom: 20,
         textAlign: "center",
@@ -159,5 +135,4 @@ const styles = StyleSheet.create({
     invalidText: {
         color: "red",
     },
-    
 });

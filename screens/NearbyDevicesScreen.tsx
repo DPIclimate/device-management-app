@@ -2,12 +2,12 @@ import React, { useState } from "react";
 import { useWindowDimensions, Platform, StyleSheet } from "react-native";
 import { TabView, TabBar } from "react-native-tab-view";
 import { Feather } from "@expo/vector-icons";
-import { NearbyDevicesList } from "./components/NearbyDevicesList";
-import { NearbyDevicesMap } from "./components/NearbyDevicesMap";
 import { Device } from "../shared/types/CustomTypes";
 import useGetAllDevices from "../shared/hooks/useGetAllDevices";
 import { LocationResponse, useLocation } from "../shared/hooks/useLocation";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { NearbyDevicesList } from "../shared/components/organisms/NearbyDevicesList";
+import { NearbyDevicesMap } from "../shared/components/organisms/NearbyDevicesMap";
 
 export function NearbyDevicesScreen({ route, navigation }): JSX.Element {
     const layout = useWindowDimensions();

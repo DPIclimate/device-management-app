@@ -1,8 +1,7 @@
 import React, { useContext, useEffect, useState } from "react";
-import { View, Text, StyleSheet} from "react-native";
+import { View, Text, StyleSheet } from "react-native";
 import globalStyles from "../styles";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import { renderHiddenItem, renderItem } from "../shared/components/ListComponents";
 import { RowMap, SwipeListView } from "react-native-swipe-list-view";
 import { getFavs } from "../shared/functions/ManageLocStorage";
 import { useFetch } from "../shared/hooks/useFetch";
@@ -11,8 +10,10 @@ import { Application, Store_Tokens } from "../shared/types/CustomTypes";
 import { APIApplicationsResponse } from "../shared/types/APIResponseTypes";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { ConvertToApp } from "../shared/functions/ConvertFromAPI";
-import SearchIcon from "../shared/components/SearchIcon";
-import SearchBox from "../shared/components/SearchBox";
+import SearchIcon from "../shared/components/atoms/SearchIcon";
+import SearchBox from "../shared/components/atoms/SearchBox";
+import CardRow from "../shared/components/molecules/CardRow";
+import HiddenCardRow from "../shared/components/molecules/HiddenCardRow";
 
 export default function ApplicationsScreen({ navigation }): JSX.Element {
     const [state, dispatch] = useContext(GlobalContext);
@@ -24,16 +25,15 @@ export default function ApplicationsScreen({ navigation }): JSX.Element {
     const [searchText, setSearchText] = useState<string>("");
     const [showSearch, setShow] = useState<boolean>(false);
 
-    //TODO - Change the way favourites are done, instead of isFav being device attirbute, have list of favourites and compare with devices    
+    //TODO - Change the way favourites are done, instead of isFav being device attirbute, have list of favourites and compare with devices
     useEffect(() => {
         async function loaded() {
-
             if (isLoading) return;
             if (error) return;
 
             //Data is guaranteed to be of type APIApplicationsResponse as we requested /applications in the useFetch hook
-            const data = response as APIApplicationsResponse[]
-            setListData(data)
+            const data = response as APIApplicationsResponse[];
+            setListData(data);
         }
         loaded();
     }, [isLoading]);
@@ -45,16 +45,16 @@ export default function ApplicationsScreen({ navigation }): JSX.Element {
         */
 
         const favs = await getFavs(Store_Tokens.FAV_APPLICATIONS);
-        const appList: Application[] = data.map((app) => (ConvertToApp(app, favs.includes(app.ids.application_id))));
+        3;
+        const appList: Application[] = data.map((app) => ConvertToApp(app, favs.includes(app.ids.application_id)));
         changeData(appList);
     };
 
     const handlePress = (item: Application): void => {
-        navigation.navigate("DevicesScreen", { application:item });
+        navigation.navigate("DevicesScreen", { application: item });
     };
 
-    const toggleFavourite = async (data, rowMap:RowMap<Application>): Promise<void> => {
-
+    const toggleFavourite = async (data, rowMap: RowMap<Application>): Promise<void> => {
         if (rowMap[data.index]) {
             rowMap[data.index].closeRow();
         }
@@ -79,26 +79,9 @@ export default function ApplicationsScreen({ navigation }): JSX.Element {
     const filteredData = (): Application[] => {
         let list = listData;
         if (searchText != "") {
-            //Regex support
-            if (searchText.includes("regex: ")) {
-                list = list.filter((app) => {
-                    try {
-                        //Convert user text to regular expression
-                        const pattern = searchText.replace("regex: ", "");
-                        const match = pattern.match(new RegExp("^/(.*?)/([gimy]*)$"));
-                        const regex = new RegExp(match[1], match[2]);
-
-                        const result = app.id.match(regex);
-                        if (result) return true;
-                    } catch (e) {
-                        return false;
-                    }
-                });
-            } else {
-                list = list.filter((app) => {
-                    return app.id.includes(searchText);
-                });
-            }
+            list = list.filter((app) => {
+                return app.id.includes(searchText);
+            });
         }
         list = list.sort((a, b) => {
             return a.isFav === b.isFav ? a.id > b.id : a.isFav ? -1 : 1;
@@ -107,7 +90,6 @@ export default function ApplicationsScreen({ navigation }): JSX.Element {
     };
     return (
         <View style={globalStyles.screen}>
-
             {searchText != "" && !showSearch && <Text style={styles.searchText}>Search: {searchText}</Text>}
 
             <View style={{ paddingTop: 10 }}>
@@ -118,23 +100,32 @@ export default function ApplicationsScreen({ navigation }): JSX.Element {
 
             <SwipeListView
                 data={filteredData()}
-                renderItem={(item) => renderItem(item, handlePress, "Applications")}
+                renderItem={({ item, index }) => {
+                    return (
+                        <CardRow title={item.id} isFav={item.isFav} arrowImg={require("../assets/arrow.png")} onPress={() => handlePress(item)}/>
+                    )
+                }}
+                renderHiddenItem={(data, rowMap) => {
+                    return (
+                        <HiddenCardRow isFav={data.item.isFav} onPress={() => toggleFavourite(data, rowMap)}/>
+                    )
+                }}
                 keyExtractor={(item, index) => index.toString()}
-                renderHiddenItem={(data, rowMap) => renderHiddenItem(data, rowMap, toggleFavourite)}
                 leftOpenValue={80}
                 stopRightSwipe={1}
                 onRefresh={() => retry()}
                 refreshing={isLoading}
                 contentContainerStyle={{
-                    paddingBottom: insets.bottom+10,
+                    paddingBottom: insets.bottom + 10,
                     paddingRight: insets.right,
                     paddingLeft: insets.left,
                     paddingTop: showSearch ? 70 : 0,
                 }}
             />
-            <SearchBox showSearch={showSearch} searchText={searchText} setSearchText={setSearchText} setShow={setShow}/>
-            
-            <SearchIcon setShow={setShow}/>
+
+            <SearchBox showSearch={showSearch} searchText={searchText} setSearchText={setSearchText} setShow={setShow} />
+
+            <SearchIcon setShow={setShow} />
         </View>
     );
 }

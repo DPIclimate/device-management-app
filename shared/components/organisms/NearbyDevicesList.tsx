@@ -1,10 +1,10 @@
 import React from "react";
 import { Text, View, TouchableOpacity, Image, StyleSheet, RefreshControl } from "react-native";
 import { FlatList } from "react-native-gesture-handler";
-import globalStyles from "../../styles";
-import { LocationResponse, useLocation } from "../../shared/hooks/useLocation";
-import { Device } from "../../shared/types/CustomTypes";
-import Card from "../../shared/components/Card";
+import globalStyles from "../../../styles";
+import { LocationResponse, useLocation } from "../../../shared/hooks/useLocation";
+import { Device } from "../../../shared/types/CustomTypes";
+import Card from "../../../shared/components/atoms/Card";
 
 export function NearbyDevicesList({ handlePress, devices, retry, isLoading, error, userLocation }): JSX.Element {
 
@@ -50,7 +50,7 @@ export function NearbyDevicesList({ handlePress, devices, retry, isLoading, erro
                         {item.name ? item.name : item.id}
                     </Text>
                     <Text style={styles.distance}>Dist: {distance_to_user(item)?.toFixed(2)}km</Text>
-                    <Image source={require("../../assets/arrowBlue.png")} style={{ height: 20, width: 20 }} />
+                    <Image source={require("../../../assets/arrowBlue.png")} style={{ height: 20, width: 20 }} />
                     </View>
                 </Card>
             </TouchableOpacity>

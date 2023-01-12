@@ -1,17 +1,17 @@
 import { StyleSheet, Text, View, Image } from "react-native";
 import React, { useContext, useEffect, useState } from "react";
-import Card from "../../shared/components/Card";
-import { ManageDeviceContext } from "../../shared/context/ManageDeviceContext";
-import { GlobalContext } from "../../shared/context/GlobalContext";
+import Card from "../../atoms/Card";
+import { ManageDeviceContext } from "../../../context/ManageDeviceContext";
+import { GlobalContext } from "../../../context/GlobalContext";
 
 const circles = {
-    RED_HOLLOW: require("../../assets/redCircle-hollow.png"),
-    ORANGE_HOLLOW: require("../../assets/orangeCircle-hollow.png"),
-    GREEN_HOLLOW: require("../../assets/greenCircle-hollow.png"),
-    RED_FILLED: require("../../assets/redCircle.png"),
-    ORANGE_FILLED: require("../../assets/orangeCircle.png"),
-    GREEN_FILLED: require("../../assets/greenCircle.png"),
-    BLUE_HOLLOW: require("../../assets/blueCircle-hollow.png"),
+    RED_HOLLOW: require("../../../../assets/redCircle-hollow.png"),
+    ORANGE_HOLLOW: require("../../../../assets/orangeCircle-hollow.png"),
+    GREEN_HOLLOW: require("../../../../assets/greenCircle-hollow.png"),
+    RED_FILLED: require("../../../../assets/redCircle.png"),
+    ORANGE_FILLED: require("../../../../assets/orangeCircle.png"),
+    GREEN_FILLED: require("../../../../assets/greenCircle.png"),
+    BLUE_HOLLOW: require("../../../../assets/blueCircle-hollow.png"),
 };
 
 export default function LastSeenCard() {
@@ -77,7 +77,7 @@ export default function LastSeenCard() {
                 <Image style={styles.lastSeenImg} source={circleImg} />
                 <Text style={styles.text}>Last seen:</Text>
                 {device_comm_data.isLoading ? (
-                    <Image style={styles.lastSeenLoading} source={require("../../assets/loading.gif")} />
+                    <Image style={styles.lastSeenLoading} source={require("../../../../assets/loading.gif")} />
                 ) : (
                     <Text style={styles.text} numberOfLines={1} adjustsFontSizeToFit>
                         {lastSeenText}

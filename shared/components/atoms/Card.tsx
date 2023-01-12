@@ -1,18 +1,20 @@
 import React from 'react';
-import { StyleSheet, View} from 'react-native';
+import { StyleProp, StyleSheet, View, ViewStyle} from 'react-native';
 
-/**
- * Creates a card with rounded corners and slight shadow
- * @param {*} props 
- * @returns 
- */
-const Card = (props) => {
+interface CardParams{
+    color?:string
+    borderRadius?:number
+    children:JSX.Element
+    style?:StyleProp<ViewStyle>
+}
+
+const Card = ({color="#fff", borderRadius=15, style, children}:CardParams):JSX.Element => {
     
     const styles = StyleSheet.create({
         card: {
-            borderRadius: props.borderRadius ? props.borderRadius : 15,
+            borderRadius: borderRadius,
             elevation: 3,
-            backgroundColor: props.colour == undefined ?'#fff': props.colour,
+            backgroundColor: color,
             shadowOffset: { width: 1, height: 1 },
             shadowColor: '#ccc',
             shadowOpacity: 0.3,
@@ -29,9 +31,9 @@ const Card = (props) => {
     });
     
     return (
-        <View style={styles.card}>
+        <View style={[styles.card, style]}>
             <View style={styles.cardInner}>
-                { props.children }
+                { children }
             </View>
         </View>
     )

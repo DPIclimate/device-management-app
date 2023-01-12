@@ -1,21 +1,19 @@
 import React, { useContext, useEffect, useState } from "react";
 import { Col, Row, Grid } from "react-native-easy-grid";
 import { Text, View, ScrollView, StyleSheet, Image } from "react-native";
-import { formatTime } from "../../shared/functions/FormatTime";
-import { ManageDeviceContext } from "../../shared/context/ManageDeviceContext";
-import Card from "../../shared/components/Card";
-import { LoadingComponent } from "../../shared/components/LoadingComponent";
+import { formatTime } from "../../../functions/FormatTime";
+import { ManageDeviceContext } from "../../../context/ManageDeviceContext";
+import Card from "../../atoms/Card";
+import { LoadingComponent } from "../../atoms/LoadingComponent";
+import MngDeviceCard from "../../molecules/MngDeviceCard";
 
 export function CommCard():JSX.Element {
 
     const {device_state, set_device_state, device_comm_data} = useContext(ManageDeviceContext);
 
     return (
-        <Card>
-            <Text style={styles.cardTitle}>Communications</Text>
-
-            <View style={styles.separatorLine} />
-
+        <MngDeviceCard title="Communications">
+            
             <ScrollView style={{height:device_comm_data.data==0?70:200}} showsVerticalScrollIndicator={false}>
                 <Grid>
                     <Row style={styles.cardRow}>
@@ -58,7 +56,7 @@ export function CommCard():JSX.Element {
                     })}
                 </Grid>
             </ScrollView>
-        </Card>
+        </MngDeviceCard>
     );
 }
 const styles = StyleSheet.create({

@@ -6,9 +6,8 @@ import { cacheCommData } from "./cacheCommData";
 export const cacheData = async (ttn_auth_token: string, device_server: string, comms_server:string, cacheComm: boolean): Promise<void> => {
     /*
 		Cache device data for offline use
-
 	*/
-    console.log("Caching device data");
+
     try {
         const url: string = `${device_server}/api/v3/applications?field_mask=description`;
         const response: Response = await fetch(url, {

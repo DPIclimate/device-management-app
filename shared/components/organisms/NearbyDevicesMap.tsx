@@ -3,8 +3,8 @@ import { View, StyleSheet, Text, Image } from "react-native";
 import { TouchableOpacity } from "react-native-gesture-handler";
 import MapView, { Marker, PROVIDER_DEFAULT, Callout, MAP_TYPES, Camera } from "react-native-maps";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { LocationResponse, useLocation } from "../../shared/hooks/useLocation";
-import { Device } from "../../shared/types/CustomTypes";
+import { LocationResponse, useLocation } from "../../../shared/hooks/useLocation";
+import { Device } from "../../../shared/types/CustomTypes";
 
 export function NearbyDevicesMap({ userLocation, handlePress, devices, retry, isLoading, error }): JSX.Element {
 
@@ -66,7 +66,7 @@ export function NearbyDevicesMap({ userLocation, handlePress, devices, retry, is
             </MapView>
             <View style={[styles.imageView, {right:styles.imageView.right + insets.right}]}>
                 <TouchableOpacity style={styles.locationButton} onPress={() => locationUpdate()}>
-                    <Image source={require("../../assets/location.png")} style={styles.locationImg} />
+                    <Image source={require("../../../assets/location.png")} style={styles.locationImg} />
                 </TouchableOpacity>
             </View>
         </>

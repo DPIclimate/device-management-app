@@ -10,7 +10,7 @@ SplashScreen.preventAutoHideAsync();
 
 export default function App() {
     //Used for deep linking
-    // exp://10.221.26.87:19000/--/device/?appid=oai-test-devices&uid=2SBBWH&link=true
+    // exp://192.168.0.21:19000/--/device/?appid=oai-test-devices&device_id=a-new-device&link=true
     // dma://device/?appid=oai-test-devices&uid=A4RF3C&link=true
     
     const initialState: GlobalState = {

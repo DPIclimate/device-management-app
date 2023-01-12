@@ -1,7 +1,7 @@
 import React from "react";
-import Card from "../../shared/components/Card";
+import Card from "../../atoms/Card";
 import { Text, StyleSheet, View, Image } from "react-native";
-import { DeviceUpdateRequest } from "../../shared/types/CustomTypes";
+import { DeviceUpdateRequest } from "../../../types/CustomTypes";
 import { TouchableOpacity } from "react-native-gesture-handler";
 
 export const LocationUpdateCard = (props): JSX.Element => {

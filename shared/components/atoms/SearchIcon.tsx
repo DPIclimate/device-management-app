@@ -12,7 +12,7 @@ export default function SearchIcon({setShow}) {
 
     return (
         <Pressable style={[styles.searchIcon, { bottom: insets.bottom + 20, right: 10 }]} onPress={() => setShow((prev) => !prev)}>
-            <Image source={require("../../assets/search.png")} style={{ width: 40, height: 40 }} />
+            <Image source={require("../../../assets/search.png")} style={{ width: 40, height: 40 }} />
         </Pressable>
     );
 }

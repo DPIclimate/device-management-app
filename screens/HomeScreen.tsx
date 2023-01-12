@@ -1,6 +1,5 @@
 import React, { useLayoutEffect, useState, useEffect, useContext } from "react";
 import { StyleSheet, Text, View, Image, ScrollView, ImageBackground, TouchableOpacity, Dimensions, Pressable, Alert } from "react-native";
-import Card from "../shared/components/Card";
 import globalStyles from "../styles";
 import { WelcomeScreen } from "./WelcomeScreen";
 import { Overlay } from "react-native-elements";
@@ -11,13 +10,9 @@ import { GlobalContext } from "../shared/context/GlobalContext";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { APIDeviceResponse } from "../shared/types/APIResponseTypes";
 import { ConvertToDevice } from "../shared/functions/ConvertFromAPI";
-
-//Images for Icons
-const appList = require("../assets/appList.png");
-const nearbyDevs = require("../assets/nearbyBlue.png");
-const scanQR = require("../assets/qrCodeBlue.png");
-const failedUpload = require("../assets/uploadFailedBlue.png");
-const gateway = require("../assets/gateway.png");
+import NavOptionsCard from "../shared/components/atoms/NavOptionsCard";
+import IconGrid from "../shared/components/organisms/IconGrid";
+import SettingsIcon from "../shared/components/atoms/SettingsIcon";
 
 export default function HomeScreen({ route, navigation }): JSX.Element {
     const [state, dispatch] = useContext(GlobalContext);
@@ -30,7 +25,7 @@ export default function HomeScreen({ route, navigation }): JSX.Element {
     useLayoutEffect(() => {
         //Settings icon
         navigation.setOptions({
-            headerRight: () => <SettingsIcon />,
+            headerRight: () => <SettingsIcon navigation={navigation}/>,
         });
     }, [navigation]);
 
@@ -92,7 +87,7 @@ export default function HomeScreen({ route, navigation }): JSX.Element {
             const devices:APIDeviceResponse[]=(await response.json()).end_devices
             
             for (const device of devices){
-                if (device.attributes?.uid.toLocaleUpperCase() == route.params.uid.toLocaleUpperCase()){
+                if (device.attributes?.uid.toLocaleUpperCase() == route.params.uid.toLocaleUpperCase() || device.ids.device_id == route.params.device_id){
                   const to_return=ConvertToDevice(device, false)
                   navigation.navigate("ManageDeviceScreen", {device:to_return})
                   return
@@ -105,29 +100,6 @@ export default function HomeScreen({ route, navigation }): JSX.Element {
         }
     };
 
-    const SettingsIcon = (): JSX.Element => {
-        return (
-            <TouchableOpacity onPress={() => navigation.navigate("SettingsScreen")}>
-                <Image source={require("../assets/settingsWhite.png")} style={{ width: 25, height: 25, marginRight: 20 }} />
-            </TouchableOpacity>
-        );
-    };
-
-    const Icon = (props): JSX.Element => {
-        return (
-            <View style={{ width: 170 }}>
-                <Pressable onPress={props.onPress}>
-                    <Card borderRadius={20}>
-                        <View style={{ justifyContent: "center", alignItems: "center", height: 130 }}>
-                            <Image source={props.image} style={{ width: 60, height: 60 }} />
-                            <Text style={{ paddingTop: 10, fontSize: 15, fontWeight: "bold" }}>{props.title}</Text>
-                        </View>
-                    </Card>
-                </Pressable>
-            </View>
-        );
-    };
-
     return (
         <>
             <ImageBackground
@@ -136,34 +108,7 @@ export default function HomeScreen({ route, navigation }): JSX.Element {
                 style={{ width: "100%" }}
             >
                 <ScrollView style={globalStyles.scrollView}>
-                    <View style={{ paddingTop: 20, paddingRight: 10, paddingLeft: 10 }}>
-                        <Row>
-                            <Col style={{ alignItems: "center" }}>
-                                <Icon title={"Applications"} image={appList} onPress={() => navigation.navigate("ApplicationsScreen")} />
-                            </Col>
-                            <Col style={{ alignItems: "center" }}>
-                                <Icon title={"Nearby Devices"} image={nearbyDevs} onPress={() => navigation.navigate("NearbyDevices")} />
-                            </Col>
-                        </Row>
-                        <Row>
-                            <Col style={{ alignItems: "center" }}>
-                                <Icon
-                                    title={"Scan QR Code"}
-                                    image={scanQR}
-                                    onPress={() => navigation.navigate("QrScanner", { screen: "ManageDeviceScreen" })}
-                                />
-                            </Col>
-                            <Col style={{ alignItems: "center" }}>
-                                <Icon title={"Queue"} image={failedUpload} onPress={() => navigation.navigate("SavedUpdatesScreen")} />
-                            </Col>
-                        </Row>
-                        <Row>
-                            <Col style={{ alignItems: "center" }}>
-                                <Icon title={"Gateways"} image={gateway} onPress={() => navigation.navigate("Gateways")} />
-                            </Col>
-                            <Col />
-                        </Row>
-                    </View>
+                    <IconGrid navigation={navigation}/>
                 </ScrollView>
             </ImageBackground>
             <Overlay
