@@ -7,7 +7,7 @@ export function LoadingComponent({isLoading}) {
 
         if (isLoading){
             // return <ActivityIndicator style={{paddingTop:'10%'}} size="large" color={Platform.OS == 'android'? "#0000ff":""}/>
-            return <Image style={styles.lastSeenLoading} source={require("../../assets/loading.gif")} />
+            return <Image style={styles.lastSeenLoading} source={require("../../../assets/loading.gif")} />
         }
         else{
             return <View/>

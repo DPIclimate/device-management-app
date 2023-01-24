@@ -67,7 +67,13 @@ const globalStyles = StyleSheet.create({
     invalidText:{
         color:'red',
         paddingTop:10
+    },
+    headerIcon:{ 
+        width: 25, 
+        height: 25, 
+        marginRight: 20 
     }
+    
   });
   
   export default globalStyles;

@@ -3,6 +3,9 @@ import { writeToStorage } from "./ManageLocStorage";
 import { APICommResponse, APIDeviceResponse } from "../types/APIResponseTypes";
 
 export const cacheCommData = async (ttn_auth_token: string, server: string, devices: APIDeviceResponse[]): Promise<void> => {
+    /*
+        Cache communications data from devices
+    */
 
     await Promise.all(
         devices.map(async (dev) => {

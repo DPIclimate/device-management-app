@@ -4,11 +4,11 @@ import { write_app_server_to_storage, write_token_to_storage } from "../shared/f
 import globalStyles from "../styles";
 import { GlobalContext } from "../shared/context/GlobalContext";
 import { GlobalState_Actions } from "../shared/types/CustomTypes";
-import { LoadingComponent } from "../shared/components/LoadingComponent";
-import { Bearer_Help_Card } from "../shared/components/Bearer_Help_Card";
-import { DPI_TAG } from "../shared/components/DPI_Tag";
+import { LoadingComponent } from "../shared/components/atoms/LoadingComponent";
+import { Bearer_Help_Card } from "../shared/components/organisms/cards/Bearer_Help_Card";
+import { DPI_TAG } from "../shared/components/atoms/DPI_Tag";
 import { validateToken } from "../shared/functions/InterfaceTTN";
-import CommServerCard from "./cards/CommServerCard";
+import CommServerCard from "../shared/components/molecules/CommServerCard";
 
 export const WelcomeScreen = ({visible}): JSX.Element => {
     const [state, dispatch] = useContext(GlobalContext);

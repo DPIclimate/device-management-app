@@ -10,16 +10,17 @@ import {
     InputAccessoryView,
     Platform,
 } from "react-native";
-import { GlobalContext } from "../../shared/context/GlobalContext";
-import { ManageDeviceContext } from "../../shared/context/ManageDeviceContext";
+import { GlobalContext } from "../../../context/GlobalContext";
+import { ManageDeviceContext } from "../../../context/ManageDeviceContext";
 import { TouchableOpacity } from "react-native-gesture-handler";
-import { DeviceUpdateRequest } from "../../shared/types/CustomTypes";
-import { TTN_Actions, update_ttn_device } from "../../shared/functions/InterfaceTTN";
-import { save_update_to_storage } from "../../shared/functions/ManageLocStorage";
-import { LoadingComponent } from "../../shared/components/LoadingComponent";
-import Card from "../../shared/components/Card";
+import { DeviceUpdateRequest } from "../../../types/CustomTypes";
+import { TTN_Actions, update_ttn_device } from "../../../functions/InterfaceTTN";
+import { save_update_to_storage } from "../../../functions/ManageLocStorage";
+import { LoadingComponent } from "../../atoms/LoadingComponent";
+import Card from "../../atoms/Card";
+import MngDeviceCard from "../../molecules/MngDeviceCard";
 
-export function NotesCard():JSX.Element {
+export function NotesCard({set_scrollToEnd}):JSX.Element {
     const [state, dispatch] = useContext(GlobalContext);
     const { device_state, set_device_state, device_comm_data } = useContext(ManageDeviceContext);
 
@@ -43,49 +44,26 @@ export function NotesCard():JSX.Element {
         set_device_state(updateRequest.device)
 
         if(state.network_status){
-            const {status, status_text} = await update_ttn_device(updateRequest, state.application_server, state.ttn_auth_token)
-
-                if (status==0){
-                    Alert.alert("Update Failed", `An error occurred while trying to update the notes. Error: ${status_text}`)
-                }
-                else if (status!=200){
-                    Alert.alert("Update Failed", `HTTP error occurred, Error: ${status_text}`)
-                }
+            try{
+                await update_ttn_device(updateRequest, state.application_server, state.ttn_auth_token)
+            }
+            catch(error){
+                Alert.alert("Error", `An error occurred while trying to save update ${updateRequest.action}. Reason: ${error}`)                 
+            }
         }
         else{
             console.log("Saving to storage")
-            save_update_to_storage(updateRequest)  
+            await save_update_to_storage(updateRequest)  
         }
         setLoadingState(false)
     };
     return (
         <>
-            <Card>
-                <View
-                    style={{
-                        flexDirection: "row",
-                        justifyContent: "space-between",
-                        alignItems: "center",
-                    }}
-                >
-                    <Text style={styles.cardTitle}>Notes</Text>
-                    <TouchableHighlight
-                        disabled={isLoading}
-                        underlayColor="#DDDDDD"
-                        onPress={() => saveNotes()}
-                    >
-                        {isLoading ?
-                            <LoadingComponent isLoading={isLoading}/>
-                            :
-                            <Text style={{color:'#007AFF'}}>Save</Text>
-                        }
-                    </TouchableHighlight>
-                </View>
-
-                <View style={styles.separatorLine} />
+            <MngDeviceCard title="Notes" onIconPress={saveNotes} isLoading={isLoading} iconImg={require("../../../../assets/save.png")}>
 
                 <Grid>
                     <TextInput
+                        onTouchStart={() => set_scrollToEnd(true)}
                         style={styles.input}
                         onSubmitEditing={saveNotes}
                         inputAccessoryViewID={inputAccessoryViewID}
@@ -97,7 +75,7 @@ export function NotesCard():JSX.Element {
                         autoCapitalize="sentences"
                     />
                 </Grid>
-            </Card>
+            </MngDeviceCard>
 
             {Platform.OS == "ios" && (
                 <InputAccessoryView nativeID={inputAccessoryViewID}>
@@ -113,24 +91,6 @@ export function NotesCard():JSX.Element {
 }
 
 const styles = StyleSheet.create({
-    separatorLine: {
-        width: "80%",
-        height: 2,
-        backgroundColor: "#128cde",
-        alignSelf: "flex-start",
-        marginBottom: 10,
-    },
-    updateLocationImg: {
-        width: 35,
-        height: 35,
-        padding: 10,
-    },
-    cardTitle: {
-        fontWeight: "bold",
-        fontSize: 17,
-        marginTop: 10,
-        marginBottom: 10,
-    },
     input:{
         width:'100%'
     }

@@ -1,16 +1,16 @@
-import React, { useEffect, useState, useRef, useContext, useReducer } from "react";
-import { StyleSheet, ScrollView, RefreshControl, SafeAreaView } from "react-native";
+import React, { useEffect, useState, useRef, useContext, useReducer, useLayoutEffect } from "react";
+import { StyleSheet, ScrollView, RefreshControl, SafeAreaView, Image, TouchableOpacity, Share } from "react-native";
 import { GlobalContext } from "../shared/context/GlobalContext";
 import { CommMessage, Device } from "../shared/types/CustomTypes";
-import { DeviceCard } from "./cards/DeviceCard";
+import { DeviceCard } from "../shared/components/organisms/cards/DeviceCard";
 import { ManageDeviceContextProvider } from "../shared/context/ManageDeviceContext";
-import LastSeenCard from "./cards/LastSeenCard";
-import { CommCard } from "./cards/CommCard";
+import LastSeenCard from "../shared/components/organisms/cards/LastSeenCard";
+import { CommCard } from "../shared/components/organisms/cards/CommCard";
 import { useFetch } from "../shared/hooks/useFetch";
 import { ConvertToComm, ConvertToDevice } from "../shared/functions/ConvertFromAPI";
 import { APICommResponse, APIDeviceResponse } from "../shared/types/APIResponseTypes";
-import { LocationCard } from "./cards/LocationCard";
-import { NotesCard } from "./cards/NotesCard";
+import { LocationCard } from "../shared/components/organisms/cards/LocationCard";
+import { NotesCard } from "../shared/components/organisms/cards/NotesCard";
 import { useKeyboardHeight } from "../shared/hooks/useKeyboardHeight";
 import globalStyles from "../styles";
 
@@ -21,6 +21,7 @@ export const ManageDeviceScreen = ({ route, navigation }): JSX.Element => {
 
     const [device_state, set_device_state] = useState<Device>(route.params.device);
     const [device_comm_data, set_device_comm_data] = useState<CommMessage[]>([]);
+    const [scrollToEnd, set_scrollToEnd]=useState<boolean>(false);
 
     const {
         response: dev_response,
@@ -40,9 +41,15 @@ export const ManageDeviceScreen = ({ route, navigation }): JSX.Element => {
         `${state.communication_server}/api/v3/ns/applications/${route.params.device.applications_id}/devices/${route.params.device.id}?field_mask=mac_state.recent_uplinks,pending_mac_state.recent_uplinks,session.started_at,pending_session`
     );
 
+    useLayoutEffect(() => {
+        //Settings icon
+        navigation.setOptions({
+            headerRight: () => <ShareIcon />,
+        });
+    }, [navigation]);
+
     useEffect(() => {
-        if (comm_isLoading) return;
-        if (!comm_response) return;
+        if (!comm_response || comm_isLoading) return;
 
         const comm_data = comm_response as APICommResponse;
 
@@ -60,9 +67,32 @@ export const ManageDeviceScreen = ({ route, navigation }): JSX.Element => {
     }, [dev_isLoading]);
 
     useEffect(() => {
-        if (keyboardHeight == 0) return;
+        if (keyboardHeight == 0 || !scrollToEnd) return;
+
         scrollViewRef.current?.scrollToEnd({ animated: true });
+        set_scrollToEnd(false)
+
     }, [keyboardHeight]);
+
+    const handleShare = async() =>{
+        const url:string = `dma://device/?appid=${device_state.applications_id}&device_id=${device_state.id}&link=true`
+        try {
+            await Share.share({
+            title:"Share a device",
+              url,
+            });
+          } catch (error) {
+            console.error(error);
+          }
+    }
+    const ShareIcon = ():JSX.Element =>{
+
+        return(
+            <TouchableOpacity onPress={() => handleShare()}>
+                <Image source={require("../assets/share.png")} style={globalStyles.headerIcon}/>
+            </TouchableOpacity>
+        )
+    }
 
     return (
         <SafeAreaView style={globalStyles.screen}>
@@ -91,7 +121,7 @@ export const ManageDeviceScreen = ({ route, navigation }): JSX.Element => {
                     <DeviceCard />
                     <CommCard />
                     <LocationCard />
-                    <NotesCard />
+                    <NotesCard set_scrollToEnd={set_scrollToEnd}/>
                 </ManageDeviceContextProvider>
             </ScrollView>
         </SafeAreaView>

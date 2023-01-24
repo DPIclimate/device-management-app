@@ -10,6 +10,7 @@ import { ManageDeviceScreen } from '../screens/ManageDeviceScreen';
 import { NearbyDevicesScreen } from '../screens/NearbyDevicesScreen';
 import { SettingsScreen } from '../screens/SettingsScreen';
 import { SavedUpdatesScreen } from '../screens/SavedUpdatesScreen';
+import CreateQRCode from '../screens/CreateQRCode';
 
 const { Screen, Navigator } = createStackNavigator();
 
@@ -74,6 +75,11 @@ function ScreenStack() {
         name="Gateways"
         component={GatewaysScreen}
         options={{title: 'Gateways'}}
+        />
+      <Screen
+        name="CreateQRScreen"
+        component={CreateQRCode}
+        options={{title: 'Create QR Code'}}
         />
     </Navigator>
   );

@@ -8,11 +8,12 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { GlobalContext } from "../shared/context/GlobalContext";
 import { Device, Store_Tokens } from "../shared/types/CustomTypes";
 import { useFetch } from "../shared/hooks/useFetch";
-import { renderHiddenItem, renderItem } from "../shared/components/ListComponents";
 import { APIDeviceResponse } from "../shared/types/APIResponseTypes";
 import { ConvertToDevice } from "../shared/functions/ConvertFromAPI";
-import SearchBox from "../shared/components/SearchBox";
-import SearchIcon from "../shared/components/SearchIcon";
+import SearchBox from "../shared/components/atoms/SearchBox";
+import SearchIcon from "../shared/components/atoms/SearchIcon";
+import CardRow from "../shared/components/molecules/CardRow";
+import HiddenCardRow from "../shared/components/molecules/HiddenCardRow";
 
 export default function DevicesScreen({ route, navigation }) {
 
@@ -116,9 +117,6 @@ export default function DevicesScreen({ route, navigation }) {
 
     return (
         <View style={globalStyles.screen}>
-            {/* <View style={styles.offlineIcon}>
-                    <Offline isConnected={false} />
-                </View> */}
 
             {searchText != "" && !showSearch && <Text style={styles.searchText}>Search: {searchText}</Text>}
 
@@ -130,9 +128,16 @@ export default function DevicesScreen({ route, navigation }) {
 
             <SwipeListView
                 data={filteredData()}
-                renderItem={(item) => renderItem(item, handlePress, "Devices")}
-                keyExtractor={(item, index) => index.toString()}
-                renderHiddenItem={(data, rowMap) => renderHiddenItem(data, rowMap, toggleFavourite)}
+                renderItem={({ item, index }) => {
+                    return (
+                        <CardRow title={item.id} text={item.name} isFav={item.isFav} arrowImg={require("../assets/arrowBlue.png")} onPress={() => handlePress(item)}/>
+                    )
+                }}                keyExtractor={(item, index) => index.toString()}
+                renderHiddenItem={(data, rowMap) => {
+                    return (
+                        <HiddenCardRow isFav={data.item.isFav} onPress={() => toggleFavourite(data, rowMap)}/>
+                    )
+                }}                
                 leftOpenValue={80}
                 stopRightSwipe={1}
                 onRefresh={() => retry()}

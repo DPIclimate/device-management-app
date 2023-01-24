@@ -2,14 +2,14 @@ import React, { useContext, useEffect, useState } from "react";
 import { View, Text, StyleSheet, Image, TouchableOpacity, Alert } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { RowMap, SwipeListView } from "react-native-swipe-list-view";
-import Card from "../shared/components/Card";
+import Card from "../shared/components/atoms/Card";
 import { GlobalContext } from "../shared/context/GlobalContext";
 import { update_ttn_device } from "../shared/functions/InterfaceTTN";
 import { delete_update_from_storage, } from "../shared/functions/ManageLocStorage";
 import {useStoredDevices} from "../shared/hooks/useStoredDevices";
 import { DeviceUpdateRequest } from "../shared/types/CustomTypes";
 import globalStyles from "../styles";
-import { DescriptionUpdate, LocationUpdateCard } from "./cards/OfflineUpdateCards";
+import { DescriptionUpdate, LocationUpdateCard } from "../shared/components/organisms/cards/OfflineUpdateCards";
 
 export function SavedUpdatesScreen({ route, navigation }):JSX.Element {
     const [state, dispatch] = useContext(GlobalContext);
@@ -23,14 +23,14 @@ export function SavedUpdatesScreen({ route, navigation }):JSX.Element {
             return
         }
         
-        const { status, status_text } = await update_ttn_device(data.item, state.application_server, state.ttn_auth_token);
-        if (status==200){
-            Alert.alert("Success", "Successfully pushed this update to TTN.")
+        try{
+            await update_ttn_device(data.item, state.application_server, state.ttn_auth_token);
             await handleDelete(data, rowMap)
-            return
+            Alert.alert("Success", "Successfully pushed this update to TTN.")
         }
-        
-        Alert.alert("Update Failed", `Failed to push update to TTN. Error:${status} ${status_text}`)
+        catch(error){
+            Alert.alert("Update Failed", `Failed to push update to TTN. Error:${error}`)
+        }
     }
 
     const handleDelete = async (data, rowMap) => {
