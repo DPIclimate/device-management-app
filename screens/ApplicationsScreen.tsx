@@ -4,7 +4,7 @@ import globalStyles from "../styles";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { RowMap, SwipeListView } from "react-native-swipe-list-view";
 import { getFavs } from "../shared/functions/ManageLocStorage";
-import { useFetch } from "../shared/hooks/useFetch";
+import { useFetch, useFetchResponse } from "../shared/hooks/useFetch";
 import { GlobalContext } from "../shared/context/GlobalContext";
 import { Application, Store_Tokens } from "../shared/types/CustomTypes";
 import { APIApplicationsResponse } from "../shared/types/APIResponseTypes";
@@ -14,13 +14,15 @@ import SearchIcon from "../shared/components/atoms/SearchIcon";
 import SearchBox from "../shared/components/atoms/SearchBox";
 import CardRow from "../shared/components/molecules/CardRow";
 import HiddenCardRow from "../shared/components/molecules/HiddenCardRow";
+import { useApplications } from "../shared/hooks/useApplications";
 
 export default function ApplicationsScreen({ navigation }): JSX.Element {
     const [state, dispatch] = useContext(GlobalContext);
     const insets = useSafeAreaInsets();
 
     const [listData, changeData] = useState<Application[]>([]);
-    const { response, isLoading, error, retry } = useFetch(`${state.application_server}/api/v3/applications?field=description`);
+
+    const {response, isLoading, error, retry} = useApplications()
 
     const [searchText, setSearchText] = useState<string>("");
     const [showSearch, setShow] = useState<boolean>(false);

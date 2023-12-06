@@ -37,14 +37,3 @@ export function ConvertToApp(APIApp: APIApplicationsResponse, isFav: boolean): A
         isFav: isFav,
     };
 }
-
-export function ConvertToComm(APIComm: APICommResponse): CommMessage[] {
-    return APIComm.mac_state.recent_uplinks.map((msg) =>{  
-        return {
-            m_type:msg.payload?.m_hdr?.m_type,
-            rssi:msg.rx_metadata[0]?.channel_rssi,
-            snr:msg.rx_metadata[0]?.snr,
-            time:msg.received_at
-        }      
-    })
-}

@@ -1,20 +1,20 @@
 import { useContext, useEffect, useState } from 'react';
 import { GlobalContext } from '../context/GlobalContext';
 import { get_req_from_storage } from '../functions/ManageLocStorage';
-import { APIApplicationsResponse, APICommResponse, APIDeviceResponse, APIGatewayResponse } from '../types/APIResponseTypes';
+import { APIDeviceResponse } from '../types/APIResponseTypes';
 import * as Linking from 'expo-linking';
 
-export interface useFetchResponse{
-	response:APIApplicationsResponse[]|APIDeviceResponse[]|APIDeviceResponse|APIGatewayResponse[]|APICommResponse|undefined, //Response type depends on endpoint given to useFetch 
+interface useDeviceResponse{
+	response:APIDeviceResponse|undefined, //Response type depends on endpoint given to useFetch 
 	isLoading:boolean,
-	error:number|null,
+	error:string|null,
 	retry():void
 }
 
-export const useFetch = (url:string):useFetchResponse =>{
-	const [response, set_response] = useState<[]>();
+export const useDevice = (application_id:string, device_id:string):useDeviceResponse =>{
+	const [response, set_response] = useState<APIDeviceResponse>();
 	const [isLoading, setIsLoading] = useState<boolean>(true);
-	const [error, setError] = useState<number|null>(null);
+	const [error, setError] = useState<string|null>(null);
 	const [refetch, setRefetch] = useState<boolean>(false)
 
 	const [state, dispatch] = useContext(GlobalContext)
@@ -29,6 +29,8 @@ export const useFetch = (url:string):useFetchResponse =>{
 
 	useEffect(() => {
 
+        const url = `${state.application_server}/api/v3/applications/${application_id}/devices/${device_id}?field_mask=attributes,locations,description,name`
+
 		const abortCont:AbortController = new AbortController();
 
 		const fetchData = async():Promise<void> =>{
@@ -36,7 +38,6 @@ export const useFetch = (url:string):useFetchResponse =>{
 			if (state.network_status){
 				try{
 
-					console.log('fetching', url)
 					const resp:Response = await fetch(url, { 
 						signal: abortCont.signal,
 						headers:{
@@ -46,19 +47,17 @@ export const useFetch = (url:string):useFetchResponse =>{
 						method:'GET'
 					})
 
-					//Determine type of response from endpoint requested
-					const path=Linking.parse(url).path
 					if (resp.status === 200){
 						const json:any = await resp.json();
 						if (!json) return
 						set_response(json)
-						
-						setIsLoading(false);
+
+                        setIsLoading(false);
 						setError(null);
 						
 					}else{
-						console.log(resp.status)
-						setError(resp.status)
+						console.log("error requesting", resp.status, resp.statusText, url)
+						setError(resp.statusText)
 						setIsLoading(false)
 						set_response(null)
 					}
@@ -68,16 +67,22 @@ export const useFetch = (url:string):useFetchResponse =>{
 						console.log('Fetch aborted');
 					} else {
 						console.log("error in fetch hook", err.message)
-						// setError(err.message);
+						setError(err.message);
 						setIsLoading(false);
 					}
 				}
 
 			}else{
-				console.log('Offline, getting from storage', url)
 				//Get offline version of request
 				const path:string=Linking.parse(url).path
-				const store_response=await get_req_from_storage(path)
+				const store_response=await get_req_from_storage(path) as APIDeviceResponse
+                
+                if (store_response == null){
+                    setError("Not online and no data cached")
+                    setIsLoading(false)
+                    return
+                }
+
 				set_response(store_response)
 				setIsLoading(false)
 				setError(null)
@@ -85,7 +90,7 @@ export const useFetch = (url:string):useFetchResponse =>{
 		}
 		fetchData()
 		return () => abortCont.abort();
-	}, [url, refetch, state.network_status]);
+	}, [refetch, state.network_status]);
 
 	return { response, isLoading, error, retry };
 };

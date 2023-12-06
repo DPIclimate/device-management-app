@@ -1,57 +1,89 @@
 import React, { useContext, useEffect, useState } from "react";
 import { Col, Row, Grid } from "react-native-easy-grid";
-import { Text, View, ScrollView, StyleSheet, Image } from "react-native";
+import { Text, View, ScrollView, StyleSheet, Image, TouchableOpacity } from "react-native";
 import { formatTime } from "../../../functions/FormatTime";
 import { ManageDeviceContext } from "../../../context/ManageDeviceContext";
 import Card from "../../atoms/Card";
 import { LoadingComponent } from "../../atoms/LoadingComponent";
 import MngDeviceCard from "../../molecules/MngDeviceCard";
+import { CommMessage } from "../../../types/CustomTypes";
+import { APICommResponse } from "../../../types/APIResponseTypes";
 
-export function CommCard():JSX.Element {
+export function CommCard(): JSX.Element {
 
-    const {device_state, set_device_state, device_comm_data} = useContext(ManageDeviceContext);
+    const { device_state, set_device_state, device_comm_data } = useContext(ManageDeviceContext);
+    const [expanded_id, setExpanded_id] = useState<number>()
 
     return (
         <MngDeviceCard title="Communications">
-            
-            <ScrollView style={{height:device_comm_data.data==0?70:200}} showsVerticalScrollIndicator={false}>
+
+            <ScrollView style={{ height: device_comm_data.data == 0 ? 70 : 300 }} showsVerticalScrollIndicator={false}>
                 <Grid>
-                    <Row style={styles.cardRow}>
+                    <Row style={[styles.cardRow, { paddingLeft: 10, paddingRight: 10 }]}>
+                        <Col size={1}>
+                            <Text style={styles.title}>Date</Text>
+                        </Col>
                         <Col size={1}>
                             <Text style={styles.title}>Time</Text>
                         </Col>
                         <Col size={1}>
                             <Text style={styles.title}>RSSI</Text>
                         </Col>
-                        <Col size={1}>
-                            <Text style={styles.title}>SNR</Text>
+                        <Col size={2}>
+                            <Text style={styles.title}>Fields</Text>
                         </Col>
-                        <Col>
-                            <Text style={styles.title}>M_Type</Text>
+                        <Col size={0.5}>
                         </Col>
                     </Row>
+
                     <LoadingComponent isLoading={device_comm_data.isLoading} />
-                    {device_comm_data.data.length==0&&
+
+                    {device_comm_data.data.length == 0 &&
                         <Text style={styles.noComms}>No communication data to display</Text>
                     }
-                    {device_comm_data.data?.map((msg) => {
+                    {device_comm_data.data.map((msg: APICommResponse, index: number) => {
+
                         return (
-                            <Row style={styles.cardRow} key={msg.time}>
-                                <Col>
-                                    <Text>{formatTime(msg.time).time}</Text>
-                                </Col>
-                                <Col>
-                                    <Text>{msg.rssi}</Text>
-                                </Col>
-                                <Col>
-                                    <Text>{msg.snr}</Text>
-                                </Col>
-                                <Col>
-                                    <Text numberOfLines={1} adjustsFontSizeToFit>
-                                        {msg.m_type}
-                                    </Text>
-                                </Col>
-                            </Row>
+                            <TouchableOpacity key={msg.result.received_at} onPress={() => setExpanded_id(prev => prev === index ? undefined : index)}>
+                                <Card color="#f2f3f3" style={styles.card}>
+                                    <>
+                                        <Row style={styles.cardRow}>
+                                            <Col>
+                                                <Text>{formatTime(msg.result.received_at).dayMonth}</Text>
+                                            </Col>
+                                            <Col>
+                                                <Text>{formatTime(msg.result.received_at).time}</Text>
+                                            </Col>
+                                            <Col>
+                                                <Text>{msg.result.uplink_message.rx_metadata[0].rssi}</Text>
+                                            </Col>
+                                            <Col size={0.5}>
+                                                <Text>{Object.keys(msg.result.uplink_message.decoded_payload).length}</Text>
+                                            </Col>
+                                            <Col>
+                                                <Image source={expanded_id === index ? require("../../../../assets/arrowBlueUp.png"):require("../../../../assets/arrowBlueDown.png")} resizeMode="contain" style={styles.arrowDown} />
+                                            </Col>
+                                        </Row>
+                                        {expanded_id == index &&
+                                            <>
+                                                {Object.keys(msg.result.uplink_message.decoded_payload).map((item, index) => {
+                                                    return (
+                                                        <Row key={item} style={{marginTop:5}}>
+                                                            <Col size={2}>
+                                                                <Text>{item}:</Text>
+                                                            </Col>
+                                                            <Col size={1}>
+                                                                <Text>{msg.result.uplink_message.decoded_payload[item]}</Text>
+                                                            </Col>
+                                                        </Row>
+                                                    )
+                                                })
+                                                }
+                                            </>
+                                        }
+                                    </>
+                                </Card>
+                            </TouchableOpacity>
                         );
                     })}
                 </Grid>
@@ -81,14 +113,22 @@ const styles = StyleSheet.create({
         height: 20,
     },
     cardRow: {
-        marginTop: 10,
         alignItems: "center",
         justifyContent: "center",
+        width: "100%",
     },
     noComms: {
         alignSelf: "center",
         fontWeight: "bold",
         fontSize: 15,
-        marginTop:10
+        marginTop: 10
     },
+    card: {
+        marginTop: 10
+    },
+    arrowDown: {
+        width: 20,
+        height: 20,
+        alignSelf: 'flex-end',
+    }
 });

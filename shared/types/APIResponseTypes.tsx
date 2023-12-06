@@ -19,14 +19,14 @@ export interface APIDeviceResponse {
     };
     created_at: string;
     updated_at: string;
-    name: string|undefined;
-    description:string|undefined;
+    name: string | undefined;
+    description: string | undefined;
     locations: {
         user: {
             latitude: number;
             longitude: number;
             altitude: number;
-            accuracy:number;
+            accuracy: number;
             source: string;
         };
     } | undefined;
@@ -42,69 +42,62 @@ export interface APIGatewayResponse {
     };
     created_at: string;
     updated_at: string;
-    name:string|undefined;
-    description:string|undefined;
+    name: string | undefined;
+    description: string | undefined;
 }
 
 export interface APICommResponse {
-    ids: {
-        device_id: string;
-        application_ids: {
-            application_id: string;
-        };
-        dev_eui: string;
-        join_eui: string;
-        dev_addr: string;
-    };
-    created_at: string;
-    updated_at: string;
-    mac_state: {
-        recent_uplinks: [
-            {
-                payload: {
-                    m_hdr: {
-                        m_type: string;
-                    };
-                    mic: string;
-                    mac_payload: {
-                        f_hdr: {
-                            dev_addr: string;
-                            f_ctrl: {
-                                adr: boolean;
-                            };
-                            f_cnt: number;
-                        };
-                        f_port: number;
-                        frm_payload: string;
-                        full_f_cnt: number;
-                    };
-                };
-                settings: {
-                    data_rate: {
-                        lora: {
-                            bandwidth: number;
-                            spreading_factor: number;
-                            coding_rate: string;
-                        };
-                    };
-                };
-                rx_metadata: [
-                    {
-                        gateway_ids: {
-                            gateway_id: string;
-                        };
-                        channel_rssi: number;
-                        snr: number;
-                        uplink_token: string;
-                        packet_broker: {};
+    result: {
+        end_device_ids: {
+            device_id: string
+            application_ids: {
+                application_id: string
+            },
+            dev_eui: string
+            dev_addr: string
+        },
+        received_at: string
+        uplink_message: {
+            f_port: number
+            f_cnt: number
+            frm_payload: string
+            decoded_payload: any;
+            rx_metadata: [
+                {
+                    gateway_ids: {
+                        gateway_id: string
+                        eui: string
+                    },
+                    time: string
+                    timestamp: number
+                    rssi: number
+                    channel_rssi: number
+                    snr: number
+                    gps_time: string
+                    received_at: string
+                }
+            ],
+            settings: {
+                data_rate: {
+                    lora: {
+                        bandwidth: number
+                        spreading_factor: number
+                        coding_rate: string
                     }
-                ];
-                received_at: string;
-                device_channel_index: number;
+                },
+                frequency: number
+                timestamp: number
+                time: string
+            },
+            received_at: string
+            consumed_airtime: string
+            network_ids: {
+                net_id: number
+                ns_id: string
+                tenant_id: string
+                cluster_id: string
+                cluster_address: string
             }
-        ];
-    };
-    session: {
-        started_at: string;
-    };
+        }
+    }
 }

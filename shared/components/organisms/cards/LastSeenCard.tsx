@@ -36,7 +36,7 @@ export default function LastSeenCard() {
         */
 
         if (device_comm_data.data.length != 0) {
-            const recent = new Date(device_comm_data.data[0].time);
+            const recent = new Date(device_comm_data.data[0].result.received_at);
             const now = new Date();
             const diff = (now.getTime() - recent.getTime()) / 1000 / 60;
 

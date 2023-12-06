@@ -10,7 +10,7 @@ export const cacheCommData = async (ttn_auth_token: string, server: string, devi
     await Promise.all(
         devices.map(async (dev) => {
             try {
-                const url: string = `${server}/api/v3/ns/applications/${dev.ids.application_ids.application_id}/devices/${dev.ids.device_id}?field_mask=mac_state.recent_uplinks,pending_mac_state.recent_uplinks,session.started_at,pending_session`;
+                const url: string = `${server}/api/v3/as/applications/${dev.ids.application_ids.application_id}/devices/${dev.ids.device_id}/packages/storage/`;
                 const response: Response = await fetch(url, {
                     method: "GET",
                     headers:{
@@ -21,12 +21,19 @@ export const cacheCommData = async (ttn_auth_token: string, server: string, devi
                 
                 if (response.status == 200) {
                     const key = Linking.parse(url).path;
-                    const communications: APICommResponse = await response.json();
+
+                    const text = (await response.text()).trim().split("\n")
+
+                    if (text.length == 1){
+                        return
+                    }
+
+					const communications: APICommResponse[] = text.map(str => JSON.parse(str)) as APICommResponse[]                  
 
                     await writeToStorage(key, JSON.stringify(communications));
                 }
             } catch (error) {
-                console.log(error);
+                console.log("in caching", error);
             }
         })
     );

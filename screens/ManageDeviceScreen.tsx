@@ -6,13 +6,15 @@ import { DeviceCard } from "../shared/components/organisms/cards/DeviceCard";
 import { ManageDeviceContextProvider } from "../shared/context/ManageDeviceContext";
 import LastSeenCard from "../shared/components/organisms/cards/LastSeenCard";
 import { CommCard } from "../shared/components/organisms/cards/CommCard";
-import { useFetch } from "../shared/hooks/useFetch";
-import { ConvertToComm, ConvertToDevice } from "../shared/functions/ConvertFromAPI";
+import { useFetch, useFetchResponse } from "../shared/hooks/useFetch";
+import { ConvertToDevice } from "../shared/functions/ConvertFromAPI";
 import { APICommResponse, APIDeviceResponse } from "../shared/types/APIResponseTypes";
 import { LocationCard } from "../shared/components/organisms/cards/LocationCard";
 import { NotesCard } from "../shared/components/organisms/cards/NotesCard";
 import { useKeyboardHeight } from "../shared/hooks/useKeyboardHeight";
 import globalStyles from "../styles";
+import { useDevice } from "../shared/hooks/useDevice";
+import { useCommunications } from "../shared/hooks/useCommunications";
 
 export const ManageDeviceScreen = ({ route, navigation }): JSX.Element => {
     const [state, dispatch] = useContext(GlobalContext);
@@ -20,7 +22,7 @@ export const ManageDeviceScreen = ({ route, navigation }): JSX.Element => {
     const scrollViewRef = useRef();
 
     const [device_state, set_device_state] = useState<Device>(route.params.device);
-    const [device_comm_data, set_device_comm_data] = useState<CommMessage[]>([]);
+    const [device_comm_data, set_device_comm_data] = useState<APICommResponse[]>([]);
     const [scrollToEnd, set_scrollToEnd]=useState<boolean>(false);
 
     const {
@@ -28,18 +30,15 @@ export const ManageDeviceScreen = ({ route, navigation }): JSX.Element => {
         isLoading: dev_isLoading,
         error: dev_error,
         retry: dev_retry,
-    } = useFetch(
-        `${state.application_server}/api/v3/applications/${route.params.device.applications_id}/devices/${route.params.device.id}?field_mask=attributes,locations,description,name`
-    );
-
+    } = useDevice(route.params.device.applications_id, route.params.device.id)
+    
+    //Data on communication data
     const {
         response: comm_response,
         isLoading: comm_isLoading,
         error: comm_error,
         retry: comm_retry,
-    } = useFetch(
-        `${state.communication_server}/api/v3/ns/applications/${route.params.device.applications_id}/devices/${route.params.device.id}?field_mask=mac_state.recent_uplinks,pending_mac_state.recent_uplinks,session.started_at,pending_session`
-    );
+    } = useCommunications(route.params.device.applications_id, route.params.device.id)
 
     useLayoutEffect(() => {
         //Settings icon
@@ -51,10 +50,13 @@ export const ManageDeviceScreen = ({ route, navigation }): JSX.Element => {
     useEffect(() => {
         if (!comm_response || comm_isLoading) return;
 
-        const comm_data = comm_response as APICommResponse;
-
-        const formatted: CommMessage[] = ConvertToComm(comm_data);
-        set_device_comm_data(formatted.reverse());
+        set_device_comm_data(comm_response.sort((a,b) => {
+            //Sort most recent at top of list
+            if (new Date(a.result.received_at) < new Date(b.result.received_at)){
+                return 1
+            }
+            return -1;
+        } ))
     }, [comm_isLoading]);
 
     useEffect(() => {

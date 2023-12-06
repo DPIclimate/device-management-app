@@ -43,7 +43,7 @@ export const delete_update_from_storage = async (index: number): Promise<void> =
 
 export const get_req_from_storage = async (
     key: string
-): Promise<APIApplicationsResponse[] | APIDeviceResponse[] | APIDeviceResponse | APIGatewayResponse[] | APICommResponse | null> => {
+): Promise<any> => {
     /*
         return a stored request from storage. key=url path
     */

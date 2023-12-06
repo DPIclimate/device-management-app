@@ -7,13 +7,13 @@ import { getFavs } from "../shared/functions/ManageLocStorage";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { GlobalContext } from "../shared/context/GlobalContext";
 import { Device, Store_Tokens } from "../shared/types/CustomTypes";
-import { useFetch } from "../shared/hooks/useFetch";
 import { APIDeviceResponse } from "../shared/types/APIResponseTypes";
 import { ConvertToDevice } from "../shared/functions/ConvertFromAPI";
 import SearchBox from "../shared/components/atoms/SearchBox";
 import SearchIcon from "../shared/components/atoms/SearchIcon";
 import CardRow from "../shared/components/molecules/CardRow";
 import HiddenCardRow from "../shared/components/molecules/HiddenCardRow";
+import { useDevices } from "../shared/hooks/useDevices";
 
 export default function DevicesScreen({ route, navigation }) {
 
@@ -21,9 +21,10 @@ export default function DevicesScreen({ route, navigation }) {
     const insets = useSafeAreaInsets();
 
     const [listData, changeData] = useState<Device[]>([]);
-    const { response, isLoading, error, retry } = useFetch(
-        `${state.application_server}/api/v3/applications/${route.params.application.id}/devices?field_mask=attributes,locations,description,name`
-    );
+    // const { response, isLoading, error, retry }:useFetchResponse = useFetch(
+    //     `${state.application_server}/api/v3/applications/${route.params.application.id}/devices?field_mask=attributes,locations,description,name`
+    // );
+    const {response, isLoading, error, retry} = useDevices(route.params.application.id)
 
     const [searchText, setSearchText] = useState<string>("");
     const [showSearch, setShow] = useState<boolean>(false);
