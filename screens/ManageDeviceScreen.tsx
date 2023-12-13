@@ -50,13 +50,13 @@ export const ManageDeviceScreen = ({ route, navigation }): JSX.Element => {
     useEffect(() => {
         if (!comm_response || comm_isLoading) return;
 
-        set_device_comm_data(comm_response.sort((a,b) => {
-            //Sort most recent at top of list
-            if (new Date(a.result.received_at) < new Date(b.result.received_at)){
-                return 1
+        set_device_comm_data(comm_response.sort((a, b) => {
+            // Sort most recent at top of list
+            if (new Date(a.result.received_at) < new Date(b.result.received_at)) {
+                return 1;
             }
             return -1;
-        } ))
+        }).slice(0,10));
     }, [comm_isLoading]);
 
     useEffect(() => {

@@ -2,7 +2,7 @@
   "expo": {
     "name": "Device Management App",
     "slug": "deviceManagementApp",
-    "version": "2.4.1",
+    "version": "2.5.0",
     "icon": "./assets/icon.png",
     "scheme": "dma",
     "splash": {

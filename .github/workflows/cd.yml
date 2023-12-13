@@ -4,115 +4,118 @@ on:
     branches : [main]
     
 jobs:
-    build_android:
+  build_ios:
+    runs-on: ubuntu-latest
+    steps:
+      - name: 🏗 Setup repo
+        uses: actions/checkout@v3
+
+      - name: 🏗 Setup Node
+        uses: actions/setup-node@v3
+        with:
+          node-version: 20.x
+          cache: npm
+
+      - name: 🏗 Setup EAS
+        uses: expo/expo-github-action@v7
+        with:
+          packager: npm
+          eas-version: latest
+          token: ${{ secrets.EXPO_SECRET }}
+          expo-cache: true
+
+      - name: 📦 Install dependencies
+        run: npm install
+
+      - name: Build on EAS
+        run: eas build -p ios --non-interactive
+
+  deploy_ios:
+      name: Deploy on ios
+      needs: build_ios
+      runs-on: ubuntu-latest
+      steps:
+          - name: 🏗 Setup repo
+            uses: actions/checkout@v3
+
+          - name: 🏗 Setup Node
+            uses: actions/setup-node@v3
+            with:
+              node-version: 20.x
+              cache: npm
+      
+          - name: 🏗 Setup EAS
+            uses: expo/expo-github-action@v7
+            with:
+              packager: npm
+              eas-version: latest
+              token: ${{ secrets.EXPO_SECRET }}
+              expo-cache: true
+      
+          - name: 📦 Install dependencies
+            run: npm install
+
+          - name: Submit to testflight
+            run: EXPO_APPLE_APP_SPECIFIC_PASSWORD=${{ secrets.APPLE_APP_SPECIFIC_PASS }} eas submit -p ios --latest --non-interactive
+
+  build_android:
         name: Build for android
         runs-on: ubuntu-latest
         steps:
-        - name: Checkout
-          uses: actions/checkout@v2
-
-        - name: Setup Node.js
-          uses: actions/setup-node@v1
-          with:
-            node-version: 14.x
-
-        - name: Setup Expo
-          uses: expo/expo-github-action@v6
-          with:
-            expo-version: 4.x
-            token: ${{ secrets.EXPO_SECRET }}
-            expo-cache: true
-
-        - name: Install dependencies
-          run: npm ci
+          - name: 🏗 Setup repo
+            uses: actions/checkout@v3
+  
+          - name: 🏗 Setup Node
+            uses: actions/setup-node@v3
+            with:
+              node-version: 20.x
+              cache: npm
+  
+          - name: 🏗 Setup EAS
+            uses: expo/expo-github-action@v7
+            with:
+              packager: npm
+              eas-version: latest
+              token: ${{ secrets.EXPO_SECRET }}
+              expo-cache: true
+  
+          - name: 📦 Install dependencies
+            run: npm install
         
-        - name: Set environment vars
-          run: GOOGLE_MAPS_API_KEY=${{secrets.GOOGLE_MAPS_API_KEY}}
+          - name: Set environment vars
+            run: GOOGLE_MAPS_API_KEY=${{secrets.GOOGLE_MAPS_API_KEY}}
 
-        - name: Build on EAS
-          run: npx eas-cli build -p android --non-interactive
+          - name: Build on EAS
+            run: npx eas-cli build -p android --non-interactive
       
-    deploy_android:
+  deploy_android:
       name: Deploy to android
       needs: build_android
 
       runs-on: ubuntu-latest
       steps:
-      - name: Checkout
-        uses: actions/checkout@v2
+      - name: 🏗 Setup repo
+        uses: actions/checkout@v3
 
-      - name: Setup Node.js
-        uses: actions/setup-node@v1
+      - name: 🏗 Setup Node
+        uses: actions/setup-node@v3
         with:
-          node-version: 14.x
+          node-version: 20.x
+          cache: npm
 
-      - name: Setup Expo
-        uses: expo/expo-github-action@v6
+      - name: 🏗 Setup EAS
+        uses: expo/expo-github-action@v7
         with:
-          expo-version: 4.x
+          packager: npm
+          eas-version: latest
           token: ${{ secrets.EXPO_SECRET }}
           expo-cache: true
 
-      - name: Install dependencies
-        run: npm ci
+      - name: 📦 Install dependencies
+        run: npm install
       
       - name: Create google service key
         run: echo ${{secrets.GOOGLE_PLAY_KEY}} | base64 -d > ./google-api-key.json
 
       - name: Submit to google play
         run: npx eas-cli submit -p android --latest --non-interactive
-
-    build_ios:
-        name: Build for ios
-        runs-on: ubuntu-latest
-        needs: deploy_android
-
-        steps:
-        - name: Checkout
-          uses: actions/checkout@v2
-
-        - name: Setup Node.js
-          uses: actions/setup-node@v1
-          with:
-            node-version: 14.x
-
-        - name: Setup Expo
-          uses: expo/expo-github-action@v6
-          with:
-            expo-version: 4.x
-            token: ${{ secrets.EXPO_SECRET }}
-            expo-cache: true
-
-        - name: Install dependencies
-          run: npm ci
-
-        - name: Build on EAS
-          run: npx eas-cli build -p ios --non-interactive
-
-    deploy_ios:
-      name: Deploy on ios
-      needs: build_ios
-      runs-on: ubuntu-latest
-      steps:
-        - name: Checkout
-          uses: actions/checkout@v2
-          with:
-            persist-credentials: false
-
-        - name: Setup Node.js
-          uses: actions/setup-node@v1
-          with:
-            node-version: 14.x
-            
-        - name: Setup Expo
-          uses: expo/expo-github-action@v6
-          with:
-            expo-version: 4.x
-            token: ${{ secrets.EXPO_SECRET }}
-            expo-cache: true
-
-        - name: Install dependencies
-          run: npm ci
-
-        - name: Submit to testflight
-          run: EXPO_APPLE_APP_SPECIFIC_PASSWORD=${{ secrets.APPLE_APP_SPECIFIC_PASS }} npx eas-cli submit -p ios --latest --non-interactive
