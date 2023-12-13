@@ -59,6 +59,7 @@ jobs:
             run: EXPO_APPLE_APP_SPECIFIC_PASSWORD=${{ secrets.APPLE_APP_SPECIFIC_PASS }} eas submit -p ios --latest --non-interactive
 
   build_android:
+        needs: deploy_ios
         name: Build for android
         runs-on: ubuntu-latest
         steps:
