@@ -5,21 +5,20 @@ import globalStyles from "../styles";
 import { GlobalContext } from "../shared/context/GlobalContext";
 import { useFetch } from "../shared/hooks/useFetch";
 import { APIGatewayResponse } from "../shared/types/APIResponseTypes";
+import { useGateways } from "../shared/hooks/useGateways";
 
 export default function GatewaysScreen(): JSX.Element {
     const [state, dispatch] = useContext(GlobalContext);
 
-    const { response, isLoading, error, retry } = useFetch(`${state.application_server}/api/v3/gateways?field_mask=name,description`);
+    const {response, isLoading, error, retry} = useGateways()
 
     const calcLastSeen = (lastSeen: Date): number => {
-        /* 
-        return difference in time between lastSeen time and current time
-        */
-       
-       const now = new Date();
-       const diff = (now.getTime() - lastSeen.getTime()) / 1000 / 60;
-       return Math.round(diff);
+        const now = new Date();
+        const diffInMilliseconds = now.getTime() - lastSeen.getTime();
+        const diffInHours = diffInMilliseconds / (1000 * 60);
+        return Math.floor(diffInHours);
     };
+
     const renderItem = ({ item, index }) => {
         const gateway: APIGatewayResponse = item;
         return (
@@ -53,7 +52,11 @@ export default function GatewaysScreen(): JSX.Element {
         <SafeAreaView style={globalStyles.screen}>
             <FlatList
                 style={globalStyles.list}
-                data={(response as APIGatewayResponse[])?.sort((a, b) => a.updated_at < b.updated_at)}
+                data={(response as APIGatewayResponse[])?.sort((a, b) => {
+                    if (calcLastSeen(new Date(a.updated_at)) < calcLastSeen(new Date(b.updated_at))){
+                        return -1;
+                    }
+                })}
                 renderItem={(item) => renderItem(item)}
                 keyExtractor={(item, index) => index.toString()}
                 onRefresh={retry}

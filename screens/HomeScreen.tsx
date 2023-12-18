@@ -3,14 +3,12 @@ import { StyleSheet, Text, View, Image, ScrollView, ImageBackground, TouchableOp
 import globalStyles from "../styles";
 import { WelcomeScreen } from "./WelcomeScreen";
 import { Overlay } from "react-native-elements";
-import { Col, Row } from "react-native-easy-grid";
 import { useOrientation } from "../shared/hooks/useOrientation";
 import { cacheData } from "../shared/functions/cacheData";
 import { GlobalContext } from "../shared/context/GlobalContext";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { APIDeviceResponse } from "../shared/types/APIResponseTypes";
 import { ConvertToDevice } from "../shared/functions/ConvertFromAPI";
-import NavOptionsCard from "../shared/components/atoms/NavOptionsCard";
 import IconGrid from "../shared/components/organisms/IconGrid";
 import SettingsIcon from "../shared/components/atoms/SettingsIcon";
 
