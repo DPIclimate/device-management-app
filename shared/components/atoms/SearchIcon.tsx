@@ -7,6 +7,11 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 */
 
+/**
+ * Renders a search icon component.
+ * @param {Object} setShow - A function to toggle the visibility of the search component.
+ * @returns {JSX.Element} The rendered search icon component.
+ */
 export default function SearchIcon({setShow}) {
     const insets = useSafeAreaInsets();
 

@@ -12,6 +12,17 @@ interface MngDeviceCardProps {
     children: JSX.Element;
 }
 
+/**
+ * Renders a management device card component.
+ *
+ * @param {MngDeviceCardProps} props - The component props.
+ * @param {string} props.title - The title of the card.
+ * @param {ReactNode} props.children - The content of the card.
+ * @param {string | null} [props.iconImg=null] - The image source for the icon.
+ * @param {() => void | null} [props.onIconPress=null] - The callback function when the icon is pressed.
+ * @param {boolean} [props.isLoading=false] - Indicates if the card is in a loading state.
+ * @returns {JSX.Element} The rendered management device card component.
+ */
 export default function MngDeviceCard({ title, children, iconImg = null, onIconPress = null, isLoading = false }: MngDeviceCardProps) {
     return (
         <Card>

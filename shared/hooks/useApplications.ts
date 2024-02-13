@@ -11,6 +11,10 @@ interface useApplicationResponse{
 	retry():void
 }
 
+/**
+ * Custom hook for fetching applications data.
+ * @returns An object containing the response, loading state, error message, and retry function.
+ */
 export const useApplications = ():useApplicationResponse =>{
 	const [response, set_response] = useState<APIApplicationsResponse[]>();
 	const [isLoading, setIsLoading] = useState<boolean>(true);

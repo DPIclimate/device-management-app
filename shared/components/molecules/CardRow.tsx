@@ -10,6 +10,17 @@ interface CardRowParams{
     onPress():void | Promise<void>
 }
 
+/**
+ * Card row component for list such as applications and devices
+ * 
+ * @param title - The title of the card row
+ * @param text - The text content of the card row
+ * @param isFav - A boolean indicating whether the card row is marked as favorite
+ * @param arrowImg - The image source for the arrow icon
+ * @param onPress - The function to be called when the card row is pressed
+ * 
+ * @returns The rendered CardRow component
+ */
 export default function CardRow({title, text, isFav, arrowImg, onPress}:CardRowParams) {
     
     /*

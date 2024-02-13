@@ -6,6 +6,14 @@ interface HiddenCardRowParams{
     isFav:boolean
     onPress():void | Promise<void>
 }
+/**
+ * Renders a hidden card row component.
+ * 
+ * @param {Object} props - The component props.
+ * @param {boolean} props.isFav - Indicates whether the card is a favorite.
+ * @param {Function} props.onPress - The function to be called when the card is pressed.
+ * @returns {JSX.Element} The rendered hidden card row component.
+ */
 export default function HiddenCardRow({isFav, onPress}:HiddenCardRowParams) {
 
     return (

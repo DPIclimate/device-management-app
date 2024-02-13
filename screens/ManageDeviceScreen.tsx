@@ -16,6 +16,14 @@ import globalStyles from "../styles";
 import { useDevice } from "../shared/hooks/useDevice";
 import { useCommunications } from "../shared/hooks/useCommunications";
 
+/**
+ * Represents the screen component for managing a device.
+ * 
+ * @param route - The route object containing the device information.
+ * @param navigation - The navigation object for navigating between screens.
+ * @returns The JSX element representing the ManageDeviceScreen.
+ */
+
 export const ManageDeviceScreen = ({ route, navigation }): JSX.Element => {
     const [state, dispatch] = useContext(GlobalContext);
     const keyboardHeight = useKeyboardHeight();

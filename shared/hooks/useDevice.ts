@@ -11,6 +11,13 @@ interface useDeviceResponse{
 	retry():void
 }
 
+/**
+ * Custom hook for fetching device data from the server.
+ * 
+ * @param application_id - The ID of the application.
+ * @param device_id - The ID of the device.
+ * @returns An object containing the response, loading state, error message, and retry function.
+ */
 export const useDevice = (application_id:string, device_id:string):useDeviceResponse =>{
 	const [response, set_response] = useState<APIDeviceResponse>();
 	const [isLoading, setIsLoading] = useState<boolean>(true);

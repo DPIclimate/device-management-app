@@ -7,6 +7,11 @@ import { GlobalState_Actions, Regions } from "../../types/CustomTypes";
 import SegmentedControl from "../atoms/SegmentedControl";
 import SeparatorLine from "../atoms/SeparatorLine";
 
+/**
+ * Renders a card component for selecting a communication server.
+ * 
+ * @returns The rendered CommServerCard component.
+ */
 export default function CommServerCard() {
     const [state, dispatch] = useContext(GlobalContext);
 

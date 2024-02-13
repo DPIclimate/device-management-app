@@ -10,6 +10,16 @@ interface ModalViewParams{
   style?:StyleProp<ViewStyle>
 }
 
+/**
+ * Modal component for overlay views.
+ *
+ * @param children - The content to be displayed inside the modal.
+ * @param isVisible - Determines whether the modal is visible or not.
+ * @param set_isVisible - Callback function to update the visibility of the modal.
+ * @param isDismissible - Determines whether the modal can be dismissed by tapping outside.
+ * @param style - Additional styles to be applied to the modal.
+ * @returns The JSX element representing the modal view.
+ */
 export default function ModalView({children, isVisible, set_isVisible, isDismissible=true, style}:ModalViewParams):JSX.Element {
   /*
         Modal component for overlay views

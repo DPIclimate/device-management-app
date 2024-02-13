@@ -8,6 +8,15 @@ interface CardParams{
     style?:StyleProp<ViewStyle>
 }
 
+/**
+ * A customizable card component.
+ *
+ * @param color - The background color of the card. Default is "#fff".
+ * @param borderRadius - The border radius of the card. Default is 15.
+ * @param style - Additional styles to apply to the card.
+ * @param children - The content of the card.
+ * @returns The rendered card component.
+ */
 const Card = ({color="#fff", borderRadius=15, style, children}:CardParams):JSX.Element => {
     
     const styles = StyleSheet.create({

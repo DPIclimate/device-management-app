@@ -8,6 +8,20 @@ interface ButtonParams{
     style?:StyleProp<ViewStyle>
 }
 
+/**
+ * Renders a button component.
+ *
+ * @component
+ * @example
+ * // Example usage of Button component
+ * <Button text="Click me" onPress={() => console.log('Button pressed')} />
+ *
+ * @param {Object} props - The component props.
+ * @param {string} props.text - The text to display on the button.
+ * @param {function} props.onPress - The function to be called when the button is pressed.
+ * @param {boolean} [props.disabled=false] - Whether the button is disabled or not.
+ * @returns {JSX.Element} The rendered Button component.
+ */
 export default function Button({text, onPress, disabled=false, style}:ButtonParams):JSX.Element {
   return (
     <TouchableOpacity style={[styles.button, style]} onPress={onPress} disabled={disabled}>

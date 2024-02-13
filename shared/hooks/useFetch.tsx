@@ -11,6 +11,11 @@ export interface useFetchResponse{
 	retry():void
 }
 
+/**
+ * Custom hook for fetching data from a specified URL.
+ * @param url - The URL to fetch data from.
+ * @returns An object containing the response, loading state, error, and retry function.
+ */
 export const useFetch = (url:string):useFetchResponse =>{
 	const [response, set_response] = useState<[]>();
 	const [isLoading, setIsLoading] = useState<boolean>(true);

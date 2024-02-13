@@ -7,6 +7,14 @@ interface SegmentedControlProps {
     onChange: (index: number) => void;
 }
 
+/**
+ * Renders a segmented control component.
+ *
+ * @param options - An array of options for the segmented control.
+ * @param defaultIndex - The default index of the selected option (default: 0).
+ * @param onChange - A callback function triggered when the selected option changes.
+ * @returns The rendered segmented control component.
+ */
 export default function SegmentedControl({ options, defaultIndex=0, onChange }: SegmentedControlProps): JSX.Element {
     /*
         Segmented control component

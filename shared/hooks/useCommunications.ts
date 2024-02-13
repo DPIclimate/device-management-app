@@ -11,6 +11,13 @@ interface useCommsResponse{
 	retry():void
 }
 
+/**
+ * Custom hook for fetching communications data from the server.
+ * 
+ * @param application_id - The ID of the application.
+ * @param device_id - The ID of the device.
+ * @returns An object containing the response data, loading state, error message, and retry function.
+ */
 export const useCommunications = (application_id:string, device_id:string):useCommsResponse =>{
 	const [response, set_response] = useState<APICommResponse[]>();
 	const [isLoading, setIsLoading] = useState<boolean>(true);

@@ -9,6 +9,10 @@ import MngDeviceCard from "../../molecules/MngDeviceCard";
 import { CommMessage } from "../../../types/CustomTypes";
 import { APICommResponse } from "../../../types/APIResponseTypes";
 
+/**
+ * Renders a communication card component.
+ * @returns JSX.Element representing the communication card.
+ */
 export function CommCard(): JSX.Element {
 
     const { device_state, set_device_state, device_comm_data } = useContext(ManageDeviceContext);
@@ -42,50 +46,58 @@ export function CommCard(): JSX.Element {
                         <Text style={styles.noComms}>No communication data to display</Text>
                     }
                     {device_comm_data.data.map((msg: APICommResponse, index: number) => {
-
-                        return (
-                            <TouchableOpacity key={msg.result.received_at} onPress={() => setExpanded_id(prev => prev === index ? undefined : index)}>
-                                <Card color="#f2f3f3" style={styles.card}>
-                                    <>
-                                        <Row style={styles.cardRow}>
-                                            <Col>
-                                                <Text>{formatTime(msg.result.received_at).dayMonth}</Text>
-                                            </Col>
-                                            <Col>
-                                                <Text>{formatTime(msg.result.received_at).time}</Text>
-                                            </Col>
-                                            <Col>
-                                                <Text>{msg.result.uplink_message.rx_metadata[0].rssi}</Text>
-                                            </Col>
-                                            <Col size={0.5}>
-                                                <Text>{Object.keys(msg.result.uplink_message.decoded_payload).length}</Text>
-                                            </Col>
-                                            <Col>
-                                                <Image source={expanded_id === index ? require("../../../../assets/arrowBlueUp.png"):require("../../../../assets/arrowBlueDown.png")} resizeMode="contain" style={styles.arrowDown} />
-                                            </Col>
-                                        </Row>
-                                        {expanded_id == index &&
-                                            <>
-                                                {Object.keys(msg.result.uplink_message.decoded_payload).map((item, index) => {
-                                                    return (
-                                                        <Row key={item} style={{marginTop:5}}>
-                                                            <Col size={2}>
-                                                                <Text>{item}:</Text>
-                                                            </Col>
-                                                            <Col size={1}>
-                                                                <Text>{msg.result.uplink_message.decoded_payload[item]}</Text>
-                                                            </Col>
-                                                        </Row>
+                            return (
+                                <TouchableOpacity key={msg.result.received_at} onPress={() => setExpanded_id(prev => prev === index ? undefined : index)}>
+                                    <Card color="#f2f3f3" style={styles.card}>
+                                        <>
+                                            <Row style={styles.cardRow}>
+                                                <Col>
+                                                    <Text>{formatTime(msg.result.received_at).dayMonth}</Text>
+                                                </Col>
+                                                <Col>
+                                                    <Text>{formatTime(msg.result.received_at).time}</Text>
+                                                </Col>
+                                                <Col>
+                                                    <Text>{msg.result.uplink_message.rx_metadata[0].rssi}</Text>
+                                                </Col>
+                                                <Col size={0.5}>
+                                                    {msg.result.uplink_message.decoded_payload ? (
+                                                        <Text>{Object.keys(msg.result.uplink_message.decoded_payload).length}</Text>
                                                     )
-                                                })
+                                                    :
+                                                    (
+                                                        <Text>0</Text>
+                                                    )
                                                 }
-                                            </>
-                                        }
-                                    </>
-                                </Card>
-                            </TouchableOpacity>
-                        );
-                    })}
+                                                </Col>
+                                                <Col>
+                                                    <Image source={expanded_id === index ? require("../../../../assets/arrowBlueUp.png") : require("../../../../assets/arrowBlueDown.png")} resizeMode="contain" style={styles.arrowDown} />
+                                                </Col>
+                                            </Row>
+                                            {(expanded_id == index && msg.result.uplink_message.decoded_payload ) &&
+                                                <>
+                                                    {Object.keys(msg.result.uplink_message.decoded_payload).map((item, index) => {
+                                                        return (
+                                                            <Row key={item} style={{ marginTop: 5 }}>
+                                                                <Col size={2}>
+                                                                    <Text>{item}:</Text>
+                                                                </Col>
+                                                                <Col size={1}>
+                                                                    <Text>{msg.result.uplink_message.decoded_payload[item]}</Text>
+                                                                </Col>
+                                                            </Row>
+                                                        )
+                                                    })
+                                                    }
+                                                </>
+                                            }
+                                        </>
+                                    </Card>
+                                </TouchableOpacity>
+                            );
+                    }
+
+                    )}
                 </Grid>
             </ScrollView>
         </MngDeviceCard>
