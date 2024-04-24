@@ -1,8 +1,9 @@
 {
   "expo": {
     "name": "Device Management App",
+    "owner": "digitalag",
     "slug": "deviceManagementApp",
-    "version": "2.5.2",
+    "version": "2.5.3",
     "icon": "./assets/icon.png",
     "scheme": "dma",
     "splash": {
